@@ -1,0 +1,9 @@
+Package: DMADtools
+Type: Package
+Title: Functions and tools for data analysis.
+Version: 1.0
+Date: 2025-03-19
+Author: Christian Maino Vieytes (DMAD/CPPE DC Health)
+Maintainer: Christian Maino Vieytes <christian.maino-vieytes@dc.gov>
+Description: Tools for analyzing health and vital records data. Tools for tabulation.
+License: GPL-3.0

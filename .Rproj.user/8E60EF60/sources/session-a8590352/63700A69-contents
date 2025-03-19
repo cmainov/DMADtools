@@ -1,0 +1,15 @@
+var2 = NULL; table.grouping = NULL; digs.perc = 1; digs.rate = 2;
+add.summary.row = TRUE; summary.row.name = NULL; add.summary.col = TRUE; 
+summary.col.name = NULL; order.rows = NULL; order.cols = NULL; order.groups = NULL; foot.lines = c(); remove.cols = NULL;
+table.title = NULL; metric = c( "count", "rate" ); nm.var1 = NULL; count.supp = NULL;
+rate.supp = NULL; count.supp.symbol = "--"; rate.supp.symbol = "*"; 
+per = 1000; NAs.footnote = FALSE; percentages.rel = "var1";
+include.percent.sign = TRUE
+
+d = d.example;
+metric = c( "count", "percent" );
+var1 = "v1";
+add.summary.row = T;
+add.summary.col = T;
+var2 = "v2";
+percentages.rel = "var1"

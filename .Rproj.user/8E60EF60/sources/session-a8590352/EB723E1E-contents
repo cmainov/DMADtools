@@ -1,0 +1,79 @@
+#' @param d A data frame or tibble. Data must be the exact subset of data that needs to analyzed for the table generation.
+#' @param var1: A string. Name of first variable to stratify on (as it appears in the input data, `d`). Cannot be  `NULL`.
+#' @param var2: A string. Name of second variable to stratify on (as it appears in the input data, `d`). Can be `NULL` if only one variable is required and there is no cross-tabulation or if `table.grouping` and `var1` are specified for a cross-tabulation instead.
+#' @param metric A vector of string(s). One or two of: "percent", "rate", "count". Can select up to two options to plot at maximum.
+#' @param table.grouping A string or `NULL` (if no grouping in table is desired). Name of variable to create grouped output table with (creates grouping rows in the table). Can be 1 variable at maximum.
+#' @param add.summary.col A logical. Add a row with unaggregated results (based on `var2`). Note that this argument is inconsequential if `var2 == NULL`.
+#' @param add.summary.row A logical. Add a row with unaggregated results (based on `var1`). `TRUE` is default and the name given to the row is "Summary Row". If another name is desired, it can be specified with `summary.row.name` and its order/position can be specified with the `order.rows` argument.
+#' @param summary.col.name A string. Name to appear for summary column header. Default is "All". This option is only relevant if `add.summary.col == TRUE`.
+#' @param summary.row.name A string. Name to appear for summary row label. Default is "Summary Row". This option is only relevant if `add.summary.row == TRUE`.
+#' @param digs.perc An integer. Digits to round percents to.
+#' @param digs.rate An integer. Digits to round rates to.
+#' @param order.rows A vector with the levels in custom order of the stratifying variable in the rows(typically `var1` but can also be `table.grouping` depending on how the function is specified). Entries must match levels of stratifying variable exactly. If there are any levels of the row variable missing, they are omitted from the final table. Note that any rows removed from the final table do not remove that level from the data itself. If desired, that must be done outside the function with a data step.
+#' @param order.cols A vector with the levels in custom order of the stratifying variable in the columns (typically `var2` but can also be `table.grouping` depending on how the function is specified). Must match the columns in the final table including the summary column name if `add.summary.col == TRUE` and `summary.col.name` is specified. If there are any levels of the column variable missing, they are omitted from the final table.
+#' @param order.groups A vector with the levels in custom order of the grouping variable in the columns. Must match the grouping variable (`table.grouping`) names in the final table. if there are any levels of the grouping variable missing, they are omitted from the final table. the orders of the rows within the group are preserved as indicated in `order.rows`. this argument is only valid if `!is.null( var2 ) & !is.null( table.grouping )`.
+#' @param foot.lines A vector with entries (strings) corresponding to each footline to be added to the table.
+#' @param remove.cols A string. The string is fed to `select( -contains( remove.cols` ) )` to remove undesired columns from the final table. Should be based off of columns seen in final generated table.
+#' @param table.title A string. Name of table to display as the title. `NULL` is default for no title in the table.
+#' @param nm.var1 A string. Name of `var1` that you would like to appear in the table. `NULL` is default, which prompts the column name as it is written in the input dataset, `d`.
+#' @param count.supp an integer or  `NULL` if suppression of counts below a certain threshold is desired, specify the integer value. Any cells with counts less than `count.supp` will be suppressed. default is `NULL`.
+#' @param rate.supp An integer or  `NULL` if suppression of rates where the count the rate is based off is less than some threshold. Any cells with rates based on counts less than `rate.supp` will be suppressed. default is `NULL`.
+#' @param count.supp.symbol A string. The character to display in the table where the count is suppressed.
+#' @param rate.supp.symbol A string. The character to display in the table where the rate is suppressed.
+#' @param per A numeric. The denominator "per" value to use for computing rates. Default is per `1000` (e.g., 25 births per 1,000 individuals).
+#' @param NAs.footnote A logical. Include footnotes detailing number of missing values in the dataset based on `var1` and `var2`?
+#' @param percentages.rel A string. One of "var1" or "var2" or "table.grouping". Is the variables with which percentages should be calculated with respect to. `table.grouping` can only be specified if only `var1` is specified and `var2 == NULL`.
+#' @param include.percent.sign A logical. Include percent sign in percents columns?
+
+
+
+
+
+
+set.seed( 425 )
+
+d.example <- data.frame()
+
+for( i in 1:500 ){
+  
+  # variable 1
+  v1 <- sample( x = c( 1:3 ), size = 1,
+                replace = TRUE,
+                prob = c( 0.33, 0.5, 0.17 ) )
+  
+  v1.label <- c( "Geo 1", "Geo 2", "Geo 3" )[ v1 ]
+  
+  # variable 2
+  v2 <- sample( x = c( 1:4 ), size = 1,
+                replace = TRUE,
+                # assign conditional probabilities based on value of `v1`
+                prob = { if( v1 == 1 ) c( 0.2, 0.6, 0.1, 0.1 )
+                  else if( v1 == 2 ) c( 0.3, 0.4, 0.2, 0.1 ) 
+                  else if( v1 == 3 ) c( 0.5, 0.2, 0.2, 0.1 ) } )
+  
+  v2.label <- c( "Char 1", "Char 2", "Char 3", "Char 3" )[ v2 ]
+  
+  # variable 3
+  v3 <- sample( x = c( 1:2 ), size = 1,
+                replace = TRUE,
+                prob = c( 0.52, 0.48 ) )
+  
+  v3.label <- c( "Other Char 1", "Other Char 2", "Other Char 3", "Other Char 3" )[ v2 ]
+  
+  # assign to `data.frame` and bind
+  d.example <- rbind( d.example,
+                      data.frame( v1 = v1.label,
+                                  v2 = v2.label,
+                                  v3 = v3.label ) )
+  
+  
+}
+
+
+summary_table( d = d.example,
+                metric = c( "count", "percent" ),
+               var1 = "v1",
+               add.summary.row = T,
+               add.summary.col = T,
+               var2 = "v2",
+               percentages.rel = "var1" )
