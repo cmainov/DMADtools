@@ -1,0 +1,17 @@
+pop.nm <- if( !is.null( pop.var ) ) pop.var else "none"
+
+
+d.nomiss %>%
+  reframe( ., no_count = n(),
+         pop = { if( "rate" %in% metric & !is.null( pop.nm ) )  unique( !!sym( pop.nm ) ) else 1 },
+         pop_rate = { if( "rate" %in% metric & !is.null( pop.nm ) )  per * no_count / pop else 1 },
+         .by = c( !!sym( var1 ), !!sym( var2 ) ) )
+
+
+d.nomiss %>%
+  reframe( ., no_count = n(),
+           pop = ifelse( "rate" %in% metric & !is.null( pop.var ),
+                         unique( !!sym( "none" ) ), 1 ) )
+
+           pop_rate = { if( "rate" %in% metric & !is.null( pop.var ) )  per * no_count / pop else 1 },
+           .by = c( !!sym( var1 ), !!sym( var2 ) ) )

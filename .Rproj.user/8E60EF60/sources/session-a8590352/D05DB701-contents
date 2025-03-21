@@ -482,11 +482,11 @@ summary_births <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, 
     pull( tot_births_yr )
   
   d.2 <- d.2 %>%
-    mutate( tot_count_yr = ifelse( is.na( tot_count_yr ) & 
-                                     !!sym( var.ref ) == sum.row.nm, totals.patch, tot_count_yr ),
-            count_perc = ifelse( ( count_perc %in% c( "NA", paste0( "NA", symb.1 ) ) | is.na( count_perc ) ) & 
-                                   !!sym( var.ref ) == sum.row.nm, paste0( sprintf( paste0( "%.", digs.perc, "f" ), ( 100 * no_count ) / tot_count_yr ), symb.1 ),
-                                 count_perc ) )
+    mutate( tot_births_yr = ifelse( is.na( tot_births_yr ) & 
+                                     !!sym( var.ref ) == sum.row.nm, totals.patch, tot_births_yr ),
+            births_perc = ifelse( ( births_perc %in% c( "NA", paste0( "NA", symb.1 ) ) | is.na( births_perc ) ) & 
+                                   !!sym( var.ref ) == sum.row.nm, paste0( sprintf( paste0( "%.", digs.perc, "f" ), ( 100 * no_births  ) / tot_births_yr ), symb.1 ),
+                                 births_perc ) )
   
   
   ## birth counts ##
@@ -1199,3 +1199,9 @@ summary_births <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, 
 
 
 
+summary_births( d =d, table.grouping = "idob_yr",
+                metric = c( "count", "rate"),
+                var1 = "m_race_eth_2", var2 = NULL,
+                NAs.footnote = TRUE,
+                add.summary.row = TRUE,
+                table.title = "title", add.summary.col = TRUE)

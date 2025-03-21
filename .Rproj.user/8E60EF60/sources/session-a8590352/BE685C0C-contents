@@ -17,10 +17,10 @@
 #' @import tibble
 #' @import officer
 #'
-#' @usage summary_table( d, var1 = var1, var2 = NULL, table.grouping = NULL, digs.perc = 1, digs.rate = 2,
+#' @usage summary_table( d, var1 = var1, var2 = NULL, table.grouping = NULL, metric = c( "count", "rate" ),
 #' add.summary.row = TRUE, summary.row.name = NULL, add.summary.col = TRUE, 
 #' summary.col.name = NULL, order.rows = NULL, order.cols = NULL, order.groups = NULL, foot.lines = c(), remove.cols = NULL,
-#' table.title = NULL, metric = c( "count", "rate" ), nm.var1 = NULL, count.supp = NULL,
+#' table.title = NULL,  nm.var1 = NULL, count.supp = NULL, digs.perc = 1, digs.rate = 2,
 #' rate.supp = NULL, count.supp.symbol = "--", rate.supp.symbol = "*", 
 #' per = 1000, NAs.footnote = FALSE, percentages.rel = "var1",
 #' include.percent.sign = TRUE )
@@ -28,8 +28,9 @@
 #' @param d A data frame or tibble. Data must be the exact subset of data that needs to analyzed for the table generation.
 #' @param var1: A string. Name of first variable to stratify on (as it appears in the input data, `d`). Cannot be  `NULL`.
 #' @param var2: A string. Name of second variable to stratify on (as it appears in the input data, `d`). Can be `NULL` if only one variable is required and there is no cross-tabulation or if `table.grouping` and `var1` are specified for a cross-tabulation instead.
-#' @param metric A vector of string(s). One or two of: "percent", "rate", "count". Can select up to two options to plot at maximum.
+#' @param metric A vector of string(s). One or two of: "percent", "rate", "count". Can dplyr::select up to two options to plot at maximum.
 #' @param table.grouping A string or `NULL` (if no grouping in table is desired). Name of variable to create grouped output table with (creates grouping rows in the table). Can be 1 variable at maximum.
+#' @param pop.var A string or `NULL`. Variable in `d` with population count data for computing rates if "rate" is dplyr::selected in `metric`. This is normally an aggregate variable.
 #' @param add.summary.col A logical. Add a row with unaggregated results (based on `var2`). Note that this argument is inconsequential if `var2 == NULL`.
 #' @param add.summary.row A logical. Add a row with unaggregated results (based on `var1`). `TRUE` is default and the name given to the row is "Summary Row". If another name is desired, it can be specified with `summary.row.name` and its order/position can be specified with the `order.rows` argument.
 #' @param summary.col.name A string. Name to appear for summary column header. Default is "All". This option is only relevant if `add.summary.col == TRUE`.
@@ -40,7 +41,7 @@
 #' @param order.cols A vector with the levels in custom order of the stratifying variable in the columns (typically `var2` but can also be `table.grouping` depending on how the function is specified). Must match the columns in the final table including the summary column name if `add.summary.col == TRUE` and `summary.col.name` is specified. If there are any levels of the column variable missing, they are omitted from the final table.
 #' @param order.groups A vector with the levels in custom order of the grouping variable in the columns. Must match the grouping variable (`table.grouping`) names in the final table. if there are any levels of the grouping variable missing, they are omitted from the final table. the orders of the rows within the group are preserved as indicated in `order.rows`. this argument is only valid if `!is.null( var2 ) & !is.null( table.grouping )`.
 #' @param foot.lines A vector with entries (strings) corresponding to each footline to be added to the table.
-#' @param remove.cols A string. The string is fed to `select( -contains( remove.cols` ) )` to remove undesired columns from the final table. Should be based off of columns seen in final generated table.
+#' @param remove.cols A string. The string is fed to `dplyr::select( -contains( remove.cols` ) )` to remove undesired columns from the final table. Should be based off of columns seen in final generated table.
 #' @param table.title A string. Name of table to display as the title. `NULL` is default for no title in the table.
 #' @param nm.var1 A string. Name of `var1` that you would like to appear in the table. `NULL` is default, which prompts the column name as it is written in the input dataset, `d`.
 #' @param count.supp an integer or  `NULL` if suppression of counts below a certain threshold is desired, specify the integer value. Any cells with counts less than `count.supp` will be suppressed. default is `NULL`.
@@ -102,6 +103,18 @@
 #'   
 #' }
 #' 
+#' # assign population data for computing rates (aggregate variable)
+#' set.seed( 5789 )
+#' 
+#' pop.1 <- sample( 50000:60000, size = 1 )
+#' pop.2 <- sample( 350000:360000, size = 1 )
+#' pop.3 <- sample( 70000:860000, size = 1 )
+#' 
+#' d.example$v_pop <- ifelse( d.example$v1 == "Geo 1", pop.1,
+#'                            ifelse( d.example$v1 == "Geo 2", pop.2,
+#'                                    ifelse( d.example$v1 == "Geo 3", pop.3,
+#'                                            NA ) ) )
+#' 
 #' 
 #' summary_table( d = d.example,
 #'                metric = c( "count", "percent" ),
@@ -110,13 +123,53 @@
 #'                add.summary.col = T,
 #'                var2 = "v2",
 #'                percentages.rel = "var1" )
+#' 
+#' 
+#' # alternate percentages.rel parameter
+#' summary_table( d = d.example,
+#'                metric = c( "count", "percent" ),
+#'                var1 = "v1",
+#'                add.summary.row = T,
+#'                add.summary.col = T,
+#'                var2 = "v2",
+#'                percentages.rel = "var2" )
+#'    
+#' # specify var1 and table.grouping instead of var1 and var2, 
+#' # note, the change in percentages.rel            
+#' summary_table( d = d.example,
+#'                metric = c( "count", "percent" ),
+#'                var1 = "v1",
+#'                table.grouping = "v2",
+#'                add.summary.row = T,
+#'                add.summary.col = T,
+#'                percentages.rel = "table.grouping" )
+#'
+#'# do a 3-way tabulation
+#' summary_table( d = d.example,
+#'                metric = c( "count", "percent" ),
+#'                var1 = "v1",
+#'                var2 = "v3",
+#'                table.grouping = "v2",
+#'                add.summary.row = TRUE,
+#'                add.summary.col = TRUE,
+#'                percentages.rel = "var2" )
+#'      
+#' # example with rate computation and add.summary.row and add.summary.col are TRUE
+#' summary_table( d = d.example,
+#'                metric = c( "count", "rate" ),
+#'                var1 = "v1",
+#'                add.summary.row = TRUE,
+#'                add.summary.col = TRUE,
+#'                var2 = "v2",
+#'                percentages.rel = "var2",
+#'                pop.var = "v_pop" )
 #'
 #' @export
 
 summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, digs.perc = 1, digs.rate = 2,
-                           add.summary.row = TRUE, summary.row.name = NULL, add.summary.col = TRUE, 
-                           summary.col.name = NULL, order.rows = NULL, order.cols = NULL, order.groups = NULL, foot.lines = c(), remove.cols = NULL,
-                           table.title = NULL, metric = c( "count", "rate" ), nm.var1 = NULL, count.supp = NULL,
+                           add.summary.row = TRUE, summary.row.name = NULL, add.summary.col = TRUE, pop.var = NULL,
+                           summary.col.name = NULL, order.rows = NULL, order.cols = NULL, order.groups = NULL, foot.lines = c(), 
+                           table.title = NULL, metric = c( "count", "rate" ), nm.var1 = NULL, count.supp = NULL, remove.cols = NULL,
                            rate.supp = NULL, count.supp.symbol = "--", rate.supp.symbol = "*", 
                            per = 1000, NAs.footnote = FALSE, percentages.rel = "var1",
                            include.percent.sign = TRUE ){
@@ -134,9 +187,9 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
   # order.cols = a vector with the levels in custom order of the stratifying variable in the columns. must match the columns in the final table including the summary column name if `add.summary.col` == TRUE and `summary.col.name` is specified.if there are any levels of the column variable missing, they are omitted from the final table.
   # order.groups = a vector with the levels in custom order of the grouping variable in the columns. must match the grouping variable names in the final table. if there are any levels of the grouping variable missing, they are omitted from the final table. the orders of the rows within the group are preserved as indicated in `order.rows`. this argument is only valid if !is.null(var2) & !is.null(table.grouping).
   # foot.lines = a vector with entries corresponding to each footline to be added to the table.
-  # remove.cols - a string. the string is fed to `select( -contains( remove.cols` ) )` to remove undesired columns from the final table.
+  # remove.cols - a string. the string is fed to `dplyr::select( -contains( remove.cols` ) )` to remove undesired columns from the final table.
   # table.title = a string. name of table to be given to title. NULL is default and for no title in the table.
-  # metric = a vector of strings. one or two of: "percent", "rate", "count". can select two options to plot, max.
+  # metric = a vector of strings. one or two of: "percent", "rate", "count". can dplyr::select two options to plot, max.
   # table.grouping = a string or NULL (if no grouping in table is desired). name of variable to create grouped output table with (creates grouping rows in the table). can be max 1 variable
   # nm.var1 = a string. name of var1 that you would like to appear in the table. NULL is default, which prompts the column name as it is written in the input dataset `d`.
   # count.supp = an integer or NULL. if suppression of counts below a certain threshold is desired, specify the integer value. any cells with counts less than `count.supp` will be suppressed. default is NULL
@@ -149,7 +202,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
   # include.percent.sign = a logical. include percent sign in percents columns?
   
   # NOTE: that the ACS population data must already be included in the data as an aggregate-level (city-level) variable
-  # with name: `total_pop`
+  # with name: `pop.var`
   # NOTE: `var1` appears in the rows and `var2` appears in the columns of the resulting table
   
   # dependencies: dplyr, stringr, flextable, tibble, eRTG3D, officer
@@ -169,10 +222,6 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
       error( "`summary.row.name` must be a string." )
   }
   
-  if( is.null( d[[ "total_pop" ]] & any( str_detect( metric, "rate" ) ) ) ){
-    stop( "`total_pop` variable not detected in dataset. Ensure that ACS population data (city-level) are stored in `total_pop` variable." )
-  }
-  
   if( !is.null( order.groups )){
     if ( ( !is.null( var2 ) & is.null( table.grouping ) ) |
          ( is.null( var2 ) & !is.null( table.grouping ) ) ){
@@ -190,9 +239,10 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
     warning( "A name was provided to `summary.row.name` but `add.summary.row` was indicated as NULL. Note that `summary.row.name` will be irrelevant in this case unless `add.summary.row` is changed to TRUE" )
   }
   
-  if( is.null( d[[ "total_pop" ]] & any( str_detect( metric, "rate" ) ) ) ){
-    stop( "`total_pop` variable not detected in dataset. Ensure that ACS population data (city-level) are stored in `total_pop` variable." )
+  if( is.null( pop.var ) & any( str_detect( metric, "rate" ) ) ){
+    stop( "`pop.var` variable not detected in dataset. Ensure that population count data (aggregate-level) are stored in `pop.var` variable." )
   }
+  
   if( !is.null( var1 ) & !is.null( var2 ) & !percentages.rel %in% c( "var1", "var2" ) ){
     stop( "`percentages.rel` should be one of 'var1 or 'var2'. " )
   }
@@ -258,6 +308,8 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
   }
   
   
+  ## pop variable reassignment ##
+  pop.nm <- if( !is.null( pop.var ) ) pop.var else "none"
   
   # variable logic #
   
@@ -366,30 +418,30 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
                  { if( tb.grp.logic ){ # first condition is if a table grouping is specified, then the results are grouped by the `table.grouping` variable
                    reframe( ., group = !!sym( table.grouping),  # NOTE: `dplyr::reframe` is a more generalized version of `dplyr::summarise`
                             no_count = n(),
-                            pop = { if( "rate" %in% metric )  unique( total_pop ) },
+                            pop = { if( "rate" %in% metric )  unique( !!sym( pop.nm ) ) },
                             pop_rate = { if( "rate" %in% metric )  per * no_count / pop },
                             .by = c( !!sym( table.grouping ), !!sym( var1 ) , !!sym( var2 ) ) ) # grouped summarise results, grouping variable included
                  } else {
                    reframe( ., no_count = n(),
-                            pop = { if( "rate" %in% metric )  unique( total_pop ) },
+                            pop = { if( "rate" %in% metric )  unique( !!sym( pop.nm ) ) },
                             pop_rate = { if( "rate" %in% metric )  per * no_count / pop },
                             .by = c( !!sym( var1 ), !!sym( var2 ) ) ) } } %>%  # grouped summarise results, grouping variable NOT included
-                 { if( tb.grp.logic ) select( ., -!!sym( table.grouping ) ) else . } %>%  # conditional piping line     
+                 { if( tb.grp.logic ) dplyr::select( ., -!!sym( table.grouping ) ) else . } %>%  # conditional piping line     
                  distinct(),
                { if( add.summary.col ){ # now add data not stratified. if indicated in `add.summary.col` argument
                  d.nomiss %>%
                    { if( tb.grp.logic ){ 
                      reframe( ., group = !!sym( table.grouping),
                               no_count = n(),
-                              pop = { if( "rate" %in% metric )  unique( total_pop ) }, # need to do sum of population over all levels, otherwise we get unidentified rows
+                              pop = { if( "rate" %in% metric )  unique( !!sym( pop.nm ) ) }, # need to do sum of population over all levels, otherwise we get unidentified rows
                               pop_rate = { if( "rate" %in% metric )  per * no_count / pop },
                               .by = c( !!sym( table.grouping ), !!sym( var1 ) ) )
                    } else {
                      reframe( ., no_count = n(),
-                              pop = { if( "rate" %in% metric )  sum( total_pop ) },
+                              pop = { if( "rate" %in% metric )  sum( !!sym( pop.nm ) ) },
                               pop_rate = { if( "rate" %in% metric )  per * no_count / pop },
                               .by = !!sym( var1 ) ) } } %>%  # conditional piping line     
-                   { if( tb.grp.logic ) select( ., -!!sym( table.grouping ) ) else . } %>%  # conditional piping line     
+                   { if( tb.grp.logic ) dplyr::select( ., -!!sym( table.grouping ) ) else . } %>%  # conditional piping line     
                    distinct() %>%
                    add_column( !!sym( var2 ) := sum.col.nm ) } } ) 
   } else if( var.logic.1 ){ # single variable case
@@ -398,15 +450,15 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
       { if( tb.grp.logic ){ # first condition is if a table grouping is specified, then the results are grouped by the `table.grouping` variable
         reframe( ., group = !!sym( table.grouping),  # NOTE: `dplyr::reframe` is a more generalized version of `dplyr::summarise`
                  no_count = n(),
-                 pop = { if( "rate" %in% metric )  unique( total_pop ) },
+                 pop = { if( "rate" %in% metric )  unique( !!sym( pop.nm ) ) },
                  pop_rate = { if( "rate" %in% metric )  per * no_count / pop },
                  .by = c( !!sym( table.grouping ), !!sym( var1 ) ) ) # grouped summarise results, grouping variable included
       } else {
         reframe( ., no_count = n(),
-                 pop = { if( "rate" %in% metric )  unique( total_pop ) },
+                 pop = { if( "rate" %in% metric )  unique( !!sym( pop.nm ) ) },
                  pop_rate = { if( "rate" %in% metric )  per * no_count / pop },
                  .by = c( !!sym( var1 ) ) ) } } %>%  # grouped summarise results, grouping variable NOT included
-      { if( tb.grp.logic ) select( ., -!!sym( table.grouping ) ) else . } %>%  # conditional piping line     
+      { if( tb.grp.logic ) dplyr::select( ., -!!sym( table.grouping ) ) else . } %>%  # conditional piping line     
       distinct()  # `add.summary.col` is inconsequential when is.null( var.2 ) & !is.null( var.1 )
   } } %>%
     mutate( !!sym( var1 ) := as.character( !!sym( var1 ) ),
@@ -416,12 +468,12 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
       if( !add.summary.col ){ d.dc.ref <- d.nomiss %>%
         reframe( ., group = !!sym( table.grouping ),  # NOTE: `dplyr::reframe` is a more generalized version of `dplyr::summarise`
                  no_count = n(),
-                 pop = { if( "rate" %in% metric )  unique( total_pop ) }, # for rates that occur over all years of data, take the sum
+                 pop = { if( "rate" %in% metric )  unique( !!sym( pop.nm ) ) }, # for rates that occur over all years of data, take the sum
                  pop_rate = { if( "rate" %in% metric )  per * no_count / pop },
                  .by = c( !!sym( table.grouping ), !!sym( var2 ) ) ) %>%
         distinct() %>%
         mutate( !!sym( var1 ) := sum.row.nm ) %>%
-        select( -!!sym( table.grouping ) )
+        dplyr::select( -!!sym( table.grouping ) )
       
       bind_rows( ., d.dc.ref ) 
       
@@ -431,23 +483,23 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
           d.nomiss %>%
             reframe( ., group = !!sym( table.grouping),  # NOTE: `dplyr::reframe` is a more generalized version of `dplyr::summarise`
                      no_count = n(),
-                     pop = { if( "rate" %in% metric )  unique( total_pop ) },
+                     pop = { if( "rate" %in% metric )  unique( !!sym( pop.nm ) ) },
                      pop_rate = { if( "rate" %in% metric )  per * no_count / pop },
                      .by = c( !!sym( table.grouping ), !!sym( var2 ) ) ) %>%
             distinct() %>%
             mutate( !!sym( var1 ) := sum.row.nm ) %>%
-            select( -!!sym( table.grouping ) ),
+            dplyr::select( -!!sym( table.grouping ) ),
           
           d.nomiss %>%
             reframe( ., group = !!sym( table.grouping),  # NOTE: `dplyr::reframe` is a more generalized version of `dplyr::summarise`
                      no_count = n(),
-                     pop = { if( "rate" %in% metric )  unique( total_pop ) },
+                     pop = { if( "rate" %in% metric )  unique( !!sym( pop.nm ) ) },
                      pop_rate = { if( "rate" %in% metric )  per * no_count / pop },
                      .by = c( !!sym( table.grouping ) ) ) %>%
             distinct() %>%
             mutate( !!sym( var1 ) := sum.row.nm,
                     !!sym( var2 ) := sum.col.nm ) %>%
-            select( -!!sym( table.grouping ) )
+            dplyr::select( -!!sym( table.grouping ) )
         )
         
         bind_rows( ., d.dc.ref )
@@ -458,7 +510,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
       if( !add.summary.col ){ d.dc.ref <- d.nomiss %>%
         reframe( ., 
                  no_count = n(),
-                 pop = { if( "rate" %in% metric )  unique( total_pop ) },
+                 pop = { if( "rate" %in% metric )  unique( !!sym( pop.nm ) ) },
                  pop_rate = { if( "rate" %in% metric )  per * no_count / pop },
                  .by = c( !!sym( var2 ) ) ) %>%
         distinct() %>%
@@ -473,7 +525,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
           d.nomiss %>%
             reframe( ., 
                      no_count = n(),
-                     pop = { if( "rate" %in% metric )  unique( total_pop ) },
+                     pop = { if( "rate" %in% metric )  unique( !!sym( pop.nm ) ) },
                      pop_rate = { if( "rate" %in% metric )  per * no_count / pop },
                      .by = c( !!sym( var2 ) ) ) %>%
             distinct() %>%
@@ -482,7 +534,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
           d.nomiss %>%
             reframe( ., 
                      no_count = n(),
-                     pop = { if( "rate" %in% metric )  sum( total_pop ) },
+                     pop = { if( "rate" %in% metric )  sum( !!sym( pop.nm ) ) },
                      pop_rate = { if( "rate" %in% metric )  per * no_count / pop } ) %>%
             distinct() %>%
             mutate( !!sym( var1 ) := sum.row.nm,
@@ -493,7 +545,39 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
         
       } } else . }
   
+  # if `add.summary.col` or `add.summary.row` are TRUE then set pop_rate and pop to "" for All and Summary row entries
+  ## If `add.summary.col` and/or `add.summary.row` are TRUE and "rate" is in `metric`, coerce them to FALSE and give warning
   
+  redo.rate <- TRUE  # for later internal use
+  
+  if( any( c( add.summary.col, add.summary.row ) ) & any( str_detect( metric, "rate" ) ) ){
+    
+    d.1 <- d.1 %>%
+      filter( if_any( .cols = any_of( c( var1, var2, table.grouping ) ),
+                      .fns = ~ . %in% c( sum.col.nm, sum.row.nm ) ) ) %>%
+      mutate( across( .cols = c( pop, pop_rate ) ,
+                      .fns = ~ "" ) ) %>% 
+      distinct() %>%
+      bind_rows( d.1 %>%
+                   filter( !if_any( .cols = any_of( c( var1, var2, table.grouping ) ),
+                                    .fns = ~ . %in% c( sum.col.nm, sum.row.nm ) ) ) %>%
+                   mutate( across( .cols = contains( "rate" ),
+                                   .fn = ~ ifelse( . < 1.0,
+                                                   formatC( signif( ., 
+                                                                    digits = digs.rate ), 
+                                                            digits = digs.rate, 
+                                                            format = "fg", 
+                                                            flag = "#" ),
+                                                   sprintf( paste0( "%.", digs.rate, "f" ), . ) ) ),
+                           across( .cols = c( pop, pop_rate ) ,
+                                   .fns = ~ as.character( . ) ) ),
+                 . )
+    
+    redo.rate <- FALSE  # for later internal use
+    
+    warning( 'Either `add.summary.col` or `add.summary.row` was called (TRUE) but "rate" was indicated in `metric`. However, rates in the summary row and column are not provided in the output table. A future version of this function may allow for computation of rates for the summary row and column.')
+  }
+
   ## get total count by stratifying variables for calculating percentages ##
   
   bths.yr <- { if( var.logic.2 ){ # two-variable case
@@ -506,7 +590,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
                  } else {
                    reframe( ., tot_count_yr = n(),              # grouped summarise results, grouping variable NOT included
                             .by = !!sym( var.ref ) ) } } %>%
-                 { if( tb.grp.logic ) select( ., -!!sym( table.grouping ) ) else . } %>%
+                 { if( tb.grp.logic ) dplyr::select( ., -!!sym( table.grouping ) ) else . } %>%
                  distinct(), 
                { if( add.summary.col & tb.grp.logic ){ # now add data not stratified. if indicated in `add.summary.col` argument
                  d.nomiss %>%
@@ -515,7 +599,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
                               tot_count_yr = n(),
                               .by = !!sym( table.grouping ) )
                    } else { reframe( ., tot_count_yr = n() ) } } %>%           # grouped summarise results, grouping variable NOT included
-                   { if( tb.grp.logic ) select( ., -!!sym( table.grouping ) ) else . } %>%
+                   { if( tb.grp.logic ) dplyr::select( ., -!!sym( table.grouping ) ) else . } %>%
                    distinct() %>%
                    add_column( !!sym( var.ref ) := sum.col.nm) } } )
     
@@ -528,7 +612,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
                  .by = c( !!sym( table.grouping ) ) )
       } else {
         reframe( ., tot_count_yr = n()) } } %>%             # grouped summarise results, grouping variable NOT included
-      { if( tb.grp.logic ) select( ., -!!sym( table.grouping ) ) else . } %>%
+      { if( tb.grp.logic ) dplyr::select( ., -!!sym( table.grouping ) ) else . } %>%
       distinct() # `add.summary.col` is inconsequential when is.null( var.2 ) & !is.null( var.1 )
     
   } } %>%
@@ -542,7 +626,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
                  .by = c( !!sym( table.grouping ) ) ) %>%
         distinct() %>%
         mutate( !!sym( var1 ) := sum.row.nm ) %>%
-        select( -!!sym( table.grouping ) )
+        dplyr::select( -!!sym( table.grouping ) )
       
       bind_rows( ., d.dc.ref.2 ) } else . } %>%
     { if( ( add.summary.row & !tb.grp.logic ) |
@@ -582,12 +666,14 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
   
   
   ### Patch work bug fix (3/10/2025 CMV) -- this corrects issue with column names
-  rem.this <- names( which( sapply( d.2, function(x) sum(is.na( x )) == nrow( d.2 ) ) ) )
+  rem.this <- names( which( sapply( d.2, function(x) sum(is.na( x ) ) == nrow( d.2 ) ) ) )
   
-  d.2 <- d.2 %>%
-    select( -all_of( rem.this ) ) %>%
-    rename_with( .cols = everything(),
-                 .fn = ~str_remove_all( ., "\\.x$|\\.y$") )
+
+    d.2 <- d.2 %>%
+      dplyr::select( -all_of( rem.this ) ) %>%
+      rename_with( .cols = everything(),
+                   .fn = ~str_remove_all( ., "\\.x$|\\.y$") )
+  
   
   ### Patch work bug fix (3/18/2025 CMV) -- this corrects issues with NAs when `add.summary.col` is called
   totals.patch <- bths.yr %>%
@@ -607,7 +693,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
     d.3 <- if( var.logic.2 ){ # two-variable case
       
       d.1 %>% 
-        select( -any_of( c( "pop", "pop_rate"  ) ) ) %>%
+        dplyr::select( -any_of( c( "pop", "pop_rate"  ) ) ) %>%
         distinct() %>%
         pivot_wider( names_from = !!sym( var2 ), values_from = no_count ) %>%
         { if( tb.grp.logic ){ rename_with( ., .fn = ~ paste0( .x, ",count", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
@@ -618,7 +704,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
     } else if( var.logic.1 ){ # single-variable case
       
       d.1 %>% 
-        select( -any_of( c( "pop", "pop_rate"  ) ) ) %>%
+        dplyr::select( -any_of( c( "pop", "pop_rate"  ) ) ) %>%
         distinct() %>%
         rename( tabulation = no_count ) %>% # important for rate-suppression step below to work
         { if( tb.grp.logic ){ rename_with( ., .fn = ~ paste0( .x, ",count", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
@@ -634,7 +720,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
     d.4 <- if( var.logic.2 & "rate" %in% metric ){ # two-variable case
       
       d.1 %>% 
-        select( -any_of( c( "no_count", "pop" ) ) ) %>%
+        dplyr::select( -any_of( c( "no_count", "pop" ) ) ) %>%
         distinct() %>%
         pivot_wider( names_from = !!sym( var2 ), values_from = pop_rate ) %>%
         { if( tb.grp.logic ){ rename_with( ., .fn = ~ paste0( .x, ",rate", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
@@ -645,7 +731,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
     } else if( var.logic.1 ){ # single-variable case
       
       d.1 %>% 
-        select( -any_of( c( "no_count", "pop" ) ) ) %>%
+        dplyr::select( -any_of( c( "no_count", "pop" ) ) ) %>%
         distinct() %>%
         { if( "rate" %in% metric ){ rename( tabulation = pop_rate ) } else . } %>% # important for rate-suppression step below to work
         { if( tb.grp.logic ){ rename_with( ., .fn = ~ paste0( .x, ",rate", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
@@ -663,7 +749,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
     d.5 <- if( var.logic.2 ){ # two-variable case
       
       d.2 %>% 
-        select( -any_of( c( "no_count", "pop", "tot_count_yr", "pop_rate"  ) ) ) %>%
+        dplyr::select( -any_of( c( "no_count", "pop", "tot_count_yr", "pop_rate"  ) ) ) %>%
         distinct() %>%
         pivot_wider( names_from = !!sym( var2 ), values_from = count_perc ) %>%
         { if( tb.grp.logic ){ rename_with( ., .fn = ~ paste0( .x, ",percent", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
@@ -674,7 +760,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
     } else if( var.logic.1 ){ # single-variable case
       
       d.2 %>% 
-        select( -any_of( c( "no_count", "pop", "tot_count_yr", "pop_rate"  ) ) ) %>%
+        dplyr::select( -any_of( c( "no_count", "pop", "tot_count_yr", "pop_rate"  ) ) ) %>%
         distinct() %>%
         rename( tabulation = count_perc ) %>% # important for rate-suppression step below to work
         { if( tb.grp.logic ){ rename_with( ., .fn = ~ paste0( .x, ",percent", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
@@ -692,16 +778,16 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
   
   # check for if there are different years of data that are being used to calculate rates
   if( "rate" %in% metric ){
-    if( nrow( d.3 ) < nrow( d.4 ) & "count" %in% metric) stop( "Potentially multiple years of population data detected in the dataset making computation of rates unreliable. Ensure that only the year you desire a rate for is included in the dataset; otherwise do not select 'rate' in `metric` or use the `table.grouping` argument")
+    if( nrow( d.3 ) < nrow( d.4 ) & "count" %in% metric) stop( "Potentially multiple years of population data detected in the dataset making computation of rates unreliable. Ensure that only the year you desire a rate for is included in the dataset; otherwise do not dplyr::select 'rate' in `metric` or use the `table.grouping` argument")
   }
   
   # decimal places for rates base on significant figures for values < 1.0 and decimal places for >= 1.0
   these.d <- as.vector( sapply( metric, function(x){
     
-    switch(x,
-           count = "d.3",
-           percent = "d.5",
-           rate =  "d.4")
+    switch( x,
+            count = "d.3",
+            percent = "d.5",
+            rate =  "d.4" )
   }) )
   
   d.6 <- { if( length( metric  ) == 3 ){ if( tb.grp.logic ){ left_join( d.3, d.4, by = c( "group", var1 ) ) %>%
@@ -717,18 +803,19 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
     get( these.d[1] )
     
   } } %>%
-    .[, sort( names(.) ) ] %>% # arrange columns so count, perc, or rate of each level of the stratifyin variable are together
+    .[, sort( names(.) ) ] %>% # arrange columns so count, perc, or rate of each level of the stratifying variable are together
     { if( tb.grp.logic ){ relocate( ., group, .before = 1 ) } else . } %>%
     relocate( !!sym( var1 ), .after = 1 ) %>%
     # decimal places for rates base on significant figures for values < 1.0 and decimal places for >= 1.0
-    mutate( across( .cols = contains( "rate" ),
-                    .fn = ~ ifelse( . < 1.0,
-                                    formatC( signif( ., 
-                                                     digits = digs.rate ), 
-                                             digits = digs.rate, 
-                                             format = "fg", 
-                                             flag = "#" ),
-                                    sprintf( paste0( "%.", digs.rate, "f" ), . ) ) ) )
+    { if( redo.rate ){
+      mutate( ., across( .cols = contains( "rate" ),
+                         .fn = ~ ifelse( . < 1.0,
+                                         formatC( signif( ., 
+                                                          digits = digs.rate ), 
+                                                  digits = digs.rate, 
+                                                  format = "fg", 
+                                                  flag = "#" ),
+                                         sprintf( paste0( "%.", digs.rate, "f" ), . ) ) ) ) } else . }
   
   
   ## arrange/order rows if indicated with `order.rows` argument ##
@@ -759,7 +846,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
     
     # drop original  rate column for new modified column with suppressed values
     d.6 <- d.6 %>%
-      select( -matches( "rate$", # regex for column name ending in "rate"
+      dplyr::select( -matches( "rate$", # regex for column name ending in "rate"
                         perl = T ) ) %>% # `perl` argument is for indicating a regex expression
       rename_with( .fn = ~ str_replace( ., "rate2", "rate" ), # recycle0 = TRUE at recommendation of `dplyr` authors
                    .cols = contains( "rate2" ) )
@@ -770,7 +857,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
   drop.this <- c( "percent", "rate", "count" )[ !c( "percent", "rate", "count" ) %in% metric ]
   
   d.7 <- d.6 %>% 
-    select( -contains( drop.this ) ) %>%  # drop metrics not to be displayed in table
+    dplyr::select( -contains( drop.this ) ) %>%  # drop metrics not to be displayed in table
     .[, sort( names(.) ) ] %>% # arrange columns so count and rate of same age group are side by side
     { if( tb.grp.logic ){
       mutate( ., group = as.character( group ) ) %>%
@@ -829,7 +916,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
       d.7 <- d.7 %>%
         mutate( !!sym( cols.left ) := paste0( !!sym( paste0( cols.left, ",count" ) ), ";",
                                               !!sym( paste0( cols.left, ",percent" ) ) ) ) %>%
-        select( -contains( "percent" ), -contains( "count" ) ) %>%
+        dplyr::select( -contains( "percent" ), -contains( "count" ) ) %>%
         pivot_wider( values_from = !!sym( cols.left ),
                      names_from = group ) %>% 
         separate_wider_delim( cols = c( -!!sym( var1 ) ) ,
@@ -849,7 +936,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
       d.7 <- d.7 %>%
         mutate( !!sym( cols.left ) := paste0( !!sym( paste0( cols.left, ",count" ) ), ";",
                                               !!sym( paste0( cols.left, ",rate" ) ) ) ) %>%
-        select( -contains( "rate" ), -contains( "count" ) ) %>%
+        dplyr::select( -contains( "rate" ), -contains( "count" ) ) %>%
         pivot_wider( values_from = !!sym( cols.left ),
                      names_from = group ) %>% 
         separate_wider_delim( cols = c( -!!sym( var1 ) ) ,
@@ -869,7 +956,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
       d.7 <- d.7 %>%
         mutate( !!sym( cols.left ) := paste0( !!sym( paste0( cols.left, ",percent" ) ), ";",
                                               !!sym( paste0( cols.left, ",rate" ) ) ) ) %>%
-        select( -contains( "rate" ), -contains( "percent" ) ) %>%
+        dplyr::select( -contains( "rate" ), -contains( "percent" ) ) %>%
         pivot_wider( values_from = !!sym( cols.left ),
                      names_from = group ) %>% 
         separate_wider_delim( cols = c( -!!sym( var1 ) ) ,
@@ -888,7 +975,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
       
       d.7 <- d.7 %>%
         mutate( !!sym( cols.left ) := paste0( !!sym( paste0( cols.left, ",", metric ) ) ) ) %>%
-        select( -contains( metric ) ) %>%
+        dplyr::select( -contains( metric ) ) %>%
         pivot_wider( values_from = !!sym( cols.left ),
                      names_from = group ) %>% 
         separate_wider_delim( cols = c( -!!sym( var1 ) ) ,
@@ -915,7 +1002,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
   if( !is.null( remove.cols ) ){
     
     d.7 <- d.7 %>%
-      select( -contains( remove.cols ) ) 
+      dplyr::select( -contains( remove.cols ) ) 
   }
   
   ## order columns in specific order if specified ##
@@ -930,15 +1017,15 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
     }
     
     if( !tb.grp.logic){
-      # reorder by passing to `select`
+      # reorder by passing to `dplyr::select`
       d.7 <- d.7 %>%
-        select( !!sym(var1), all_of( c.out ) )
+        dplyr::select( !!sym( var1 ), all_of( c.out ) )
     }
     
     if( tb.grp.logic){
-      # reorder by passing to `select`
+      # reorder by passing to `dplyr::select`
       d.7 <- d.7 %>%
-        select( group, !!sym(var1), all_of( c.out ) )
+        dplyr::select( group, !!sym( var1 ), all_of( c.out ) )
     }
     
   }
@@ -1044,7 +1131,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
   if( !is.null( remove.cols ) ){
     
     d.7 <- d.7 %>%
-      select( -contains( remove.cols ) ) 
+      dplyr::select( -contains( remove.cols ) ) 
   }
   
   

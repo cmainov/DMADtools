@@ -1,4 +1,13 @@
-#' @param d A data frame or tibble. Data must be the exact subset of data that needs to analyzed for the table generation.
+library( dplyr)
+library( tidyr)
+library( stringr)
+library( flextable)
+library( eRTG3D)
+library( tibble)
+library( officer)
+#' 
+#' 
+#' #' @param d A data frame or tibble. Data must be the exact subset of data that needs to analyzed for the table generation.
 #' @param var1: A string. Name of first variable to stratify on (as it appears in the input data, `d`). Cannot be  `NULL`.
 #' @param var2: A string. Name of second variable to stratify on (as it appears in the input data, `d`). Can be `NULL` if only one variable is required and there is no cross-tabulation or if `table.grouping` and `var1` are specified for a cross-tabulation instead.
 #' @param metric A vector of string(s). One or two of: "percent", "rate", "count". Can select up to two options to plot at maximum.
@@ -24,10 +33,6 @@
 #' @param NAs.footnote A logical. Include footnotes detailing number of missing values in the dataset based on `var1` and `var2`?
 #' @param percentages.rel A string. One of "var1" or "var2" or "table.grouping". Is the variables with which percentages should be calculated with respect to. `table.grouping` can only be specified if only `var1` is specified and `var2 == NULL`.
 #' @param include.percent.sign A logical. Include percent sign in percents columns?
-
-
-
-
 
 
 set.seed( 425 )
@@ -66,8 +71,19 @@ for( i in 1:500 ){
                                   v2 = v2.label,
                                   v3 = v3.label ) )
   
-  
 }
+
+# assign population data for computing rates (aggregate variable)
+set.seed( 5789 )
+
+pop.1 <- sample( 50000:60000, size = 1 )
+pop.2 <- sample( 350000:360000, size = 1 )
+pop.3 <- sample( 70000:860000, size = 1 )
+
+d.example$v_pop <- ifelse( d.example$v1 == "Geo 1", pop.1,
+                           ifelse( d.example$v1 == "Geo 2", pop.2,
+                                   ifelse( d.example$v1 == "Geo 3", pop.3,
+                                           NA ) ) )
 
 
 summary_table( d = d.example,
@@ -77,3 +93,49 @@ summary_table( d = d.example,
                add.summary.col = T,
                var2 = "v2",
                percentages.rel = "var1" )
+
+# alternate percentages.rel parameter
+summary_table( d = d.example,
+               metric = c( "count", "percent" ),
+               var1 = "v1",
+               add.summary.row = T,
+               add.summary.col = T,
+               var2 = "v2",
+               percentages.rel = "var2" )
+
+summary_table( d = d.example,
+               metric = c( "count", "percent" ),
+               var1 = "v1",
+               table.grouping = "v2",
+               add.summary.row = T,
+               add.summary.col = T,
+               percentages.rel = "table.grouping" )
+
+
+summary_table( d = d.example,
+               metric = c( "count", "rate" ),
+               var1 = "v1",
+               add.summary.row =T,
+               add.summary.col = T,
+               var2 = "v2",
+               percentages.rel = "var2",
+               pop.var = "v_pop" )
+
+summary_table( d = d.example,
+               metric = c( "count", "percent" ),
+               var1 = "v1",
+               var2 = "v2",
+               add.summary.row =TRUE,
+               add.summary.col = TRUE,
+               percentages.rel = "var1",
+               pop.var = "v_pop" )
+
+# do a 3-way tabulation
+summary_table( d = d.example,
+               metric = c( "count", "percent" ),
+               var1 = "v1",
+               var2 = "v3",
+               table.grouping = "v2",
+               add.summary.row = TRUE,
+               add.summary.col = TRUE,
+               percentages.rel = "var2" )

@@ -3,24 +3,24 @@
     "path": "~/GitHub/cppe-dmad/programs/vital-statistics-annual-report/natality/R/table-function.R",
     "project_path": null,
     "type": "r_source",
-    "hash": "1176845273",
+    "hash": "0",
     "contents": "",
-    "dirty": false,
+    "dirty": true,
     "created": 1742413289446.0,
     "source_on_save": false,
     "relative_order": 2,
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "488,47",
-        "scrollLine": "474"
+        "cursorPosition": "1170,2",
+        "scrollLine": "1148"
     },
     "folds": "",
-    "lastKnownWriteTime": 1742418991,
+    "lastKnownWriteTime": 1742481347,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1742418991647,
+    "last_content_update": 1742570402451,
     "read_only": false,
     "read_only_alternatives": []
 }
