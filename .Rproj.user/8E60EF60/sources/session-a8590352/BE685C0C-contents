@@ -44,26 +44,30 @@
 #' @param remove.cols A string. The string is fed to `dplyr::select( -contains( remove.cols` ) )` to remove undesired columns from the final table. Should be based off of columns seen in final generated table.
 #' @param table.title A string. Name of table to display as the title. `NULL` is default for no title in the table.
 #' @param nm.var1 A string. Name of `var1` that you would like to appear in the table. `NULL` is default, which prompts the column name as it is written in the input dataset, `d`.
-#' @param count.supp an integer or  `NULL` if suppression of counts below a certain threshold is desired, specify the integer value. Any cells with counts less than `count.supp` will be suppressed. default is `NULL`.
-#' @param rate.supp An integer or  `NULL` if suppression of rates where the count the rate is based off is less than some threshold. Any cells with rates based on counts less than `rate.supp` will be suppressed. default is `NULL`.
+#' @param count.supp an integer or  `NULL` if suppression of counts below a certain threshold is desired, specify the integer value. Any cells with counts less than or equal to `count.supp` will be suppressed. default is `NULL`.
+#' @param rate.supp An integer or  `NULL` if suppression of rates where the count the rate is based off is less than some threshold. Any cells with rates based on counts less than or equal to `rate.supp` will be suppressed. default is `NULL`.
 #' @param count.supp.symbol A string. The character to display in the table where the count is suppressed.
 #' @param rate.supp.symbol A string. The character to display in the table where the rate is suppressed.
 #' @param per A numeric. The denominator "per" value to use for computing rates. Default is per `1000` (e.g., 25 births per 1,000 individuals).
 #' @param NAs.footnote A logical. Include footnotes detailing number of missing values in the dataset based on `var1` and `var2`?
 #' @param percentages.rel A string. One of "var1" or "var2" or "table.grouping". Is the variables with which percentages should be calculated with respect to. `table.grouping` can only be specified if only `var1` is specified and `var2 == NULL`.
-#' @param include.percent.sign A logical. Include percent sign in percents columns?#'
+#' @param include.percent.sign A logical. Include percent (%) sign in computed percent columns? 
 #' 
 #' @return Object of class \code{list} containing the following elements:
 #'
 #' `flextable`: An object of class `flextable` that produces the "nice" flextable.
 #' 
 #' `frame`: An object of class `data.frame` that contains the dataset fed to `flextable` for final tabulation.
+#' 
+#' NOTE: In the final output table (`flextable`), levels of `var1` appear in the rows and levels of `var2` appear in the columns if only `var1` and `var2` are specified. If `var1` and `table.grouping`
+#' are only specified, then levels of `var1` appear in the columns and levels of `table.grouping` appear in the rows. If `var1`, `var2`, and `table.grouping` are specified, then levels of `var1` 
+#' appear in the rows, levels of `var2` appear in the columns, and levels of `table.grouping` appear as nested rows that group the table.
 #'
 #' @examples
 #' 
 #' library( DMADtools )
 #'
-#'# first, create an example dataset
+#'# first, create an example/toy dataset
 #' set.seed( 425 )
 #' 
 #' d.example <- data.frame()
@@ -119,18 +123,18 @@
 #' summary_table( d = d.example,
 #'                metric = c( "count", "percent" ),
 #'                var1 = "v1",
-#'                add.summary.row = T,
-#'                add.summary.col = T,
+#'                add.summary.row = TRUE,
+#'                add.summary.col = TRUE,
 #'                var2 = "v2",
 #'                percentages.rel = "var1" )
 #' 
 #' 
-#' # alternate percentages.rel parameter
+#' # alternate percentages.rel argument
 #' summary_table( d = d.example,
 #'                metric = c( "count", "percent" ),
 #'                var1 = "v1",
-#'                add.summary.row = T,
-#'                add.summary.col = T,
+#'                add.summary.row = TRUE,
+#'                add.summary.col = TRUE,
 #'                var2 = "v2",
 #'                percentages.rel = "var2" )
 #'    
@@ -140,11 +144,62 @@
 #'                metric = c( "count", "percent" ),
 #'                var1 = "v1",
 #'                table.grouping = "v2",
-#'                add.summary.row = T,
-#'                add.summary.col = T,
+#'                add.summary.row = TRUE,
+#'                add.summary.col = TRUE,
 #'                percentages.rel = "table.grouping" )
 #'
-#'# do a 3-way tabulation
+#'# rename summary row and column and shuffle column and row orders
+#' summary_table( d = d.example,
+#'                metric = c( "count", "percent" ),
+#'                var1 = "v1",
+#'                table.grouping = "v2",
+#'                add.summary.row = TRUE,
+#'                add.summary.col = TRUE,
+#'                summary.col.name = "All Geos", # change name of summary column
+#'                summary.row.name = "All Char", # change name of summary row
+#'                order.cols = c( "Geo 1", "Geo 2", "All Geos", "Geo 3" ), # reorder columns in output table
+#'                order.rows = c( "Char 1", "Char 2", "All Char", "Char 3" ), # reorder columns in output table
+#'                percentages.rel = "table.grouping" )
+#' 
+#' # same call as previous, but use order.cols and order.rows to remove some rows and columns from final table
+#' summary_table( d = d.example,
+#'                metric = c( "count", "percent" ),
+#'                var1 = "v1",
+#'                table.grouping = "v2",
+#'                add.summary.row = TRUE,
+#'                add.summary.col = TRUE,
+#'                summary.col.name = "All Geos", # change name of summary column
+#'                summary.row.name = "All Char", # change name of summary row
+#'                order.cols = c( "Geo 1", "All Geos", "Geo 3" ), # reorder columns in output table
+#'                order.rows = c( "Char 1", "Char 2", "All Char" ), # reorder columns in output table
+#'                percentages.rel = "table.grouping" )
+#' 
+#' # use remove.cols instead of order.cols argument for removing an undesired column from final table
+#' summary_table( d = d.example,
+#'                metric = c( "count", "rate" ),
+#'                var1 = "v1",
+#'                var2 = "v2",
+#'                add.summary.row =T,
+#'                add.summary.col = T,
+#'                remove.cols = "Char 3",
+#'                percentages.rel = "var2",
+#'                pop.var = "v_pop" )
+#' 
+#' # rename var1 column header
+#' summary_table( d = d.example,
+#'                metric = c( "count", "percent" ),
+#'                var1 = "v1",
+#'                nm.var1 = "Variable 1", # for relabeling the header
+#'                table.grouping = "v2",
+#'                add.summary.row = TRUE,
+#'                add.summary.col = TRUE,
+#'                summary.col.name = "All Geos", # change name of summary column
+#'                summary.row.name = "All Char", # change name of summary row
+#'                order.cols = c( "Geo 1", "All Geos", "Geo 3" ), # reorder columns in output table
+#'                order.rows = c( "Char 1", "Char 2", "All Char" ), # reorder columns in output table
+#'                percentages.rel = "table.grouping" )
+#'                
+#' # do a 3-way tabulation
 #' summary_table( d = d.example,
 #'                metric = c( "count", "percent" ),
 #'                var1 = "v1",
@@ -153,61 +208,94 @@
 #'                add.summary.row = TRUE,
 #'                add.summary.col = TRUE,
 #'                percentages.rel = "var2" )
+#'
+#'# use order.groups argument to remove some grouping categories
+#' summary_table( d = d.example,
+#'                metric = c( "count", "percent" ),
+#'                var1 = "v1",
+#'                var2 = "v3",
+#'                table.grouping = "v2",
+#'                order.groups = c( "Char 2", "Char 1" ),
+#'                add.summary.row = TRUE,
+#'                add.summary.col = TRUE,
+#'                percentages.rel = "var2" )
 #'      
 #' # example with rate computation and add.summary.row and add.summary.col are TRUE
 #' summary_table( d = d.example,
 #'                metric = c( "count", "rate" ),
 #'                var1 = "v1",
+#'                var2 = "v2",
 #'                add.summary.row = TRUE,
 #'                add.summary.col = TRUE,
-#'                var2 = "v2",
 #'                percentages.rel = "var2",
 #'                pop.var = "v_pop" )
 #'
+#'# foot.lines argument and NAs.footnote
+#' set.seed( 974 )
+#' 
+#' d.example.na <- d.example
+#' d.example.na[ sample( 1:nrow( d.example.na ), size = 9 ), "v2" ] <- NA # introduce 9 NAs randomly 
+#' 
+#' summary_table( d = d.example.na,
+#'                metric = c( "count", "percent" ),
+#'                var1 = "v1",
+#'                var2 = "v2",
+#'                nm.var1 = "Variable 1",
+#'                add.summary.row =T,
+#'                add.summary.col = T,
+#'                foot.lines = c("This is the first footer line",
+#'                               "This is the second footer line" ), # manual footer lines
+#'                remove.cols = "Char 3",
+#'                percentages.rel = "var2",
+#'                NAs.footnote = TRUE, # produces the footnote of excluded observations
+#'                pop.var = "v_pop" ) 
+#' 
+#' # add rate suppression rule
+#' summary_table( d = d.example.na,
+#'                metric = c( "count", "rate" ),
+#'                var1 = "v1",
+#'                var2 = "v2",
+#'                nm.var1 = "Variable 1",
+#'                add.summary.row =T,
+#'                add.summary.col = T,
+#'                foot.lines = c("This is the first footer line",
+#'                               "This is the second footer line" ), # manual footer lines
+#'                remove.cols = "Char 3",
+#'                percentages.rel = "var2",
+#'                count.supp = 50, # suppress values/counts in table <= 50
+#'                rate.supp = 50, # suppress rate calculation when counts are <= 50
+#'                NAs.footnote = TRUE, # produces the footnote of excluded observations
+#'                pop.var = "v_pop" ) 
+#'                
+#' # give it a title
+#' summary_table( d = d.example.na,
+#'                metric = c( "count", "rate" ),
+#'                var1 = "v1",
+#'                var2 = "v2",
+#'                nm.var1 = "Variable 1",
+#'                add.summary.row =T,
+#'                add.summary.col = T,
+#'                foot.lines = c("This is the first footer line",
+#'                               "This is the second footer line" ), # manual footer lines
+#'                remove.cols = "Char 3",
+#'                percentages.rel = "var2",
+#'                count.supp = 50, # suppress values/counts in table <= 50
+#'                rate.supp = 50, # suppress rate calculation when counts are <= 50
+#'                NAs.footnote = TRUE, # produces the foornote of excluded observations
+#'                pop.var = "v_pop",
+#'                table.title = "This is Table 1" ) # title
+#'                
 #' @export
 
-summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, digs.perc = 1, digs.rate = 2,
-                           add.summary.row = TRUE, summary.row.name = NULL, add.summary.col = TRUE, pop.var = NULL,
+summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, pop.var = NULL,
+                           add.summary.row = TRUE, summary.row.name = NULL, add.summary.col = TRUE, digs.perc = 1, digs.rate = 2,
                            summary.col.name = NULL, order.rows = NULL, order.cols = NULL, order.groups = NULL, foot.lines = c(), 
                            table.title = NULL, metric = c( "count", "rate" ), nm.var1 = NULL, count.supp = NULL, remove.cols = NULL,
                            rate.supp = NULL, count.supp.symbol = "--", rate.supp.symbol = "*", 
                            per = 1000, NAs.footnote = FALSE, percentages.rel = "var1",
                            include.percent.sign = TRUE ){
   
-  # d = a data frame or tibble. data must be the exact subset of data that needs to analyzed for the table generation.
-  # var1: string. name of first variable to stratify on. cannot be NULL.
-  # var2: string. name of second variable to stratify on. can be NULL if only one variable is required and there is no cross-tabulation.
-  # add.summary.col = a logical. add a row with unaggregated results (based on `var2`) note that this argument is inconsequential if `var2` == NULL.
-  # add.summary.row = a logical. add a row with unaggregated results (based on `var1`). TRUE is default and the name given to the row is "Summary Row". if another name is desired, it can be specified with `summary.row.name` and its order/position can be specified with the `order.rows` argument.
-  # summary.col.name = a string.  name to appear for summary row. default is "All". this option is only relevant if `add.summary.col` is TRUE
-  # summary.row.name = a string. name to appear for summary row. default is "Summary Row". this option is only relevant if `add.summary.row` is TRUE
-  # digs.perc = integer. digits to round percents to
-  # digs.rate = integer. digits to round rates to
-  # order.rows = a vector with the levels in custom order of the stratifying variable in the rows. entries must match levels of stratifying variable exactly. if there are any levels of the row variable missing, they are omitted from the final table.note that any rows removed from the final table do not remove that level from the data itself. if desired, that must be done outside the function with a data step.
-  # order.cols = a vector with the levels in custom order of the stratifying variable in the columns. must match the columns in the final table including the summary column name if `add.summary.col` == TRUE and `summary.col.name` is specified.if there are any levels of the column variable missing, they are omitted from the final table.
-  # order.groups = a vector with the levels in custom order of the grouping variable in the columns. must match the grouping variable names in the final table. if there are any levels of the grouping variable missing, they are omitted from the final table. the orders of the rows within the group are preserved as indicated in `order.rows`. this argument is only valid if !is.null(var2) & !is.null(table.grouping).
-  # foot.lines = a vector with entries corresponding to each footline to be added to the table.
-  # remove.cols - a string. the string is fed to `dplyr::select( -contains( remove.cols` ) )` to remove undesired columns from the final table.
-  # table.title = a string. name of table to be given to title. NULL is default and for no title in the table.
-  # metric = a vector of strings. one or two of: "percent", "rate", "count". can dplyr::select two options to plot, max.
-  # table.grouping = a string or NULL (if no grouping in table is desired). name of variable to create grouped output table with (creates grouping rows in the table). can be max 1 variable
-  # nm.var1 = a string. name of var1 that you would like to appear in the table. NULL is default, which prompts the column name as it is written in the input dataset `d`.
-  # count.supp = an integer or NULL. if suppression of counts below a certain threshold is desired, specify the integer value. any cells with counts less than `count.supp` will be suppressed. default is NULL
-  # rate.supp = an integer or NULL. if suppression of rates where the count the rate is based off is less than some threshold. any cells with rates based on counts less than `rate.supp` will be suppressed. default is NULL
-  # count.supp.symbol = a string. the character to display in the table where the count is suppressed.
-  # rate.supp.symbol = a string. the character to display in the table where the rate is suppressed
-  # per = a numeric. the denominator "per" value to use for computing rates. default is per `1000`.
-  # NAs.footnote = a logical. include footnotes detailing number of missing values in the dataset based on `var1` and `var2`?
-  # percentages.rel = a string. one of "var1" or "var2" or "table.grouping". is the variables with which percentages should be calculated with respect to. "table.grouping" can only be specified if only "var1" is specified and `var2` == NULL.
-  # include.percent.sign = a logical. include percent sign in percents columns?
-  
-  # NOTE: that the ACS population data must already be included in the data as an aggregate-level (city-level) variable
-  # with name: `pop.var`
-  # NOTE: `var1` appears in the rows and `var2` appears in the columns of the resulting table
-  
-  # dependencies: dplyr, stringr, flextable, tibble, eRTG3D, officer
-  
-  # checks
+  ## call checks ##
   
   if( is.null( var1 ) ) stop( "`var1` cannot be NULL; if only one variable is desired for stratification purposes, it should be included in the `var1` argument" ) 
   
@@ -233,7 +321,6 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
     }
     
   }
-  
   
   if( !add.summary.row & !is.null( summary.row.name ) ){
     warning( "A name was provided to `summary.row.name` but `add.summary.row` was indicated as NULL. Note that `summary.row.name` will be irrelevant in this case unless `add.summary.row` is changed to TRUE" )
@@ -834,12 +921,12 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
     cats <- names( d.6 )[ str_which( names( d.6 ), "rate" ) ] %>%
       str_remove( ., ",rate")
     
-    # loop and replace rates of numerators (count) < 20 with "*"
+    # loop and replace rates of numerators (count) < `rate.supp` with `rate.supp.symbol`
     for( i in seq_along( cats ) ){
       
       for( j in 1:nrow( d.6 ) ){
         
-        d.6[ j, paste0( cats[i], ",rate2" ) ] <- ifelse( d.6[ j, paste0( cats[i], ",count" ) ] < rate.supp,
+        d.6[ j, paste0( cats[i], ",rate2" ) ] <- ifelse( d.6[ j, paste0( cats[i], ",count" ) ] <= rate.supp,
                                                          rate.supp.symbol, paste0( d.6[ j, paste0( cats[i], ",rate" ) ] ) )
       }
     }
@@ -897,9 +984,9 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
             d.7[ i, paste0( these.cols.pref[j], "percent" ) ] <- count.supp.symbol
           }
           
-          if( "rate" %in% metric ){
-            d.7[ i, paste0( these.cols.pref[j], "rate" ) ] <- count.supp.symbol
-          }
+          # if( "rate" %in% metric ){
+          #   d.7[ i, paste0( these.cols.pref[j], "rate" ) ] <- count.supp.symbol
+          # }
         }
         
       }
@@ -1165,18 +1252,18 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
       fontsize( size = 7, part = "footer" ) %>%
       width( width = 0.45 ) %>% # change column widths to fit on one page
       line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
-      line_spacing( space = 0.5, part = "body" ) %>% # make spacing in footnote single and not double
+      line_spacing( space = 0.7, part = "body" ) %>% # make spacing in footnote single and not double
       padding( padding.top = 2.5, 
                padding.bottom = 2.5, 
                padding.left = 4, 
                padding.right = 4, 
                part = "body" ) %>%
-      padding( padding.top = 8, 
-               padding.bottom = 8, 
-               padding.left = 4, 
-               padding.right = 4, 
-               part = "header" ) %>%
       padding( padding.top = 5, 
+               padding.bottom = 5, 
+               padding.left = 0, 
+               padding.right = 0, 
+               part = "header" ) %>%
+      padding( padding.top = 2.5, 
                padding.bottom = 0,
                part = "footer" ) %>%
       padding( padding.top = 2.5, padding.bottom = 2.5,part = "footer", i = 1 ) %>%
@@ -1212,18 +1299,18 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
       fontsize( size = 7, part = "footer" ) %>%
       width( width = 0.45 ) %>% # change column widths to fit on one page
       line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
-      line_spacing( space = 0.5, part = "body" ) %>% # make spacing in footnote single and not double
+      line_spacing( space = 0.7, part = "body" ) %>% # make spacing in footnote single and not double
       padding( padding.top = 2.5, 
                padding.bottom = 2.5, 
                padding.left = 4, 
                padding.right = 4, 
                part = "body" ) %>%
-      padding( padding.top = 8, 
-               padding.bottom = 8, 
-               padding.left = 4, 
-               padding.right = 4, 
-               part = "header" ) %>%
       padding( padding.top = 5, 
+               padding.bottom = 5, 
+               padding.left = 0, 
+               padding.right = 0, 
+               part = "header" ) %>%
+      padding( padding.top = 2.5, 
                padding.bottom = 0,
                part = "footer" ) %>%
       padding( padding.top = 2.5, padding.bottom = 2.5,part = "footer", i = 1 ) %>%
@@ -1262,7 +1349,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
                       ref_symbols = as.integer( p ) ) %>%
             fontsize( size = 7, part = "footer" ) %>%
             line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
-            padding( padding.top = 8, padding.bottom = 5,part = "footer", i = 1 )
+            padding( padding.top = 2.5, padding.bottom = 0, part = "footer", i = 1 )
           
           
         }
@@ -1280,7 +1367,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
                       ref_symbols = as.integer( p ) ) %>%
             fontsize( size = 7, part = "footer" ) %>%
             line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
-            padding( padding.top = 8, padding.bottom = 5,part = "footer", i = 1 )
+            padding( padding.top = 2.5, padding.bottom = 0, part = "footer", i = 1 )
           
           
         }
@@ -1296,7 +1383,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
                       part = "header" ) %>%
             fontsize( size = 7, part = "footer" ) %>%
             line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
-            padding( padding.top = 8, padding.bottom = 5, part = "footer", i = 1 )
+            padding( padding.top = 2.5, padding.bottom = 0, part = "footer", i = 1 )
           
         }
         
@@ -1313,7 +1400,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
       add_footer_lines( values = fn ) %>% # add footer
       fontsize( size = 7, part = "footer" ) %>%
       line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
-      padding( padding.top = 8, padding.bottom = 5, part = "footer", i = 1 )
+      padding( padding.top = 2.5, padding.bottom = 0, part = "footer", i = 1 )
     
   }
   
@@ -1325,10 +1412,10 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
     if( count.supp > 0 ){
       
       t.out <- t.out %>%
-        add_footer_lines( values = paste0( count.supp.symbol, " Cell counts ≤ ", count.supp," were suppressed to protect the confidentiality of residents." ) ) %>%
+        add_footer_lines( values = paste0( count.supp.symbol, " Cell counts ≤ ", count.supp," were suppressed to protect confidentiality." ) ) %>%
         fontsize( size = 7, part = "footer" ) %>%
         line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
-        padding( padding.top = 8, padding.bottom = 5, part = "footer", i = 1 )
+        padding( padding.top = 2.5, padding.bottom = 0, part = "footer", i = 1 )
       
     } 
     
@@ -1344,7 +1431,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, d
         add_footer_lines( values = paste0( rate.supp.symbol, " Rates based on < ", rate.supp, " events are not presented since such rates are subject to instability." ) ) %>%
         fontsize( size = 7, part = "footer" ) %>%
         line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
-        padding( padding.top = 8, padding.bottom = 5, part = "footer", i = 1 )
+        padding( padding.top = 2.5, padding.bottom = 0, part = "footer", i = 1 )
     }
   }
   
