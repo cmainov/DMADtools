@@ -19,7 +19,7 @@
 #' @import rlang
 #' @importFrom magrittr "%>%"
 #'
-#' @usage summary_table( d, var1 = var1, var2 = NULL, table.grouping = NULL, 
+#' @usage summary_table( d, var1, var2 = NULL, table.grouping = NULL, 
 #' pop.var = NULL, add.summary.row = TRUE, summary.row.name = NULL, 
 #' add.summary.col = TRUE, digs.perc = 1, digs.rate = 2, summary.col.name = NULL, 
 #' order.rows = NULL, order.cols = NULL, order.groups = NULL, foot.lines = c(), 
@@ -234,7 +234,7 @@
 #' 
 #' @export
 
-summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, pop.var = NULL,
+summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var = NULL,
                            add.summary.row = TRUE, summary.row.name = NULL, add.summary.col = TRUE, digs.perc = 1, digs.rate = 2,
                            summary.col.name = NULL, order.rows = NULL, order.cols = NULL, order.groups = NULL, foot.lines = c(), 
                            table.title = NULL, metric = c( "count", "rate" ), nm.var1 = NULL, count.supp = NULL, remove.cols = NULL,
@@ -243,6 +243,8 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, p
                            include.percent.sign = TRUE ){
   
   ## call checks ##
+  
+  var1 <- cement( !!var1 )
   
   if( is.null( var1 ) ) stop( "`var1` cannot be NULL; if only one variable is desired for stratification purposes, it should be included in the `var1` argument" ) 
   

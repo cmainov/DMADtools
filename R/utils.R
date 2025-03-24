@@ -1,0 +1,7 @@
+
+
+## Quoting Function ##
+cement <- function(...) {
+  args <- ensyms(...)
+  paste(purrr::map(args, as_string), collapse = " ")
+}

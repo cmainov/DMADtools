@@ -1,7 +1,7 @@
-# Create and assign class in one step
-x <- structure(list(), 
-               class = "my_class")
 
-# Create, then set class
-x <- list()
-class(x) <- "my_class"
+
+## Quoting Function ##
+cement <- function(...) {
+  args <- ensyms(...)
+  paste(purrr::map(args, as_string), collapse = " ")
+}
