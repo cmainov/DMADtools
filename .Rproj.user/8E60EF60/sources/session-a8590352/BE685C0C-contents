@@ -2,7 +2,7 @@
 ###  `summary_table`: Generate "Nice" `flextable` From Input Data
 ###---------------------------------------------------------------
 
-#' @title Percent Energy from fat from the NCI's Percentage Energy From Fat Screener
+#' @title Generate "Nice" `flextable` From Input Data
 #'
 #' @description Create a "nice" publication-level table by tabulating up to three variables at once.
 #'
@@ -16,18 +16,21 @@
 #' @import eRTG3D
 #' @import tibble
 #' @import officer
+#' @import rlang
+#' @importFrom magrittr "%>%"
 #'
-#' @usage summary_table( d, var1 = var1, var2 = NULL, table.grouping = NULL, metric = c( "count", "rate" ),
-#' add.summary.row = TRUE, summary.row.name = NULL, add.summary.col = TRUE, 
-#' summary.col.name = NULL, order.rows = NULL, order.cols = NULL, order.groups = NULL, foot.lines = c(), remove.cols = NULL,
-#' table.title = NULL,  nm.var1 = NULL, count.supp = NULL, digs.perc = 1, digs.rate = 2,
-#' rate.supp = NULL, count.supp.symbol = "--", rate.supp.symbol = "*", 
-#' per = 1000, NAs.footnote = FALSE, percentages.rel = "var1",
-#' include.percent.sign = TRUE )
+#' @usage summary_table( d, var1 = var1, var2 = NULL, table.grouping = NULL, 
+#' pop.var = NULL, add.summary.row = TRUE, summary.row.name = NULL, 
+#' add.summary.col = TRUE, digs.perc = 1, digs.rate = 2, summary.col.name = NULL, 
+#' order.rows = NULL, order.cols = NULL, order.groups = NULL, foot.lines = c(), 
+#' table.title = NULL, metric = c( "count", "rate" ), nm.var1 = NULL, 
+#' count.supp = NULL, remove.cols = NULL, rate.supp = NULL, 
+#' count.supp.symbol = "--", rate.supp.symbol = "*", per = 1000, 
+#' NAs.footnote = FALSE, percentages.rel = "var1", include.percent.sign = TRUE )
 #'
 #' @param d A data frame or tibble. Data must be the exact subset of data that needs to analyzed for the table generation.
-#' @param var1: A string. Name of first variable to stratify on (as it appears in the input data, `d`). Cannot be  `NULL`.
-#' @param var2: A string. Name of second variable to stratify on (as it appears in the input data, `d`). Can be `NULL` if only one variable is required and there is no cross-tabulation or if `table.grouping` and `var1` are specified for a cross-tabulation instead.
+#' @param var1 A string. Name of first variable to stratify on (as it appears in the input data, `d`). Cannot be  `NULL`.
+#' @param var2 A string. Name of second variable to stratify on (as it appears in the input data, `d`). Can be `NULL` if only one variable is required and there is no cross-tabulation or if `table.grouping` and `var1` are specified for a cross-tabulation instead.
 #' @param metric A vector of string(s). One or two of: "percent", "rate", "count". Can dplyr::select up to two options to plot at maximum.
 #' @param table.grouping A string or `NULL` (if no grouping in table is desired). Name of variable to create grouped output table with (creates grouping rows in the table). Can be 1 variable at maximum.
 #' @param pop.var A string or `NULL`. Variable in `d` with population count data for computing rates if "rate" is dplyr::selected in `metric`. This is normally an aggregate variable.
@@ -51,7 +54,7 @@
 #' @param per A numeric. The denominator "per" value to use for computing rates. Default is per `1000` (e.g., 25 births per 1,000 individuals).
 #' @param NAs.footnote A logical. Include footnotes detailing number of missing values in the dataset based on `var1` and `var2`?
 #' @param percentages.rel A string. One of "var1" or "var2" or "table.grouping". Is the variables with which percentages should be calculated with respect to. `table.grouping` can only be specified if only `var1` is specified and `var2 == NULL`.
-#' @param include.percent.sign A logical. Include percent (%) sign in computed percent columns? 
+#' @param include.percent.sign A logical. Include percent (\%) sign in computed percent columns? 
 #' 
 #' @return Object of class \code{list} containing the following elements:
 #'
@@ -66,59 +69,6 @@
 #' @examples
 #' 
 #' library( DMADtools )
-#'
-#'# first, create an example/toy dataset
-#' set.seed( 425 )
-#' 
-#' d.example <- data.frame()
-#' 
-#' for( i in 1:500 ){
-#'   
-#'   # variable 1
-#'   v1 <- sample( x = c( 1:3 ), size = 1,
-#'                 replace = TRUE,
-#'                 prob = c( 0.33, 0.5, 0.17 ) )
-#'   
-#'   v1.label <- c( "Geo 1", "Geo 2", "Geo 3" )[ v1 ]
-#'   
-#'   # variable 2
-#'   v2 <- sample( x = c( 1:4 ), size = 1,
-#'                 replace = TRUE,
-#'                 # assign conditional probabilities based on value of `v1`
-#'                 prob = { if( v1 == 1 ) c( 0.2, 0.6, 0.1, 0.1 )
-#'                   else if( v1 == 2 ) c( 0.3, 0.4, 0.2, 0.1 ) 
-#'                   else if( v1 == 3 ) c( 0.5, 0.2, 0.2, 0.1 ) } )
-#'   
-#'   v2.label <- c( "Char 1", "Char 2", "Char 3", "Char 3" )[ v2 ]
-#'   
-#'   # variable 3
-#'   v3 <- sample( x = c( 1:2 ), size = 1,
-#'                 replace = TRUE,
-#'                 prob = c( 0.52, 0.48 ) )
-#'   
-#'   v3.label <- c( "Other Char 1", "Other Char 2", "Other Char 3", "Other Char 3" )[ v2 ]
-#'   
-#'   # assign to `data.frame` and bind
-#'   d.example <- rbind( d.example,
-#'                       data.frame( v1 = v1.label,
-#'                                   v2 = v2.label,
-#'                                   v3 = v3.label ) )
-#'   
-#'   
-#' }
-#' 
-#' # assign population data for computing rates (aggregate variable)
-#' set.seed( 5789 )
-#' 
-#' pop.1 <- sample( 50000:60000, size = 1 )
-#' pop.2 <- sample( 350000:360000, size = 1 )
-#' pop.3 <- sample( 70000:860000, size = 1 )
-#' 
-#' d.example$v_pop <- ifelse( d.example$v1 == "Geo 1", pop.1,
-#'                            ifelse( d.example$v1 == "Geo 2", pop.2,
-#'                                    ifelse( d.example$v1 == "Geo 3", pop.3,
-#'                                            NA ) ) )
-#' 
 #' 
 #' summary_table( d = d.example,
 #'                metric = c( "count", "percent" ),
@@ -137,7 +87,7 @@
 #'                add.summary.col = TRUE,
 #'                var2 = "v2",
 #'                percentages.rel = "var2" )
-#'    
+#' 
 #' # specify var1 and table.grouping instead of var1 and var2, 
 #' # note, the change in percentages.rel            
 #' summary_table( d = d.example,
@@ -147,8 +97,8 @@
 #'                add.summary.row = TRUE,
 #'                add.summary.col = TRUE,
 #'                percentages.rel = "table.grouping" )
-#'
-#'# rename summary row and column and shuffle column and row orders
+#' 
+#' # rename summary row and column and shuffle column and row orders
 #' summary_table( d = d.example,
 #'                metric = c( "count", "percent" ),
 #'                var1 = "v1",
@@ -179,8 +129,8 @@
 #'                metric = c( "count", "rate" ),
 #'                var1 = "v1",
 #'                var2 = "v2",
-#'                add.summary.row =T,
-#'                add.summary.col = T,
+#'                add.summary.row =TRUE,
+#'                add.summary.col = TRUE,
 #'                remove.cols = "Char 3",
 #'                percentages.rel = "var2",
 #'                pop.var = "v_pop" )
@@ -198,7 +148,7 @@
 #'                order.cols = c( "Geo 1", "All Geos", "Geo 3" ), # reorder columns in output table
 #'                order.rows = c( "Char 1", "Char 2", "All Char" ), # reorder columns in output table
 #'                percentages.rel = "table.grouping" )
-#'                
+#' 
 #' # do a 3-way tabulation
 #' summary_table( d = d.example,
 #'                metric = c( "count", "percent" ),
@@ -208,8 +158,8 @@
 #'                add.summary.row = TRUE,
 #'                add.summary.col = TRUE,
 #'                percentages.rel = "var2" )
-#'
-#'# use order.groups argument to remove some grouping categories
+#' 
+#' # use order.groups argument to remove some grouping categories
 #' summary_table( d = d.example,
 #'                metric = c( "count", "percent" ),
 #'                var1 = "v1",
@@ -219,7 +169,7 @@
 #'                add.summary.row = TRUE,
 #'                add.summary.col = TRUE,
 #'                percentages.rel = "var2" )
-#'      
+#' 
 #' # example with rate computation and add.summary.row and add.summary.col are TRUE
 #' summary_table( d = d.example,
 #'                metric = c( "count", "rate" ),
@@ -229,20 +179,17 @@
 #'                add.summary.col = TRUE,
 #'                percentages.rel = "var2",
 #'                pop.var = "v_pop" )
-#'
-#'# foot.lines argument and NAs.footnote
-#' set.seed( 974 )
 #' 
-#' d.example.na <- d.example
-#' d.example.na[ sample( 1:nrow( d.example.na ), size = 9 ), "v2" ] <- NA # introduce 9 NAs randomly 
+#' # foot.lines argument and NAs.footnote
+#' set.seed( 974 )
 #' 
 #' summary_table( d = d.example.na,
 #'                metric = c( "count", "percent" ),
 #'                var1 = "v1",
 #'                var2 = "v2",
 #'                nm.var1 = "Variable 1",
-#'                add.summary.row =T,
-#'                add.summary.col = T,
+#'                add.summary.row =TRUE,
+#'                add.summary.col = TRUE,
 #'                foot.lines = c("This is the first footer line",
 #'                               "This is the second footer line" ), # manual footer lines
 #'                remove.cols = "Char 3",
@@ -256,8 +203,8 @@
 #'                var1 = "v1",
 #'                var2 = "v2",
 #'                nm.var1 = "Variable 1",
-#'                add.summary.row =T,
-#'                add.summary.col = T,
+#'                add.summary.row =TRUE,
+#'                add.summary.col = TRUE,
 #'                foot.lines = c("This is the first footer line",
 #'                               "This is the second footer line" ), # manual footer lines
 #'                remove.cols = "Char 3",
@@ -266,15 +213,15 @@
 #'                rate.supp = 50, # suppress rate calculation when counts are <= 50
 #'                NAs.footnote = TRUE, # produces the footnote of excluded observations
 #'                pop.var = "v_pop" ) 
-#'                
+#' 
 #' # give it a title
 #' summary_table( d = d.example.na,
 #'                metric = c( "count", "rate" ),
 #'                var1 = "v1",
 #'                var2 = "v2",
 #'                nm.var1 = "Variable 1",
-#'                add.summary.row =T,
-#'                add.summary.col = T,
+#'                add.summary.row =TRUE,
+#'                add.summary.col = TRUE,
 #'                foot.lines = c("This is the first footer line",
 #'                               "This is the second footer line" ), # manual footer lines
 #'                remove.cols = "Char 3",
@@ -284,7 +231,7 @@
 #'                NAs.footnote = TRUE, # produces the foornote of excluded observations
 #'                pop.var = "v_pop",
 #'                table.title = "This is Table 1" ) # title
-#'                
+#' 
 #' @export
 
 summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, pop.var = NULL,
@@ -306,8 +253,8 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, p
   }
   
   if( !is.null( summary.row.name ) ){
-    if( class( summary.row.name ) != "character")
-      error( "`summary.row.name` must be a string." )
+    if( !inherits( summary.row.name, "character" ) )
+      stop( "`summary.row.name` must be a string." )
   }
   
   if( !is.null( order.groups )){
@@ -326,7 +273,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, p
     warning( "A name was provided to `summary.row.name` but `add.summary.row` was indicated as NULL. Note that `summary.row.name` will be irrelevant in this case unless `add.summary.row` is changed to TRUE" )
   }
   
-  if( is.null( pop.var ) & any( str_detect( metric, "rate" ) ) ){
+  if( is.null( pop.var ) & any( stringr::str_detect( metric, "rate" ) ) ){
     stop( "`pop.var` variable not detected in dataset. Ensure that population count data (aggregate-level) are stored in `pop.var` variable." )
   }
   
@@ -343,7 +290,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, p
   }
   
   if( !is.null( table.title) ){
-    if( class( table.title ) != "character" ) stop( '`table.title` must be of class "character" ' )
+    if( !inherits( table.title, "character" ) ) stop( '`table.title` must be of class "character" ' )
   }
   
   if( is.null( d[[ var1 ]] ) ){
@@ -637,7 +584,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, p
   
   redo.rate <- TRUE  # for later internal use
   
-  if( any( c( add.summary.col, add.summary.row ) ) & any( str_detect( metric, "rate" ) ) ){
+  if( any( c( add.summary.col, add.summary.row ) ) & any( stringr::str_detect( metric, "rate" ) ) ){
     
     d.1 <- d.1 %>%
       filter( if_any( .cols = any_of( c( var1, var2, table.grouping ) ),
@@ -649,7 +596,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, p
                    filter( !if_any( .cols = any_of( c( var1, var2, table.grouping ) ),
                                     .fns = ~ . %in% c( sum.col.nm, sum.row.nm ) ) ) %>%
                    mutate( across( .cols = contains( "rate" ),
-                                   .fn = ~ ifelse( . < 1.0,
+                                   .fns = ~ ifelse( . < 1.0,
                                                    formatC( signif( ., 
                                                                     digits = digs.rate ), 
                                                             digits = digs.rate, 
@@ -704,7 +651,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, p
     
   } } %>%
     mutate( across( .cols = -tot_count_yr,
-                    .fn = ~ as.character( . ) ) ) %>%
+                    .fns = ~ as.character( . ) ) ) %>%
     { if( add.summary.row & tb.grp.logic ) {  # if we are to include a row summarizing var2 data for all of dc 
       
       d.dc.ref.2 <- d.nomiss %>%
@@ -896,7 +843,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, p
     # decimal places for rates base on significant figures for values < 1.0 and decimal places for >= 1.0
     { if( redo.rate ){
       mutate( ., across( .cols = contains( "rate" ),
-                         .fn = ~ ifelse( . < 1.0,
+                         .fns = ~ ifelse( . < 1.0,
                                          formatC( signif( ., 
                                                           digits = digs.rate ), 
                                                   digits = digs.rate, 
@@ -916,7 +863,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, p
   
   ## cell rate suppression if desired ##
   
-  if( !is.null( rate.supp ) & any( str_detect( names( d.6 ), "rate" ) )  & "rate" %in% metric ){
+  if( !is.null( rate.supp ) & any( stringr::str_detect( names( d.6 ), "rate" ) )  & "rate" %in% metric ){
     
     cats <- names( d.6 )[ str_which( names( d.6 ), "rate" ) ] %>%
       str_remove( ., ",rate")
@@ -934,7 +881,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, p
     # drop original  rate column for new modified column with suppressed values
     d.6 <- d.6 %>%
       dplyr::select( -matches( "rate$", # regex for column name ending in "rate"
-                        perl = T ) ) %>% # `perl` argument is for indicating a regex expression
+                        perl = TRUE ) ) %>% # `perl` argument is for indicating a regex expression
       rename_with( .fn = ~ str_replace( ., "rate2", "rate" ), # recycle0 = TRUE at recommendation of `dplyr` authors
                    .cols = contains( "rate2" ) )
     
@@ -959,11 +906,11 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, p
     distinct()
   
   ## cell count suppression if desired ##
-  if( !is.null( count.supp ) & any( str_detect( names( d.7 ), "count" ) ) ){
+  if( !is.null( count.supp ) & any( stringr::str_detect( names( d.7 ), "count" ) ) ){
     
     d.7 <- d.7 %>%
       mutate( ., across( .cols = c( contains( "count" ) ),
-                         .fn = ~ ifelse( . <= count.supp & . > 0, count.supp.symbol, . ) ) )
+                         .fns = ~ ifelse( . <= count.supp & . > 0, count.supp.symbol, . ) ) )
     
     # get column name prefixes 
     these.cols.pref <- names( d.7 ) %>%
@@ -1151,11 +1098,11 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, p
     
     # column names relabeling
     new.nms <- colnames( d.7 ) %>%
-      ifelse( str_detect( ., "count" ), "No.", . ) %>%
-      ifelse( str_detect( ., "percent" ), "%", . ) %>%
-      ifelse( str_detect( ., "rate" ), "Rate", . )
+      ifelse( stringr::str_detect( ., "count" ), "No.", . ) %>%
+      ifelse( stringr::str_detect( ., "percent" ), "%", . ) %>%
+      ifelse( stringr::str_detect( ., "rate" ), "Rate", . )
     
-    new.nms <- setNames( new.nms, colnames( d.7 ) ) %>% # this object gets fed to `set_header_labels`
+    new.nms <- stats::setNames( new.nms, colnames( d.7 ) ) %>% # this object gets fed to `set_header_labels`
       .[ . != "group" ] # remove group from names list because it is a grouping variable and will not appear as a column in final table
     # otherwise it messes up the counting/indices of the column names
     
@@ -1183,7 +1130,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, p
       str_remove( ., ",rate" ) %>%
       str_remove( ., ",percent" )
     
-    new.nms <- setNames( new.nms, colnames( d.7 ) ) %>% # this object gets fed to `set_header_labels`
+    new.nms <- stats::setNames( new.nms, colnames( d.7 ) ) %>% # this object gets fed to `set_header_labels`
       .[ . != "group" ] # remove group from names list because it is a grouping variable and will not appear as a column in final table
     # otherwise it messes up the counting/indices of the column names
     
@@ -1226,12 +1173,12 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, p
   if( !tb.grp.var2.wide.logic ){
     
     t.out <- { if( tb.grp.logic ){ as_grouped_data( d.7, groups = "group" ) %>%
-        as_flextable( hide_grouplabel = TRUE )  %>% # first two lines of this command are used to create the grouping headers within the table
+        flextable::as_flextable( hide_grouplabel = TRUE )  %>% # first two lines of this command are used to create the grouping headers within the table
         surround( i = ~ !is.na( group ), # this `surround` command is to add the top horizontal and bottom horizonal lines to the grouping header title
                   border.top = fp_border_default( width = 0.1 ), 
                   border.bottom = fp_border_default( width = 0.1 ),
                   part = "body") 
-    } else{ flextable( d.7 ) } } %>%
+    } else{ flextable::flextable( d.7 ) } } %>%
       { if( length( metric ) > 1 & var.logic.2 ){ # spanning headers for `var2` only if more than one metric is requested and if there is cross-tabulation
         add_header_row( ., colwidths = col.w,
                         values = sp.h ) 
@@ -1278,7 +1225,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, p
   # for wider table when there is only 1 level of var2 but var2 and table.grouping are specified
   if( tb.grp.var2.wide.logic ){
     
-    t.out <- flextable( d.7) %>%
+    t.out <- flextable::flextable( d.7) %>%
       { if( length( metric ) > 1 & var.logic.2 ){ # spanning headers for `var2` only if more than one metric is requested and if there is cross-tabulation
         add_header_row( ., colwidths = col.w,
                         values = sp.h ) 
@@ -1412,7 +1359,7 @@ summary_table <- function( d, var1 = var1, var2 = NULL, table.grouping = NULL, p
     if( count.supp > 0 ){
       
       t.out <- t.out %>%
-        add_footer_lines( values = paste0( count.supp.symbol, " Cell counts ≤ ", count.supp," were suppressed to protect confidentiality." ) ) %>%
+        add_footer_lines( values = paste0( count.supp.symbol, " Cell counts \U2264", count.supp," were suppressed to protect confidentiality." ) ) %>% # note the use of the UNICODE in this string
         fontsize( size = 7, part = "footer" ) %>%
         line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
         padding( padding.top = 2.5, padding.bottom = 0, part = "footer", i = 1 )
