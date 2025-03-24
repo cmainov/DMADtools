@@ -4,7 +4,7 @@
 \alias{summary_table}
 \title{Generate "Nice" `flextable` From Input Data}
 \usage{
-summary_table( d, var1 = var1, var2 = NULL, table.grouping = NULL, 
+summary_table( d, var1, var2 = NULL, table.grouping = NULL, 
 pop.var = NULL, add.summary.row = TRUE, summary.row.name = NULL, 
 add.summary.col = TRUE, digs.perc = 1, digs.rate = 2, summary.col.name = NULL, 
 order.rows = NULL, order.cols = NULL, order.groups = NULL, foot.lines = c(), 
@@ -126,11 +126,14 @@ summary_table( d = d.example,
                add.summary.col = TRUE,
                summary.col.name = "All Geos", # change name of summary column
                summary.row.name = "All Char", # change name of summary row
-               order.cols = c( "Geo 1", "Geo 2", "All Geos", "Geo 3" ), # reorder columns in output table
-               order.rows = c( "Char 1", "Char 2", "All Char", "Char 3" ), # reorder columns in output table
+               order.cols = c( "Geo 1", 
+               "Geo 2", "All Geos", "Geo 3" ), # reorder columns in output table
+               order.rows = c( "Char 1", 
+               "Char 2", "All Char", "Char 3" ), # reorder columns in output table
                percentages.rel = "table.grouping" )
 
-# same call as previous, but use order.cols and order.rows to remove some rows and columns from final table
+# same call as previous, but use order.cols and order.rows to remove some 
+# rows and columns from final table
 summary_table( d = d.example,
                metric = c( "count", "percent" ),
                var1 = "v1",
@@ -139,8 +142,10 @@ summary_table( d = d.example,
                add.summary.col = TRUE,
                summary.col.name = "All Geos", # change name of summary column
                summary.row.name = "All Char", # change name of summary row
-               order.cols = c( "Geo 1", "All Geos", "Geo 3" ), # reorder columns in output table
-               order.rows = c( "Char 1", "Char 2", "All Char" ), # reorder columns in output table
+               order.cols = c( "Geo 1", 
+               "All Geos", "Geo 3" ), # reorder columns in output table
+               order.rows = c( "Char 1", 
+               "Char 2", "All Char" ), # reorder columns in output table
                percentages.rel = "table.grouping" )
 
 # use remove.cols instead of order.cols argument for removing an undesired column from final table
@@ -164,8 +169,10 @@ summary_table( d = d.example,
                add.summary.col = TRUE,
                summary.col.name = "All Geos", # change name of summary column
                summary.row.name = "All Char", # change name of summary row
-               order.cols = c( "Geo 1", "All Geos", "Geo 3" ), # reorder columns in output table
-               order.rows = c( "Char 1", "Char 2", "All Char" ), # reorder columns in output table
+               order.cols = c( "Geo 1", 
+               "All Geos", "Geo 3" ), # reorder columns in output table
+               order.rows = c( "Char 1",
+               "Char 2", "All Char" ), # reorder columns in output table
                percentages.rel = "table.grouping" )
 
 # do a 3-way tabulation
@@ -210,7 +217,7 @@ summary_table( d = d.example.na,
                add.summary.row =TRUE,
                add.summary.col = TRUE,
                foot.lines = c("This is the first footer line",
-                              "This is the second footer line" ), # manual footer lines
+                              "This is the second footer line" ), 
                remove.cols = "Char 3",
                percentages.rel = "var2",
                NAs.footnote = TRUE, # produces the footnote of excluded observations
@@ -225,7 +232,7 @@ summary_table( d = d.example.na,
                add.summary.row =TRUE,
                add.summary.col = TRUE,
                foot.lines = c("This is the first footer line",
-                              "This is the second footer line" ), # manual footer lines
+                              "This is the second footer line" ),
                remove.cols = "Char 3",
                percentages.rel = "var2",
                count.supp = 50, # suppress values/counts in table <= 50
@@ -242,7 +249,7 @@ summary_table( d = d.example.na,
                add.summary.row =TRUE,
                add.summary.col = TRUE,
                foot.lines = c("This is the first footer line",
-                              "This is the second footer line" ), # manual footer lines
+                              "This is the second footer line" ), 
                remove.cols = "Char 3",
                percentages.rel = "var2",
                count.supp = 50, # suppress values/counts in table <= 50

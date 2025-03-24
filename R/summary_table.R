@@ -107,11 +107,14 @@
 #'                add.summary.col = TRUE,
 #'                summary.col.name = "All Geos", # change name of summary column
 #'                summary.row.name = "All Char", # change name of summary row
-#'                order.cols = c( "Geo 1", "Geo 2", "All Geos", "Geo 3" ), # reorder columns in output table
-#'                order.rows = c( "Char 1", "Char 2", "All Char", "Char 3" ), # reorder columns in output table
+#'                order.cols = c( "Geo 1", 
+#'                "Geo 2", "All Geos", "Geo 3" ), # reorder columns in output table
+#'                order.rows = c( "Char 1", 
+#'                "Char 2", "All Char", "Char 3" ), # reorder columns in output table
 #'                percentages.rel = "table.grouping" )
 #' 
-#' # same call as previous, but use order.cols and order.rows to remove some rows and columns from final table
+#' # same call as previous, but use order.cols and order.rows to remove some 
+#' # rows and columns from final table
 #' summary_table( d = d.example,
 #'                metric = c( "count", "percent" ),
 #'                var1 = "v1",
@@ -120,8 +123,10 @@
 #'                add.summary.col = TRUE,
 #'                summary.col.name = "All Geos", # change name of summary column
 #'                summary.row.name = "All Char", # change name of summary row
-#'                order.cols = c( "Geo 1", "All Geos", "Geo 3" ), # reorder columns in output table
-#'                order.rows = c( "Char 1", "Char 2", "All Char" ), # reorder columns in output table
+#'                order.cols = c( "Geo 1", 
+#'                "All Geos", "Geo 3" ), # reorder columns in output table
+#'                order.rows = c( "Char 1", 
+#'                "Char 2", "All Char" ), # reorder columns in output table
 #'                percentages.rel = "table.grouping" )
 #' 
 #' # use remove.cols instead of order.cols argument for removing an undesired column from final table
@@ -145,8 +150,10 @@
 #'                add.summary.col = TRUE,
 #'                summary.col.name = "All Geos", # change name of summary column
 #'                summary.row.name = "All Char", # change name of summary row
-#'                order.cols = c( "Geo 1", "All Geos", "Geo 3" ), # reorder columns in output table
-#'                order.rows = c( "Char 1", "Char 2", "All Char" ), # reorder columns in output table
+#'                order.cols = c( "Geo 1", 
+#'                "All Geos", "Geo 3" ), # reorder columns in output table
+#'                order.rows = c( "Char 1",
+#'                "Char 2", "All Char" ), # reorder columns in output table
 #'                percentages.rel = "table.grouping" )
 #' 
 #' # do a 3-way tabulation
@@ -191,7 +198,7 @@
 #'                add.summary.row =TRUE,
 #'                add.summary.col = TRUE,
 #'                foot.lines = c("This is the first footer line",
-#'                               "This is the second footer line" ), # manual footer lines
+#'                               "This is the second footer line" ), 
 #'                remove.cols = "Char 3",
 #'                percentages.rel = "var2",
 #'                NAs.footnote = TRUE, # produces the footnote of excluded observations
@@ -206,7 +213,7 @@
 #'                add.summary.row =TRUE,
 #'                add.summary.col = TRUE,
 #'                foot.lines = c("This is the first footer line",
-#'                               "This is the second footer line" ), # manual footer lines
+#'                               "This is the second footer line" ),
 #'                remove.cols = "Char 3",
 #'                percentages.rel = "var2",
 #'                count.supp = 50, # suppress values/counts in table <= 50
@@ -223,7 +230,7 @@
 #'                add.summary.row =TRUE,
 #'                add.summary.col = TRUE,
 #'                foot.lines = c("This is the first footer line",
-#'                               "This is the second footer line" ), # manual footer lines
+#'                               "This is the second footer line" ), 
 #'                remove.cols = "Char 3",
 #'                percentages.rel = "var2",
 #'                count.supp = 50, # suppress values/counts in table <= 50
@@ -244,7 +251,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
   
   ## call checks ##
   
-  var1 <- cement( !!var1 )
+  var1 <- deparse_arg( var1 )
   
   if( is.null( var1 ) ) stop( "`var1` cannot be NULL; if only one variable is desired for stratification purposes, it should be included in the `var1` argument" ) 
   
@@ -276,7 +283,13 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
   }
   
   if( is.null( pop.var ) & any( stringr::str_detect( metric, "rate" ) ) ){
-    stop( "`pop.var` variable not detected in dataset. Ensure that population count data (aggregate-level) are stored in `pop.var` variable." )
+    stop( "`pop.var` not specified but 'rate' was called in `metric`." )
+  }
+  
+  if( !is.null( pop.var ) ){
+    if(is.null( d[[ pop.var ]] ) ){
+      stop( "`pop.var` variable not detected in dataset. Ensure that population count data (aggregate-level) are stored in `pop.var` variable." )
+    }
   }
   
   if( !is.null( var1 ) & !is.null( var2 ) & !percentages.rel %in% c( "var1", "var2" ) ){
@@ -599,12 +612,12 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
                                     .fns = ~ . %in% c( sum.col.nm, sum.row.nm ) ) ) %>%
                    mutate( across( .cols = contains( "rate" ),
                                    .fns = ~ ifelse( . < 1.0,
-                                                   formatC( signif( ., 
-                                                                    digits = digs.rate ), 
-                                                            digits = digs.rate, 
-                                                            format = "fg", 
-                                                            flag = "#" ),
-                                                   sprintf( paste0( "%.", digs.rate, "f" ), . ) ) ),
+                                                    formatC( signif( ., 
+                                                                     digits = digs.rate ), 
+                                                             digits = digs.rate, 
+                                                             format = "fg", 
+                                                             flag = "#" ),
+                                                    sprintf( paste0( "%.", digs.rate, "f" ), . ) ) ),
                            across( .cols = c( pop, pop_rate ) ,
                                    .fns = ~ as.character( . ) ) ),
                  . )
@@ -613,7 +626,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     
     warning( 'Either `add.summary.col` or `add.summary.row` was called (TRUE) but "rate" was indicated in `metric`. However, rates in the summary row and column are not provided in the output table. A future version of this function may allow for computation of rates for the summary row and column.')
   }
-
+  
   ## get total count by stratifying variables for calculating percentages ##
   
   bths.yr <- { if( var.logic.2 ){ # two-variable case
@@ -704,11 +717,11 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
   ### Patch work bug fix (3/10/2025 CMV) -- this corrects issue with column names
   rem.this <- names( which( sapply( d.2, function(x) sum(is.na( x ) ) == nrow( d.2 ) ) ) )
   
-
-    d.2 <- d.2 %>%
-      dplyr::select( -all_of( rem.this ) ) %>%
-      rename_with( .cols = everything(),
-                   .fn = ~str_remove_all( ., "\\.x$|\\.y$") )
+  
+  d.2 <- d.2 %>%
+    dplyr::select( -all_of( rem.this ) ) %>%
+    rename_with( .cols = everything(),
+                 .fn = ~str_remove_all( ., "\\.x$|\\.y$") )
   
   
   ### Patch work bug fix (3/18/2025 CMV) -- this corrects issues with NAs when `add.summary.col` is called
@@ -846,12 +859,12 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     { if( redo.rate ){
       mutate( ., across( .cols = contains( "rate" ),
                          .fns = ~ ifelse( . < 1.0,
-                                         formatC( signif( ., 
-                                                          digits = digs.rate ), 
-                                                  digits = digs.rate, 
-                                                  format = "fg", 
-                                                  flag = "#" ),
-                                         sprintf( paste0( "%.", digs.rate, "f" ), . ) ) ) ) } else . }
+                                          formatC( signif( ., 
+                                                           digits = digs.rate ), 
+                                                   digits = digs.rate, 
+                                                   format = "fg", 
+                                                   flag = "#" ),
+                                          sprintf( paste0( "%.", digs.rate, "f" ), . ) ) ) ) } else . }
   
   
   ## arrange/order rows if indicated with `order.rows` argument ##
@@ -883,7 +896,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     # drop original  rate column for new modified column with suppressed values
     d.6 <- d.6 %>%
       dplyr::select( -matches( "rate$", # regex for column name ending in "rate"
-                        perl = TRUE ) ) %>% # `perl` argument is for indicating a regex expression
+                               perl = TRUE ) ) %>% # `perl` argument is for indicating a regex expression
       rename_with( .fn = ~ str_replace( ., "rate2", "rate" ), # recycle0 = TRUE at recommendation of `dplyr` authors
                    .cols = contains( "rate2" ) )
     
@@ -1388,6 +1401,5 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
                 frame = d.7 ) )
   
 }
-
 
 

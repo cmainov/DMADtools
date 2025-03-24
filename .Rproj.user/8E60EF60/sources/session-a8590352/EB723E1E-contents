@@ -233,9 +233,10 @@ summary_table( d = d.example.na,
                pop.var = "v_pop" ) 
 
 # give it a title
-summary_table( d = d.example.na,
+summary_table( d = d.example.na %>%
+                 select( -v_pop ),
                metric = c( "count", "rate" ),
-               var1 = v1,
+               var1 = "v1",
                var2 = "v2",
                nm.var1 = "Variable 1",
                add.summary.row =T,

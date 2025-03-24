@@ -1,7 +1,3 @@
 
-
-## Quoting Function ##
-cement <- function(...) {
-  args <- ensyms(...)
-  paste(purrr::map(args, as_string), collapse = " ")
-}
+## Deparsing Function Arguments ##
+deparse_arg <- function(x) parse_expr(x) %>% as.character()
