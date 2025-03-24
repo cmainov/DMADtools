@@ -6,7 +6,7 @@ Date: 2025-03-21
 Author: Christian Maino Vieytes (DMAD/CPPE DC Health)
 Maintainer: Christian Maino Vieytes <christian.maino-vieytes@dc.gov>
 Description: Tools for analyzing health and vital records data. Tools for tabulation.
-License: GPL-3 + file LICENSE
+License: `use_gpl3_license()`
 RoxygenNote: 7.3.2
 Encoding: UTF-8
 Suggests: 
