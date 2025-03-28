@@ -107,3 +107,38 @@ test_that( "Two metrics, max", {
 })
 
 
+test_that( "ensure that 0's are not suppressed.", {
+  
+## ensure that 0's are not suppressed in counts, percentages and rates
+
+# create some zero counts in a cross-tab
+d.zero <- d.example %>%
+  mutate( v2 = ifelse( v1 == "Geo 1" & v2 == "Char 2", "Char 3", 
+                       v2 ) ) # the cross tab of Geo 1 and Char 2 should now be 0
+
+# run the function
+test1 <- summary_table( d = d.zero,
+                        metric = c( "count", "rate" ),
+                        var1 = "v1",
+                        var2 = "v2",
+                        add.summary.row = T,
+                        add.summary.col = FALSE,
+                        rate.supp = 5,
+                        count.supp = 5,
+                        percentages.rel = "var2",
+                        pop.var = "v_pop" )$frame
+
+# test for rates
+expect_equal( 0, test1 %>%
+                filter( v1 == "Geo 1" ) %>%
+                select( contains( "Char 2" ) &
+                          contains( "rate" ) ) %>%
+                pull() %>% as.numeric() )
+
+# test for counts
+expect_equal( 0, test1 %>%
+                filter( v1 == "Geo 1" ) %>%
+                select( contains( "Char 2" ) &
+                          contains( "count" ) ) %>%
+                pull() %>% as.numeric() )
+})

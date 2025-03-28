@@ -737,7 +737,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
                                  count_perc ) )
   
   
-  ##  counts ##
+  ## counts ##
   if( "count" %in% metric ){
     d.3 <- if( var.logic.2 ){ # two-variable case
       
@@ -764,7 +764,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     }
   }
   
-  ##  rates ##
+  ## rates ##
   if( "rate" %in% metric ){
     d.4 <- if( var.logic.2 & "rate" %in% metric ){ # two-variable case
       
@@ -790,9 +790,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     }
   }
   
-  ##  percentages ##
-  
-  
+  ## percentages ##
   if( "percent" %in% metric ){
     
     d.5 <- if( var.logic.2 ){ # two-variable case
@@ -822,12 +820,17 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
   
   # change NAs to 0's for any particular category since presence of NAs indicates no count in that particular race/eth cat
   if( "count" %in% metric ) d.3[ is.na( d.3 ) ] <- 0
-  if( "rate" %in% metric ) d.4[ is.na( d.4 ) ] <- 0
-  if( "percent" %in% metric ) d.5[ is.na( d.5 ) ] <- "0.0%"
+  if( "rate" %in% metric ) d.4[ is.na( d.4 ) ] <- paste0( "0.", 
+                                                          paste0( rep( "0", digs.rate ), 
+                                                                        collapse = "" ) )
+  if( "percent" %in% metric ) d.5[ is.na( d.5 ) ] <- paste0( "0.", 
+                                                             paste0( rep( "0", digs.perc), 
+                                                                     collapse = "" ),
+                                                             "%" )
   
   # check for if there are different years of data that are being used to calculate rates
   if( "rate" %in% metric ){
-    if( nrow( d.3 ) < nrow( d.4 ) & "count" %in% metric) stop( "Potentially multiple years of population data detected in the dataset making computation of rates unreliable. Ensure that only the year you desire a rate for is included in the dataset; otherwise do not dplyr::select 'rate' in `metric` or use the `table.grouping` argument")
+    if( nrow( d.3 ) < nrow( d.4 ) & "count" %in% metric ) stop( "Potentially multiple years of population data detected in the dataset making computation of rates unreliable. Ensure that only the year you desire a rate for is included in the dataset; otherwise do not dplyr::select 'rate' in `metric` or use the `table.grouping` argument")
   }
   
   # decimal places for rates base on significant figures for values < 1.0 and decimal places for >= 1.0
@@ -881,14 +884,14 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
   if( !is.null( rate.supp ) & any( stringr::str_detect( names( d.6 ), "rate" ) )  & "rate" %in% metric ){
     
     cats <- names( d.6 )[ str_which( names( d.6 ), "rate" ) ] %>%
-      str_remove( ., ",rate")
+      str_remove( ., ",rate" )
     
     # loop and replace rates of numerators (count) < `rate.supp` with `rate.supp.symbol`
     for( i in seq_along( cats ) ){
       
       for( j in 1:nrow( d.6 ) ){
         
-        d.6[ j, paste0( cats[i], ",rate2" ) ] <- ifelse( d.6[ j, paste0( cats[i], ",count" ) ] <= rate.supp,
+        d.6[ j, paste0( cats[i], ",rate2" ) ] <- ifelse( d.6[ j, paste0( cats[i], ",count" ) ] <= rate.supp & d.6[ j, paste0( cats[i], ",count" ) ] > 0,
                                                          rate.supp.symbol, paste0( d.6[ j, paste0( cats[i], ",rate" ) ] ) )
       }
     }
@@ -1220,10 +1223,10 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
                padding.left = 4, 
                padding.right = 4, 
                part = "body" ) %>%
-      padding( padding.top = 5, 
-               padding.bottom = 5, 
-               padding.left = 0, 
-               padding.right = 0, 
+      padding( padding.top = 8, 
+               padding.bottom = 8, 
+               padding.left = 4, 
+               padding.right = 4, 
                part = "header" ) %>%
       padding( padding.top = 2.5, 
                padding.bottom = 0,
@@ -1267,10 +1270,10 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
                padding.left = 4, 
                padding.right = 4, 
                part = "body" ) %>%
-      padding( padding.top = 5, 
-               padding.bottom = 5, 
-               padding.left = 0, 
-               padding.right = 0, 
+      padding( padding.top = 8, 
+               padding.bottom = 8, 
+               padding.left = 4, 
+               padding.right = 4, 
                part = "header" ) %>%
       padding( padding.top = 2.5, 
                padding.bottom = 0,
@@ -1374,7 +1377,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     if( count.supp > 0 ){
       
       t.out <- t.out %>%
-        add_footer_lines( values = paste0( count.supp.symbol, " Cell counts \U2264", count.supp," were suppressed to protect confidentiality." ) ) %>% # note the use of the UNICODE in this string
+        add_footer_lines( values = paste0( count.supp.symbol, " Cell counts \U2264 ", count.supp," were suppressed to protect confidentiality." ) ) %>% # note the use of the UNICODE in this string
         fontsize( size = 7, part = "footer" ) %>%
         line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
         padding( padding.top = 2.5, padding.bottom = 0, part = "footer", i = 1 )
@@ -1390,7 +1393,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     if( rate.supp > 0 ){
       
       t.out <- t.out %>%
-        add_footer_lines( values = paste0( rate.supp.symbol, " Rates based on < ", rate.supp, " events are not presented since such rates are subject to instability." ) ) %>%
+        add_footer_lines( values = paste0( rate.supp.symbol, " Rates based on \U2264 ", rate.supp, " events are not presented since such rates are subject to instability." ) ) %>% # note the use of the UNICODE in this string
         fontsize( size = 7, part = "footer" ) %>%
         line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
         padding( padding.top = 2.5, padding.bottom = 0, part = "footer", i = 1 )
