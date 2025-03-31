@@ -238,6 +238,20 @@
 #'                NAs.footnote = TRUE, # produces the foornote of excluded observations
 #'                pop.var = "v_pop",
 #'                table.title = "This is Table 1" ) # title
+#'                
+#' # when providing more than 1 variable for the rows
+#' summary_table( d = d.example,
+#'                metric = c( "count", "percent" ),
+#'                var1 = c( "v1", "v3" ),
+#'                order.rows = list( v1 = c( "Geo 2", "Geo 3", "Geo 1" ),
+#'                                   v3 = c( "Other Char 2", "Other Char 3" )),
+#'                var2 = "v2",
+#'                add.summary.row = FALSE,
+#'                add.summary.col = FALSE,
+#'                rate.supp = 5,
+#'                count.supp = 5,
+#'                percentages.rel = "var2",
+#'                pop.var = "v_pop" )
 #' 
 #' @export
 
@@ -256,7 +270,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
       
       if( !inherits( order.rows, "list") ) stop( "If length( var1 ) > 1, `order.rows` must be an object of class 'list'. Otherwise, it should be an object of class 'character' " )
       
-      if( !any( names( order.rows ) %in% var1 ) ) stop( "If length( var1 ) > 1, `order.rows` should be a named list consisting of character vectors with the elements of that list named the exact column name the ordering is being prescribed for." )
+      if( !all( names( order.rows ) %in% var1 ) ) stop( "If length( var1 ) > 1, `order.rows` should be a named list consisting of character vectors with the elements of that list named the exact column name the ordering is being prescribed for." )
       
     }
     
@@ -265,7 +279,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     call_env <- summary_table_1( d, var1 = var1[1], var2 = var2, table.grouping = table.grouping, 
                                  pop.var = pop.var, add.summary.row = add.summary.row, summary.row.name = summary.row.name, 
                                  add.summary.col = add.summary.col, digs.perc = digs.perc, digs.rate = digs.rate, summary.col.name = summary.col.name, 
-                                 order.rows = order.rows, order.cols = order.cols, order.groups = order.groups, foot.lines = foot.lines, 
+                                 order.rows = NULL, order.cols = order.cols, order.groups = order.groups, foot.lines = foot.lines, 
                                  table.title = table.title, metric = metric, nm.var1 = nm.var1, 
                                  count.supp = count.supp, remove.cols = remove.cols, rate.supp = rate.supp, 
                                  count.supp.symbol = count.supp.symbol, rate.supp.symbol = rate.supp.symbol, per = per, 
@@ -285,7 +299,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
       call1 <- summary_table_1( d, var1 = x, var2 = var2, table.grouping = table.grouping, 
                                 pop.var = pop.var, add.summary.row = add.summary.row, summary.row.name = summary.row.name, 
                                 add.summary.col = add.summary.col, digs.perc = digs.perc, digs.rate = digs.rate, summary.col.name = summary.col.name, 
-                                order.rows = order.rows, order.cols = order.cols, order.groups = order.groups, foot.lines = foot.lines, 
+                                order.rows = NULL, order.cols = order.cols, order.groups = order.groups, foot.lines = foot.lines, 
                                 table.title = table.title, metric = metric, nm.var1 = nm.var1, 
                                 count.supp = count.supp, remove.cols = remove.cols, rate.supp = rate.supp, 
                                 count.supp.symbol = count.supp.symbol, rate.supp.symbol = rate.supp.symbol, per = per, 
@@ -293,10 +307,10 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
       
       
       call1$frame %>%
-        filter( !!sym( x ) %in% arrange.rows ) %>%
-        rename( `var1` = !!sym( x ) )  %>% # this filters out any levels of var1 indicated in `order.rows` that are not desired in the table
+        filter( !!sym( x ) %in% arrange.rows )  %>% # this filters out any levels of var1 indicated in `order.rows` that are not desired in the table
         arrange( match( !!sym( x ), arrange.rows ), # arrange rows in custom order;
-                 .by_group = TRUE )
+                 .by_group = TRUE ) %>%
+        rename( `var1` = !!sym( x ) ) 
     }) %>%
       do.call( "rbind", . ) %>%
       distinct() # ensures add.summary.row row appears only once in table when binding from different calls

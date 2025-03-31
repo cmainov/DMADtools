@@ -198,30 +198,30 @@ test_that( "ensure no error when rate is called but not count.", {
   ) 
   
   expect_warning(
-  expect_no_error( summary_table( d = d.example,
-                                  metric = c( "percent", "rate" ),
-                                  var1 = "v1",
-                                  var2 = "v2",
-                                  add.summary.row = TRUE,
-                                  add.summary.col = FALSE,
-                                  rate.supp = 5,
-                                  count.supp = 5,
-                                  percentages.rel = "var2",
-                                  pop.var = "v_pop" )
-  )
+    expect_no_error( summary_table( d = d.example,
+                                    metric = c( "percent", "rate" ),
+                                    var1 = "v1",
+                                    var2 = "v2",
+                                    add.summary.row = TRUE,
+                                    add.summary.col = FALSE,
+                                    rate.supp = 5,
+                                    count.supp = 5,
+                                    percentages.rel = "var2",
+                                    pop.var = "v_pop" )
+    )
   )
   
   expect_warning(
-  expect_no_error( summary_table( d = d.example,
-                                  metric = c( "percent", "rate" ),
-                                  var1 = "v1",
-                                  var2 = "v2",
-                                  add.summary.row = TRUE,
-                                  add.summary.col = TRUE,
-                                  rate.supp = 5,
-                                  count.supp = 5,
-                                  percentages.rel = "var2",
-                                  pop.var = "v_pop" ) )
+    expect_no_error( summary_table( d = d.example,
+                                    metric = c( "percent", "rate" ),
+                                    var1 = "v1",
+                                    var2 = "v2",
+                                    add.summary.row = TRUE,
+                                    add.summary.col = TRUE,
+                                    rate.supp = 5,
+                                    count.supp = 5,
+                                    percentages.rel = "var2",
+                                    pop.var = "v_pop" ) )
   )
   
 })
@@ -229,67 +229,67 @@ test_that( "ensure no error when rate is called but not count.", {
 
 test_that( "check equality of contents of table (percentages, counts) when `percentages.rel` = 'var2'.", {
   
-
-# call function
-func.1 <- summary_table( d = d.example,
-               metric = c( "count", "percent" ),
-               var1 = "v1",
-               var2 = "v2",
-               add.summary.row = TRUE,
-               add.summary.col = TRUE,
-               rate.supp = 5,
-               count.supp = 5,
-               percentages.rel = "var2",
-               pop.var = "v_pop" )
-
-# extract values from function-generated table
-ths <- names( func.1$frame )[ str_which( names( func.1$frame ), "percent" ) ] %>%
-  str_remove( ., ",percent" ) %>%
-  .[ .!= "All"]
-
-# use base functions to generate same table of counts
-base.1 <- table( d.example$v1, d.example$v2) %>%
-  as.matrix()
-
-
-# use base functions to generate same table of percentages
-base.perc <- base.1
-for( i in 1:ncol( base.1 ) ){
   
-  base.perc[, i ] <- ( 100 * base.1[, i ] / sum( base.1[, i ] ) ) %>%
+  # call function
+  func.1 <- summary_table( d = d.example,
+                           metric = c( "count", "percent" ),
+                           var1 = "v1",
+                           var2 = "v2",
+                           add.summary.row = TRUE,
+                           add.summary.col = TRUE,
+                           rate.supp = 5,
+                           count.supp = 5,
+                           percentages.rel = "var2",
+                           pop.var = "v_pop" )
   
-  sprintf( paste0( "%.", 1, "f" ), . )
-}
-
-# check equality of counts
-for( i in seq_along( ths ) ){
+  # extract values from function-generated table
+  ths <- names( func.1$frame )[ str_which( names( func.1$frame ), "percent" ) ] %>%
+    str_remove( ., ",percent" ) %>%
+    .[ .!= "All"]
   
-  func.vec <- func.1$frame %>%
-    filter( v1 != "Summary Row" ) %>%
-    pull( !!sym( paste0( ths[i], ",count") ) )
+  # use base functions to generate same table of counts
+  base.1 <- table( d.example$v1, d.example$v2) %>%
+    as.matrix()
   
-  base.vec <- base.1[ , ths[i] ]
   
-  # final check of condition, ensuring equality
-  expect_true( all( func.vec == base.vec ) )
+  # use base functions to generate same table of percentages
+  base.perc <- base.1
+  for( i in 1:ncol( base.1 ) ){
+    
+    base.perc[, i ] <- ( 100 * base.1[, i ] / sum( base.1[, i ] ) ) %>%
+      
+      sprintf( paste0( "%.", 1, "f" ), . )
+  }
   
-}
-
-
-# check equality of percentages
-for( i in seq_along( ths ) ){
+  # check equality of counts
+  for( i in seq_along( ths ) ){
+    
+    func.vec <- func.1$frame %>%
+      filter( v1 != "Summary Row" ) %>%
+      pull( !!sym( paste0( ths[i], ",count") ) )
+    
+    base.vec <- base.1[ , ths[i] ]
+    
+    # final check of condition, ensuring equality
+    expect_true( all( func.vec == base.vec ) )
+    
+  }
   
-  func.vec <- func.1$frame %>%
-    filter( v1 != "Summary Row" ) %>%
-    pull( !!sym( paste0( ths[i], ",percent") ) ) %>%
-    str_remove_all( ., "\\%" )
   
-  base.vec <- base.perc[ , ths[i] ]
-  
-  # final check of condition, ensuring equality
-  expect_true( all( func.vec == base.vec ) )
-  
-}
+  # check equality of percentages
+  for( i in seq_along( ths ) ){
+    
+    func.vec <- func.1$frame %>%
+      filter( v1 != "Summary Row" ) %>%
+      pull( !!sym( paste0( ths[i], ",percent") ) ) %>%
+      str_remove_all( ., "\\%" )
+    
+    base.vec <- base.perc[ , ths[i] ]
+    
+    # final check of condition, ensuring equality
+    expect_true( all( func.vec == base.vec ) )
+    
+  }
 }
 )
 
@@ -501,14 +501,117 @@ test_that( "`var1` vector check.", {
   
   
   # call function
-  func.1 <- summary_table( d = d.example,
-                           metric = c( "count", "percent" ),
-                           var1 = c( "v1", "v3" ),
-                           var2 = "v2",
-                           add.summary.row = TRUE,
-                           add.summary.col = TRUE,
-                           rate.supp = 5,
-                           count.supp = 5,
-                           percentages.rel = "var1",
-                           pop.var = "v_pop" )
+  call.it <- summary_table( d = d.example,
+                            metric = c( "count", "percent" ),
+                            var1 = c( "v1", "v3" ),
+                            var2 = "v2",
+                            add.summary.row = TRUE,
+                            add.summary.col = TRUE,
+                            rate.supp = 5,
+                            count.supp = 5,
+                            percentages.rel = "var2",
+                            pop.var = "v_pop" )
+  
+  var.tab <- call.it$frame$var1 %>%
+    .[ .!= "Summary Row" ] 
+  
+  expect_true( all( var.tab %in% c( levels( as.factor( d.example[["v1"]] ) ),
+                                    levels( as.factor( d.example[["v3"]] ) ) ) ) )
+} )
+
+
+# ensure all levels of two variables are present if more than 2 variables are called in `var1`
+test_that( "`var1` vector check when specifying `order.rows.", {
+  
+  
+  # call function
+  call.it <- summary_table( d = d.example,
+                            metric = c( "count", "percent" ),
+                            var1 = c( "v1", "v3" ),
+                            order.rows = list( v1 = c( "Geo 2", "Geo 3", "Geo 1" ),
+                                               v3 = c( "Other Char 2", "Other Char 3" )),
+                            var2 = "v2",
+                            add.summary.row = TRUE,
+                            add.summary.col = TRUE,
+                            rate.supp = 5,
+                            count.supp = 5,
+                            percentages.rel = "var2",
+                            pop.var = "v_pop" )
+  
+  var.tab <- call.it$frame$var1 %>%
+    .[ .!= "Summary Row" ] 
+  
+  expect_true( all( var.tab %in% c( levels( as.factor( d.example[["v1"]] ) ),
+                                    levels( as.factor( d.example[["v3"]] ) ) ) ) )
+} )
+
+
+# ensure `order.rows` argument works when provided a list when length( var1 ) > 1
+test_that( "`order.rows` check when length( var1 ) > 1", {
+  
+  
+  # call function
+  call.it <- summary_table( d = d.example,
+                            metric = c( "count", "percent" ),
+                            var1 = c( "v1", "v3" ),
+                            order.rows = list( v1 = c( "Geo 2", "Geo 3", "Geo 1" ),
+                                               v3 = c( "Other Char 2", "Other Char 3" )),
+                            var2 = "v2",
+                            add.summary.row = TRUE,
+                            add.summary.col = TRUE,
+                            rate.supp = 5,
+                            count.supp = 5,
+                            percentages.rel = "var2",
+                            pop.var = "v_pop" )
+  
+  var.tab <- call.it$frame$var1 %>%
+    .[ .!= "Summary Row" ] 
+  
+  expect_equal( var.tab, c( "Geo 2", "Geo 3", "Geo 1", "Other Char 2", "Other Char 3" ) )
+  
+} )
+
+
+# ensure `order.rows` argument works when provided a list when length( var1 ) > 1
+test_that( "`order.rows` check when length( var1 ) > 1 when add.summary.row and add.summary.col are FALSE", {
+  
+  
+  # call function
+  call.it <- summary_table( d = d.example,
+                            metric = c( "count", "percent" ),
+                            var1 = c( "v1", "v3" ),
+                            order.rows = list( v1 = c( "Geo 2", "Geo 3", "Geo 1" ),
+                                               v3 = c( "Other Char 2", "Other Char 3" )),
+                            var2 = "v2",
+                            add.summary.row = FALSE,
+                            add.summary.col = FALSE,
+                            rate.supp = 5,
+                            count.supp = 5,
+                            percentages.rel = "var2",
+                            pop.var = "v_pop" )
+  
+  var.tab <- call.it$frame$var1 %>%
+    .[ .!= "Summary Row" ] 
+  
+  expect_equal( var.tab, c( "Geo 2", "Geo 3", "Geo 1", "Other Char 2", "Other Char 3" ) )
+  
+} )
+
+# ensure `order.rows` argument works when provided a list when length( var1 ) > 1
+test_that( "throw error when names of elements in list in `order.rows` do not match column names in `var1` when length( var1 ) > 1", {
+  
+  
+  expect_error( summary_table( d = d.example,
+                               metric = c( "count", "percent" ),
+                               var1 = c( "v1", "v3" ),
+                               order.rows = list( v1 = c( "Geo 2", "Geo 3", "Geo 1" ),
+                                                  v2 = c( "Other Char 2", "Other Char 3" )),
+                               var2 = "v2",
+                               add.summary.row = FALSE,
+                               add.summary.col = FALSE,
+                               rate.supp = 5,
+                               count.supp = 5,
+                               percentages.rel = "var2",
+                               pop.var = "v_pop" ) )
+  
 } )
