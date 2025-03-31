@@ -494,3 +494,21 @@ test_that( "check equality of contents of table (percentages, counts) when `perc
 }
 )
 
+
+
+# ensure all levels of two variables are present if more than 2 variables are called in `var1`
+test_that( "`var1` vector check.", {
+  
+  
+  # call function
+  func.1 <- summary_table( d = d.example,
+                           metric = c( "count", "percent" ),
+                           var1 = c( "v1", "v3" ),
+                           var2 = "v2",
+                           add.summary.row = TRUE,
+                           add.summary.col = TRUE,
+                           rate.supp = 5,
+                           count.supp = 5,
+                           percentages.rel = "var1",
+                           pop.var = "v_pop" )
+} )
