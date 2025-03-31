@@ -738,7 +738,6 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
   
   
   ## counts ##
-  if( "count" %in% metric ){
     d.3 <- if( var.logic.2 ){ # two-variable case
       
       d.1 %>% 
@@ -762,7 +761,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
                               .cols = -c( !!sym( var1 ) ) ) } }
       
     }
-  }
+  
   
   ## rates ##
   if( "rate" %in% metric ){
@@ -819,10 +818,10 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
   }
   
   # change NAs to 0's for any particular category since presence of NAs indicates no count in that particular race/eth cat
-  if( "count" %in% metric ) d.3[ is.na( d.3 ) ] <- 0
-  if( "rate" %in% metric ) d.4[ is.na( d.4 ) ] <- paste0( "0.", 
+  d.3[ is.na( d.3 ) ] <- 0
+  if( "rate" %in% metric & !redo.rate ) d.4[ is.na( d.4 ) ] <- paste0( "0.", 
                                                           paste0( rep( "0", digs.rate ), 
-                                                                        collapse = "" ) )
+                                                                  collapse = "" ) )
   if( "percent" %in% metric ) d.5[ is.na( d.5 ) ] <- paste0( "0.", 
                                                              paste0( rep( "0", digs.perc), 
                                                                      collapse = "" ),
@@ -891,8 +890,15 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
       
       for( j in 1:nrow( d.6 ) ){
         
-        d.6[ j, paste0( cats[i], ",rate2" ) ] <- ifelse( d.6[ j, paste0( cats[i], ",count" ) ] <= rate.supp & d.6[ j, paste0( cats[i], ",count" ) ] > 0,
-                                                         rate.supp.symbol, paste0( d.6[ j, paste0( cats[i], ",rate" ) ] ) )
+        if( "count" %in% metric ){
+          d.6[ j, paste0( cats[i], ",rate2" ) ] <- ifelse( d.6[ j, paste0( cats[i], ",count" ) ] <= rate.supp & d.6[ j, paste0( cats[i], ",count" ) ] > 0,
+                                                           rate.supp.symbol, paste0( d.6[ j, paste0( cats[i], ",rate" ) ] ) )
+        }
+        
+        if( !"count" %in% metric ){
+          d.6[ j, paste0( cats[i], ",rate2" ) ] <- ifelse( d.3[ j, paste0( cats[i], ",count" ) ] <= rate.supp & d.3[ j, paste0( cats[i], ",count" ) ] > 0,
+                                                           rate.supp.symbol, paste0( d.6[ j, paste0( cats[i], ",rate" ) ] ) )
+        }
       }
     }
     
