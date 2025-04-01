@@ -11,7 +11,8 @@ order.rows = NULL, order.cols = NULL, order.groups = NULL, foot.lines = c(),
 table.title = NULL, metric = c( "count", "rate" ), nm.var1 = NULL, 
 count.supp = NULL, remove.cols = NULL, rate.supp = NULL, 
 count.supp.symbol = "--", rate.supp.symbol = "*", per = 1000, 
-NAs.footnote = FALSE, percentages.rel = "var1", include.percent.sign = TRUE )
+NAs.footnote = FALSE, percentages.rel = "var1", include.percent.sign = TRUE,
+row.variable.labels = "default", row.variable.col = "#eed8a4" )
 }
 \arguments{
 \item{d}{A data frame or tibble. Data must be the exact subset of data that needs to analyzed for the table generation.}
@@ -67,6 +68,10 @@ NAs.footnote = FALSE, percentages.rel = "var1", include.percent.sign = TRUE )
 \item{percentages.rel}{A string. One of "var1" or "var2" or "table.grouping". Is the variables with which percentages should be calculated with respect to. `table.grouping` can only be specified if only `var1` is specified and `var2 == NULL`.}
 
 \item{include.percent.sign}{A logical. Include percent (\%) sign in computed percent columns?}
+
+\item{row.variable.labels}{"default", "none" or a named list with the variables specified in `var1` as the entry names and a character string with the desired label for that variable in the rows.  If "default", the default variable names (i.e., those listed in `var1` are printed). If "none", no labels are printed. Default is "deafult".}
+
+\item{row.variable.col}{A string Hex code or color code for the background in the label row or "none". This argument is only relevant if `length( var1 )` is > 1 (i.e., multiple variables are desired in the rows of the table). Default is "#eed8a4". If "none" the default `flextable::theme_zebra` theme is used for that row.}
 }
 \value{
 Object of class \code{list} containing the following elements:
@@ -257,5 +262,35 @@ summary_table( d = d.example.na,
                NAs.footnote = TRUE, # produces the foornote of excluded observations
                pop.var = "v_pop",
                table.title = "This is Table 1" ) # title
+               
+# when providing more than 1 variable for the rows
+summary_table( d = d.example,
+               metric = c( "count", "percent" ),
+               var1 = c( "v1", "v3" ),
+               order.rows = list( v1 = c( "Geo 2", "Geo 3", "Geo 1" ),
+                                  v3 = c( "Other Char 2", "Other Char 3" )),
+               var2 = "v2",
+               add.summary.row = FALSE,
+               add.summary.col = FALSE,
+               rate.supp = 5,
+               count.supp = 5,
+               percentages.rel = "var2",
+               pop.var = "v_pop" )
+        
+# use of  `row.variable.labels`     
+summary_table( d = d.example,
+               metric = c( "count", "percent" ),
+               var1 = c( "v1", "v3" ),
+               order.rows = list( v1 = c( "Geo 2", "Geo 3", "Geo 1" ),
+                                  v3 = c( "Other Char 2", "Other Char 3" )),
+               var2 = "v2",
+               add.summary.row = TRUE,
+               add.summary.col = TRUE,
+               rate.supp = 5,
+               count.supp = 5,
+               percentages.rel = "var2",
+               row.variable.labels = list( v1 = "var1",
+                                           v3 = "var3"),
+               pop.var = "v_pop" )
 
 }
