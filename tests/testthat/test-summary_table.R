@@ -541,7 +541,51 @@ test_that( "`var1` vector check when specifying `order.rows.", {
   var.tab <- call.it$frame$var1 %>%
     .[ .!= "Summary Row" ] 
   
-  expect_true( all( var.tab %in% c( levels( as.factor( d.example[["v1"]] ) ),
+  expect_true( all( var.tab %in% c( "v1", "v3",levels( as.factor( d.example[["v1"]] ) ),
+                                    levels( as.factor( d.example[["v3"]] ) ) ) ) )
+  
+  # call function if row.variable.labels is specific
+  call.it <- summary_table( d = d.example,
+                            metric = c( "count", "percent" ),
+                            var1 = c( "v1", "v3" ),
+                            order.rows = list( v1 = c( "Geo 2", "Geo 3", "Geo 1" ),
+                                               v3 = c( "Other Char 2", "Other Char 3" )),
+                            var2 = "v2",
+                            add.summary.row = TRUE,
+                            add.summary.col = TRUE,
+                            rate.supp = 5,
+                            count.supp = 5,
+                            percentages.rel = "var2",
+                            row.variable.labels = list( v1 = "var1",
+                                                        v3 = "var3"),
+                            pop.var = "v_pop" )
+  
+  var.tab <- call.it$frame$var1 %>%
+    .[ .!= "Summary Row" ] 
+  
+  expect_true( all( var.tab %in% c( "var1", "var3",levels( as.factor( d.example[["v1"]] ) ),
+                                    levels( as.factor( d.example[["v3"]] ) ) ) ) )
+  
+  # same as right above but use vector instead
+  call.it <- summary_table( d = d.example,
+                            metric = c( "count", "percent" ),
+                            var1 = c( "v1", "v3" ),
+                            order.rows = list( v1 = c( "Geo 2", "Geo 3", "Geo 1" ),
+                                               v3 = c( "Other Char 2", "Other Char 3" )),
+                            var2 = "v2",
+                            add.summary.row = TRUE,
+                            add.summary.col = TRUE,
+                            rate.supp = 5,
+                            count.supp = 5,
+                            percentages.rel = "var2",
+                            row.variable.labels = c( v1 = "var1",
+                                                     v3 = "var3"),
+                            pop.var = "v_pop" )
+  
+  var.tab <- call.it$frame$var1 %>%
+    .[ .!= "Summary Row" ] 
+  
+  expect_true( all( var.tab %in% c( "var1", "var3",levels( as.factor( d.example[["v1"]] ) ),
                                     levels( as.factor( d.example[["v3"]] ) ) ) ) )
 } )
 
@@ -550,7 +594,7 @@ test_that( "`var1` vector check when specifying `order.rows.", {
 test_that( "`order.rows` check when length( var1 ) > 1", {
   
   
-  # call function
+  # call function when row.variable.labels is != "none"
   call.it <- summary_table( d = d.example,
                             metric = c( "count", "percent" ),
                             var1 = c( "v1", "v3" ),
@@ -567,7 +611,50 @@ test_that( "`order.rows` check when length( var1 ) > 1", {
   var.tab <- call.it$frame$var1 %>%
     .[ .!= "Summary Row" ] 
   
+  expect_equal( var.tab, c( "v1", "Geo 2", "Geo 3", "Geo 1", "v3", "Other Char 2", "Other Char 3" ) )
+  
+  
+  # call function when row.variable.labels is == "none"
+  call.it <- summary_table( d = d.example,
+                            metric = c( "count", "percent" ),
+                            var1 = c( "v1", "v3" ),
+                            order.rows = list( v1 = c( "Geo 2", "Geo 3", "Geo 1" ),
+                                               v3 = c( "Other Char 2", "Other Char 3" )),
+                            var2 = "v2",
+                            add.summary.row = TRUE,
+                            add.summary.col = TRUE,
+                            rate.supp = 5,
+                            count.supp = 5,
+                            row.variable.labels = "none",
+                            percentages.rel = "var2",
+                            pop.var = "v_pop" )
+  
+  var.tab <- call.it$frame$var1 %>%
+    .[ .!= "Summary Row" ] 
+  
   expect_equal( var.tab, c( "Geo 2", "Geo 3", "Geo 1", "Other Char 2", "Other Char 3" ) )
+  
+  # call function when row.variable.labels is a named list with custom names
+  call.it <- summary_table( d = d.example,
+                            metric = c( "count", "percent" ),
+                            var1 = c( "v1", "v3" ),
+                            order.rows = list( v1 = c( "Geo 2", "Geo 3", "Geo 1" ),
+                                               v3 = c( "Other Char 2", "Other Char 3" )),
+                            var2 = "v2",
+                            add.summary.row = TRUE,
+                            add.summary.col = TRUE,
+                            rate.supp = 5,
+                            count.supp = 5,
+                            percentages.rel = "var2",
+                            row.variable.labels = list( v1 = "this is var 1",
+                                                        v3 = "this is var 3"),
+                            pop.var = "v_pop" )
+  
+  var.tab <- call.it$frame$var1 %>%
+    .[ .!= "Summary Row" ] %>%
+    as.character()
+  
+  expect_equal( var.tab, c( "this is var 1", "Geo 2", "Geo 3", "Geo 1", "this is var 3", "Other Char 2", "Other Char 3" ) )
   
 } )
 
@@ -588,7 +675,8 @@ test_that( "`order.rows` check when length( var1 ) > 1 when add.summary.row and 
                             rate.supp = 5,
                             count.supp = 5,
                             percentages.rel = "var2",
-                            pop.var = "v_pop" )
+                            pop.var = "v_pop",
+                            row.variable.labels = "none" )
   
   var.tab <- call.it$frame$var1 %>%
     .[ .!= "Summary Row" ] 
@@ -615,3 +703,76 @@ test_that( "throw error when names of elements in list in `order.rows` do not ma
                                pop.var = "v_pop" ) )
   
 } )
+
+# ensure `order.rows` argument works when provided a list when length( var1 ) > 1
+test_that( "throw error when `row.variable.labels` is not a list or vector of strings", {
+  
+  
+  expect_error( summary_table( d = d.example,
+                               metric = c( "count", "percent" ),
+                               var1 = c( "v1", "v3" ),
+                               order.rows = list( v1 = c( "Geo 2", "Geo 3", "Geo 1" ),
+                                                  v2 = c( "Other Char 2", "Other Char 3" )),
+                               var2 = "v2",
+                               add.summary.row = FALSE,
+                               add.summary.col = FALSE,
+                               rate.supp = 5,
+                               count.supp = 5,
+                               percentages.rel = "var2",
+                               row.variable.labels = data.frame(),
+                               pop.var = "v_pop" ) )
+  
+  # error when names of entries in `row.variable.labels` do not match the variables in `var1`
+  expect_error( summary_table( d = d.example,
+                               metric = c( "count", "percent" ),
+                               var1 = c( "v1", "v3" ),
+                               order.rows = list( v1 = c( "Geo 2", "Geo 3", "Geo 1" ),
+                                                  v3 = c( "Other Char 2", "Other Char 3" )),
+                               var2 = "v2",
+                               add.summary.row = FALSE,
+                               add.summary.col = FALSE,
+                               rate.supp = 5,
+                               count.supp = 5,
+                               percentages.rel = "var2",
+                               row.variable.labels = list( v1 = "variable 1",
+                                                           v2 = "variable 3"),
+                               pop.var = "v_pop" ) )
+  
+} )
+
+test_that( "no errors with proper usage of `row.variable.labels`", {
+  
+  expect_warning( summary_table( d = d.example,
+                                 metric = c( "count", "percent" ),
+                                 var1 = c( "v1" ),
+                                 order.rows = list( v1 = c( "Geo 2", "Geo 3", "Geo 1" ),
+                                                    v3= c( "Other Char 2", "Other Char 3" )),
+                                 var2 = "v2",
+                                 add.summary.row = FALSE,
+                                 add.summary.col = FALSE,
+                                 rate.supp = 5,
+                                 count.supp = 5,
+                                 percentages.rel = "var2",
+                                 row.variable.labels = list( v1 = "variable 1",
+                                                             v3 = "variable 3"),
+                                 pop.var = "v_pop" ) )
+  
+  expect_no_error( summary_table( d = d.example,
+                                  metric = c( "count", "percent" ),
+                                  var1 = c( "v1" ),
+                                  order.rows = c( "Geo 2", "Geo 3", "Geo 1" ),
+                                  var2 = "v2",
+                                  add.summary.row = FALSE,
+                                  add.summary.col = FALSE,
+                                  rate.supp = 5,
+                                  count.supp = 5,
+                                  percentages.rel = "var2",
+                                  row.variable.labels = list( v1 = "variable 1",
+                                                              v3 = "variable 3"),
+                                  pop.var = "v_pop" ) )
+  
+} )
+
+
+
+

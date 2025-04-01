@@ -26,7 +26,8 @@
 #' table.title = NULL, metric = c( "count", "rate" ), nm.var1 = NULL, 
 #' count.supp = NULL, remove.cols = NULL, rate.supp = NULL, 
 #' count.supp.symbol = "--", rate.supp.symbol = "*", per = 1000, 
-#' NAs.footnote = FALSE, percentages.rel = "var1", include.percent.sign = TRUE )
+#' NAs.footnote = FALSE, percentages.rel = "var1", include.percent.sign = TRUE,
+#' row.variable.labels = "default", row.variable.col = "#eed8a4" )
 #'
 #' @param d A data frame or tibble. Data must be the exact subset of data that needs to analyzed for the table generation.
 #' @param var1 A string. Name of first variable to stratify on (as it appears in the input data, `d`). Cannot be  `NULL`.
@@ -55,6 +56,8 @@
 #' @param NAs.footnote A logical. Include footnotes detailing number of missing values in the dataset based on `var1` and `var2`?
 #' @param percentages.rel A string. One of "var1" or "var2" or "table.grouping". Is the variables with which percentages should be calculated with respect to. `table.grouping` can only be specified if only `var1` is specified and `var2 == NULL`.
 #' @param include.percent.sign A logical. Include percent (\%) sign in computed percent columns? 
+#' @param row.variable.labels "default", "none" or a named list with the variables specified in `var1` as the entry names and a character string with the desired label for that variable in the rows.  If "default", the default variable names (i.e., those listed in `var1` are printed). If "none", no labels are printed. Default is "deafult".
+#' @param row.variable.col A string Hex code or color code for the background in the label row or "none". This argument is only relevant if `length( var1 )` is > 1 (i.e., multiple variables are desired in the rows of the table). Default is "#eed8a4". If "none" the default `flextable::theme_zebra` theme is used for that row.
 #' 
 #' @return Object of class \code{list} containing the following elements:
 #'
@@ -252,6 +255,22 @@
 #'                count.supp = 5,
 #'                percentages.rel = "var2",
 #'                pop.var = "v_pop" )
+#'         
+#' # use of  `row.variable.labels`     
+#' summary_table( d = d.example,
+#'                metric = c( "count", "percent" ),
+#'                var1 = c( "v1", "v3" ),
+#'                order.rows = list( v1 = c( "Geo 2", "Geo 3", "Geo 1" ),
+#'                                   v3 = c( "Other Char 2", "Other Char 3" )),
+#'                var2 = "v2",
+#'                add.summary.row = TRUE,
+#'                add.summary.col = TRUE,
+#'                rate.supp = 5,
+#'                count.supp = 5,
+#'                percentages.rel = "var2",
+#'                row.variable.labels = list( v1 = "var1",
+#'                                            v3 = "var3"),
+#'                pop.var = "v_pop" )
 #' 
 #' @export
 
@@ -261,10 +280,132 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
                            table.title = NULL, metric = c( "count", "rate" ), nm.var1 = NULL, count.supp = NULL, remove.cols = NULL,
                            rate.supp = NULL, count.supp.symbol = "--", rate.supp.symbol = "*", 
                            per = 1000, NAs.footnote = FALSE, percentages.rel = "var1",
-                           include.percent.sign = TRUE ){
+                           include.percent.sign = TRUE, row.variable.labels = "default", row.variable.col = "#eed8a4" ){
+  
+  ## checks for all conditions ##
+  
+  if( is.null( var1 ) ) stop( "`var1` cannot be NULL; if only one variable is desired for stratification purposes, it should be included in the `var1` argument" ) 
+  
+  if( eRTG3D::is.sf.3d( d ) ) d <- data.frame( d ) # if `sf` object, keep only attributes table
+  
+  if( length( var1 ) == 1 ){
+    if( !is.null( order.rows ) & sum( order.rows %in% levels( as.factor( d[[ var1 ]] ) ) ) != length( levels( as.factor( d[[ var1 ]] ) ) ) ){
+      warning( "`order.rows` does not match levels of `var1` in `d` exactly; this may be due to wanting to omit some rows from the outputted table" )
+    }
+    
+    if( is.null( d[[ var1 ]] ) ){
+      stop( "`var1` variable not detected in dataset." )
+    }
+    
+    if( !is.null( order.rows ) ){
+      if( inherits( order.rows, "list" ) ){ 
+        warning( "Length of `var1` is 1 and `order.rows` is a list but should be a vector with strings corresponding to the order of rows desired for `var1.` Ignoring `order.rows`.")
+        
+        order.rows <- NULL # coerce `order.rows` in this condition, otherwise throws error (in example "no errors with proper usage of `row.variable.labels`" in the test-summary_table.R script)
+      }
+    }
+    
+  }
+  
+  if( !is.null( summary.row.name ) ){
+    if( !inherits( summary.row.name, "character" ) )
+      stop( "`summary.row.name` must be a string." )
+  }
+  
+  
+  if( !is.null( order.groups )){
+    if ( ( !is.null( var2 ) & is.null( table.grouping ) ) |
+         ( is.null( var2 ) & !is.null( table.grouping ) ) ){
+      warning( "`order.groups` specified but only one of `var2` or `table.grouping` was specified. `order.groups` will be ignored. You may need to specify `order.rows` for ordering `var1` or `order.cols` for ordering `var2`" )
+    }
+    
+    if( !is.null( order.groups ) & sum( order.groups %in% levels( as.factor( d[[ table.grouping ]] ) ) ) != length( levels( as.factor( d[[ table.grouping ]] ) ) ) ){
+      warning( "`order.groups` does not match levels of `table.grouping` in `d` exactly; this may be due to wanting to omit some grouping rows from the outputted table" )
+    }
+    
+  }
+  
+  if( !add.summary.row & !is.null( summary.row.name ) ){
+    warning( "A name was provided to `summary.row.name` but `add.summary.row` was indicated as NULL. Note that `summary.row.name` will be irrelevant in this case unless `add.summary.row` is changed to TRUE" )
+  }
+  
+  if( is.null( pop.var ) & any( stringr::str_detect( metric, "rate" ) ) ){
+    stop( "`pop.var` not specified but 'rate' was called in `metric`." )
+  }
+  
+  if( !is.null( pop.var ) ){
+    if(is.null( d[[ pop.var ]] ) ){
+      stop( "`pop.var` variable not detected in dataset. Ensure that population count data (aggregate-level) are stored in `pop.var` variable." )
+    }
+  }
+  
+  if( !is.null( var1 ) & !is.null( var2 ) & !percentages.rel %in% c( "var1", "var2" ) ){
+    stop( "`percentages.rel` should be one of 'var1 or 'var2'. " )
+  }
+  
+  if( !is.null( var1 ) & is.null( var2 ) & percentages.rel != "var1" & is.null( table.grouping ) ){
+    stop( "`percentages.rel` can only be 'var1' since only `var1` was specified. " )
+  }
+  
+  if( !is.null( var1 ) & !is.null( var2 ) & percentages.rel == "table.grouping" & !is.null( table.grouping ) ){
+    stop( "`percentages.rel` can only be 'var1' or 'var2' since `var1`, `var2.`, AND `table.grouping` were all specified. " )
+  }
+  
+  if( !is.null( table.title) ){
+    if( !inherits( table.title, "character" ) ) stop( '`table.title` must be of class "character" ' )
+  }
+  
+  if( is.null( var1 ) & is.null( var2 ) ){
+    stop( "At least one of `var1` or `var2` must be specified in the function call." )
+  }
+  
+  if( length( table.grouping ) > 1 & !is.null( table.grouping ) ){
+    stop( "There can only be one variable, maximum, specified in `table.grouping` for grouping the table." )
+  }
+  
+  if( !is.null( table.grouping ) ){
+    if( is.null( d[[ table.grouping ]] ) ) stop( "`table.grouping` variable not detected in dataset." )
+  }
+  
+  if( length( metric ) > 2 ){
+    stop( "`metric` can only include two metrics, maximum, to be tabulated" )
+  }
+  
+  if( sum( metric %in% c( "percent", "rate", "count" ) ) != length( metric ) ){
+    stop( '`metric` can only be one or two of the following exact strings: "percent", "rate", "count" ' )
+  }
+  
+  if( !is.null( count.supp ) ){
+    if( count.supp < 1 ) stop( "`count.supp` must be > 0 if specified." )
+  }
+  
+  if( !is.null( rate.supp ) ){
+    if( rate.supp < 1 ) stop( "`rate.supp` must be > 0 if specified." )
+  }
+  
+  if( !is.null( rate.supp ) & is.null( rate.supp.symbol )){
+    stop( "If `rate.supp` is specified, then `rate.supp.symbol` must be specified as well." )
+  }
+  
+  if( !is.null( count.supp ) & is.null( count.supp.symbol )){
+    stop( "If `count.supp` is specified, then `count.supp.symbol` must be specified as well." )
+  }
+  
+  if( is.null( var2 ) & percentages.rel == "var2" ){
+    stop( "`percentages.rel = 'var2'` is specified but `var2` is NULL." )
+  }
+  
+  if( is.null( table.grouping ) & percentages.rel == "table.grouping" ){
+    stop( "`percentages.rel = 'table.grouping'` is specified but `table.grouping` is NULL." )
+  }
+  
+  
+  ## subsection where if length of `var1` is > 1 ##
   
   if( length( var1 ) > 1 & 
-      !is.null( var2 ) & is.null( table.grouping ) ){
+      !is.null( var2 )  ){
+    
+    if( !is.null( table.grouping ) ) stop( "Current functionality of summary_table only supports multiple variables in the rows when only `var1` and `var2` are called but `table.grouping` is NULL" )
     
     if( length( var1 ) > 1 & !is.null( order.rows ) ){ 
       
@@ -274,6 +415,18 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
       
     }
     
+    if( !is.null( row.variable.labels ) ){
+      if( any( row.variable.labels != "none" ) ){
+        
+        if( !( inherits( row.variable.labels, "list" ) |
+               inherits( row.variable.labels, "character" ) ) ) stop( "row.variable.labels must be either `none` or a named list with the variables specified in `var1` as the entry names and a character string with the desired label." )
+        
+        if( ( inherits( row.variable.labels, "list" ) |
+              inherits( row.variable.labels, "character" ) ) &
+            any( names( row.variable.labels ) != var1 ) ) stop( "Names of the vector/list in `row.variable.labels` did not match the names of the variables in `var1` vector. row.variable.labels must be either `none` or a named list with the variables specified in `var1` as the entry names and a character string with the desired label." )
+        
+      }
+    }
     
     # get environment
     call_env <- summary_table_1( d, var1 = var1[1], var2 = var2, table.grouping = table.grouping, 
@@ -294,7 +447,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
       arrange.rows <- if( !is.null( order.rows[[x]] ) ) order.rows[[x]] else levels( as.factor( d[[ x ]] ) )
       
       if( 
-          !sum.row.nm %in% arrange.rows ) arrange.rows <- c( sum.row.nm, arrange.rows ) # by default put summary row as first row if it is requested
+        !sum.row.nm %in% arrange.rows ) arrange.rows <- c( sum.row.nm, arrange.rows ) # by default put summary row as first row if it is requested
       
       call1 <- summary_table_1( d, var1 = x, var2 = var2, table.grouping = table.grouping, 
                                 pop.var = pop.var, add.summary.row = add.summary.row, summary.row.name = summary.row.name, 
@@ -311,13 +464,38 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
         arrange( match( !!sym( x ), arrange.rows ), # arrange rows in custom order;
                  .by_group = TRUE ) %>%
         rename( `var1` = !!sym( x ) ) 
+      
     }) %>%
       do.call( "rbind", . ) %>%
       distinct() # ensures add.summary.row row appears only once in table when binding from different calls
     
-    
-    
+    # make var1 column a default common name
     if( !is.null( nm.var1 ) ) colnames( d.out )[ colnames( d.out ) == "var1" ] <- nm.var1
+    
+    
+    ## add row separators/labels if desired for the different variables in the rows
+    
+    
+    if( all( row.variable.labels =="default" ) | inherits( row.variable.labels, "list" ) ){
+      
+      for( i in seq_along( order.rows ) ){
+        
+        before.grp <- which( d.out$var1 == order.rows[[i]][1] )
+        
+        label.it <- if( inherits( row.variable.labels, "list" ) ) unlist( row.variable.labels )[ names(order.rows)[i] ] else if( row.variable.labels == "default" ) var1[i]
+        
+        d.out <- d.out %>%
+          add_row( var1 = label.it, .before = before.grp )
+        
+      }
+      
+      # vector of final outputted names in the table for bolding and coloring below in the flextable code
+      row.var.labs <- if( inherits( row.variable.labels, "list" ) ) unlist( row.variable.labels ) else if( row.variable.labels == "default" ) var1
+      
+      row.var.labs.which <- which( d.out$var1 %in% row.var.labs )
+    }
+    
+    
     
     ## generate the final table with `flextable` ##
     
@@ -379,9 +557,16 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
         padding( padding.top = 2.5, padding.bottom = 2.5,part = "footer", i = 1 ) %>%
         flextable::height( height = 0.002, part = "body", unit = "cm" ) %>%
         bg( bg = "white", part = "footer" ) %>% # color footer white (undoes `theme_zebra` styling)
-        border_inner_h( border = fp_border(color = "white", style = "solid", width = 0),
+        border_inner_h( border = fp_border( color = "white", style = "solid", width = 0 ),
                         part = "footer") %>% # remove footer horizontal line (undoes `theme_zebra` styling)
-        bold( bold = FALSE, part = "footer" ) # unbold footer text (undoes `theme_zebra` bolding)
+        bold( bold = FALSE, part = "footer" ) %>% # unbold footer text (undoes `theme_zebra` bolding)
+        # below is the formatting for the variable label rows
+        { if( all( row.variable.labels =="default" ) | inherits( row.variable.labels, "list" ) ){
+          bold( x = ., i = row.var.labs.which ) %>%
+            merge_h_range( i = row.var.labs.which,
+                           j1 = 1, j2 = ncol_keys(.), part = "body" ) %>% # merge all cells in the header variable label rows
+            { if ( row.variable.col != "none" ) bg( x = ., i = row.var.labs.which, bg = row.variable.col ) else . } 
+        } else . }
     }
     
     # for wider table when there is only 1 level of var2 but var2 and table.grouping are specified
@@ -427,9 +612,15 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
         flextable::height( height = 0.002, part = "body", unit = "cm" ) %>%
         bg( bg = "white", part = "footer" ) %>% # color footer white (undoes `theme_zebra` styling)
         border_inner_h( border = officer::fp_border(color = "white", style = "solid", width = 0),
-                        part = "footer")%>% # remove footer horizontal line (undoes `theme_zebra` styling)
-        bold( bold = FALSE, part = "footer" ) # unbold footer text (undoes `theme_zebra` bolding)
-      
+                        part = "footer") %>% # remove footer horizontal line (undoes `theme_zebra` styling)
+        bold( bold = FALSE, part = "footer" ) %>% # unbold footer text (undoes `theme_zebra` bolding)
+        # below is the formatting for the variable label rows
+        { if( row.variable.labels =="default" | inherits( row.variable.labels, "list" ) ){
+          bold( x = ., i = row.var.labs.which ) %>%
+            merge_h_range( i = row.var.labs.which,
+                           j1 = 1, j2 = ncol_keys(.), part = "body" ) %>% # merge all cells in the header variable label rows
+            { if ( row.variable.col != "none" ) bg( x = ., i = row.var.labs.which, bg = row.variable.col ) else . } 
+        } else . }
     }
     
     ## footnotes ##
@@ -490,12 +681,13 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     
   }
   
-  else{
+  else{ 
     
+    ## subsection if length `var1` == 1
     call2 <- summary_table_1( d, var1 = var1, var2 = var2, table.grouping = table.grouping, 
                               pop.var = pop.var, add.summary.row = add.summary.row, summary.row.name = summary.row.name, 
                               add.summary.col = add.summary.col, digs.perc = digs.perc, digs.rate = digs.rate, summary.col.name = summary.col.name, 
-                              order.rows = NULL, order.cols = order.cols, order.groups = order.groups, foot.lines = foot.lines, 
+                              order.rows = order.rows, order.cols = order.cols, order.groups = order.groups, foot.lines = foot.lines, 
                               table.title = table.title, metric = metric, nm.var1 = nm.var1, 
                               count.supp = count.supp, remove.cols = remove.cols, rate.supp = rate.supp, 
                               count.supp.symbol = count.supp.symbol, rate.supp.symbol = rate.supp.symbol, per = per, 
