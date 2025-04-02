@@ -469,9 +469,6 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
       do.call( "rbind", . ) %>%
       distinct() # ensures add.summary.row row appears only once in table when binding from different calls
     
-    # make var1 column a default common name
-    if( !is.null( nm.var1 ) ) colnames( d.out )[ colnames( d.out ) == "var1" ] <- nm.var1
-    
     
     ## add row separators/labels if desired for the different variables in the rows
     
@@ -527,6 +524,8 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
         theme_zebra() %>%
         theme_vanilla() %>%
         set_header_labels( values = new.nms ) %>% # change names based on new.nms vector created outside this flextable command
+        { if( !is.null( nm.var1 ) ){
+          set_header_labels( x = ., values = list( var1 = nm.var1 ) ) } else .} %>% # if nm.var is specified
         align( part = "header", i = 1, align = "center" ) %>% # center align spanning headers
         { if( !is.null( table.title ) ) add_header_lines( ., values = table.title ) %>% # title line
             align( part = "header", i = 1, align = "left" ) else . } %>% #left-align title
@@ -580,6 +579,8 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
         theme_zebra() %>%
         theme_vanilla() %>%
         set_header_labels( values = new.nms ) %>% # change names based on new.nms vector created outside this flextable command
+        { if( !is.null( nm.var1 ) ){
+          set_header_labels( x = ., values = list( var1 = nm.var1 ) ) } else .} %>% # if nm.var is specified
         align( part = "header", i = 1, align = "center" ) %>% # center align spanning headers
         { if( !is.null( table.title ) ) add_header_lines( ., values = table.title ) %>% # title line
             align( part = "header", i = 1, align = "left" ) else . } %>% #left-align title

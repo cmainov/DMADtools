@@ -799,3 +799,20 @@ expect_true( all( var.tab %in% c( "var1", "var3","Geo 2", "Geo 3", "Other Char 2
 
 )
 
+test_that( "`nm.var1` can still be specified if `length( var1 )` > 1", {
+  
+ expect_no_error( summary_table( d = d.example,
+                          metric = c( "count", "percent" ),
+                          var1 = c( "v1", "v3" ),
+                          order.rows = list( v1 = c( "Geo 2", "Geo 3" ),
+                                             v3 = c( "Other Char 2" )),
+                          var2 = "v2",
+                          add.summary.row = TRUE,
+                          add.summary.col = TRUE,
+                          rate.supp = 5,
+                          count.supp = 5,
+                          nm.var1 = "new name",
+                          percentages.rel = "var1",
+                          row.variable.labels = list( v1 = "var1",
+                                                      v3 = "var3") ) )
+})
