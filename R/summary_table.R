@@ -34,7 +34,7 @@
 #' @param var2 A string. Name of second variable to stratify on (as it appears in the input data, `d`). Can be `NULL` if only one variable is required and there is no cross-tabulation or if `table.grouping` and `var1` are specified for a cross-tabulation instead.
 #' @param metric A vector of string(s). One or two of: "percent", "rate", "count". Can dplyr::select up to two options to plot at maximum.
 #' @param table.grouping A string or `NULL` (if no grouping in table is desired). Name of variable to create grouped output table with (creates grouping rows in the table). Can be 1 variable at maximum.
-#' @param pop.var A string or `NULL`. Variable in `d` with population count data for computing rates if "rate" is dplyr::selected in `metric`. This is normally an aggregate variable.
+#' @param pop.var A string or `NULL`. Variable in `d` with population count data for computing rates if "rate" is selected in `metric`. This is normally an aggregate variable.
 #' @param add.summary.col A logical. Add a row with unaggregated results (based on `var2`). Note that this argument is inconsequential if `var2 == NULL`.
 #' @param add.summary.row A logical. Add a row with unaggregated results (based on `var1`). `TRUE` is default and the name given to the row is "Summary Row". If another name is desired, it can be specified with `summary.row.name` and its order/position can be specified with the `order.rows` argument.
 #' @param summary.col.name A string. Name to appear for summary column header. Default is "All". This option is only relevant if `add.summary.col == TRUE`.
@@ -191,7 +191,6 @@
 #'                pop.var = "v_pop" )
 #' 
 #' # foot.lines argument and NAs.footnote
-#' set.seed( 974 )
 #' 
 #' summary_table( d = d.example.na,
 #'                metric = c( "count", "percent" ),
