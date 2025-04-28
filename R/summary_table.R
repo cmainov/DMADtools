@@ -422,7 +422,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
         
         if( ( inherits( row.variable.labels, "list" ) |
               inherits( row.variable.labels, "character" ) ) &
-            any( names( row.variable.labels ) != var1 ) ) stop( "Names of the vector/list in `row.variable.labels` did not match the names of the variables in `var1` vector. row.variable.labels must be either `none` or a named list with the variables specified in `var1` as the entry names and a character string with the desired label." )
+            any( !names( row.variable.labels ) %in% var1 ) ) stop( "Names of the vector/list in `row.variable.labels` did not match the names of the variables in `var1` vector. row.variable.labels must be either `none` or a named list with the variables specified in `var1` as the entry names and a character string with the desired label." )
         
       }
     }
@@ -445,8 +445,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
       
       arrange.rows <- if( !is.null( order.rows[[x]] ) ) order.rows[[x]] else levels( as.factor( d[[ x ]] ) )
       
-      if( 
-        !sum.row.nm %in% arrange.rows ) arrange.rows <- c( sum.row.nm, arrange.rows ) # by default put summary row as first row if it is requested
+      if( !sum.row.nm %in% arrange.rows ) arrange.rows <- c( sum.row.nm, arrange.rows ) # by default put summary row as first row if it is requested
       
       call1 <- summary_table_1( d, var1 = x, var2 = var2, table.grouping = table.grouping, 
                                 pop.var = pop.var, add.summary.row = add.summary.row, summary.row.name = summary.row.name, 
@@ -462,7 +461,12 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
         filter( !!sym( x ) %in% arrange.rows )  %>% # this filters out any levels of var1 indicated in `order.rows` that are not desired in the table
         arrange( match( !!sym( x ), arrange.rows ), # arrange rows in custom order;
                  .by_group = TRUE ) %>%
-        rename( `var1` = !!sym( x ) ) 
+        rename( `var1` = !!sym( x ) ) %>%
+        mutate( var_name = x ) %>% 
+        { if( add.summary.row ){
+          mutate( ., var_name = ifelse( `var1` == sum.row.nm, "", var_name ) ) # make summary rows the same so that `distinct` picks up and deletes redundant versions of them
+        } else . }
+        
       
     }) %>%
       do.call( "rbind", . ) %>%
@@ -472,11 +476,11 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     ## add row separators/labels if desired for the different variables in the rows
     
     
-    if( all( row.variable.labels =="default" ) | inherits( row.variable.labels, "list" ) ){
+    if( all( row.variable.labels == "default" ) | inherits( row.variable.labels, "list" ) ){
       
       for( i in seq_along( order.rows ) ){
         
-        before.grp <- which( d.out$var1 == order.rows[[i]][1] )
+        before.grp <- which( d.out$var1 == order.rows[[i]][1] & d.out$var_name == names( order.rows )[i] )
         
         label.it <- if( inherits( row.variable.labels, "list" ) ) unlist( row.variable.labels )[ names(order.rows)[i] ] else if( row.variable.labels == "default" ) var1[i]
         
@@ -491,7 +495,8 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
       row.var.labs.which <- which( d.out$var1 %in% row.var.labs )
     }
     
-    
+    ## remove "var_name" column since it was only needed for arranging rows
+    d.out <- d.out %>% select( -var_name )
     
     ## generate the final table with `flextable` ##
     

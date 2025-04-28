@@ -40,17 +40,39 @@ for( i in 1:500 ){
   v2.label <- c( "Char 1", "Char 2", "Char 3", "Char 3" )[ v2 ]
   
   # variable 3
-  v3 <- sample( x = c( 1:2 ), size = 1,
+  v3 <- sample( x = c( 1:3 ), size = 1,
                 replace = TRUE,
-                prob = c( 0.52, 0.48 ) )
+                prob = c( 0.52, 0.24, 0.24 ) )
   
-  v3.label <- c( "Other Char 1", "Other Char 2", "Other Char 3", "Other Char 3" )[ v2 ]
+  v3.label <- c( "Other Char 1", "Other Char 2", "Other Char 3" )[ v3 ]
+  
+  # variable 4
+  
+  v4 <- sample( x = c( 1, 2 ), size = 1,
+                replace = TRUE,
+                prob = { if( v1 == 1 ) c( 0.2, 0.7 )
+                  else if( v1 == 2 ) c( 0.3, 0.4 ) 
+                  else if( v1 == 3 ) c( 0.5, 0.5 ) } )
+  
+  v4.label <- c( "Y", "N" )[ v4 ]
+  
+  # variable 4
+  
+  v5 <- sample( x = c( 1, 2 ), size = 1,
+                replace = TRUE,
+                prob = { if( v1 == 1 ) c( 0.5, 0.1 )
+                  else if( v1 == 2 ) c( 0.7, 0.3 ) 
+                  else if( v1 == 3 ) c( 0.6, 0.4 ) } )
+  
+  v5.label <- c( "Y", "N" )[ v5 ]
   
   # assign to `data.frame` and bind
   d.example <- rbind( d.example,
                       data.frame( v1 = v1.label,
                                   v2 = v2.label,
-                                  v3 = v3.label ) )
+                                  v3 = v3.label,
+                                  v4 = v4.label,
+                                  v5 = v5.label) )
   
   
 }

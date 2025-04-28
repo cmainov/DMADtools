@@ -816,3 +816,58 @@ test_that( "`nm.var1` can still be specified if `length( var1 )` > 1", {
                           row.variable.labels = list( v1 = "var1",
                                                       v3 = "var3") ) )
 })
+
+
+test_that( "correct previous bug where order of `row.variable.labels` was consequential.", {
+  
+  expect_no_error( summary_table( d = d.example,
+               metric = c( "count", "percent" ),
+               var1 = c( "v1", "v3" ),
+               order.rows = list( v1 = c( "Geo 2", "Geo 3" ),
+                                  v3 = c( "Other Char 2" )),
+               var2 = "v2",
+               add.summary.row = TRUE,
+               add.summary.col = TRUE,
+               rate.supp = 5,
+               count.supp = 5,
+               nm.var1 = "new name",
+               percentages.rel = "var1",
+               row.variable.labels = list(  v3 = "var3",
+                                            v1 = "var1" ) ) )
+} )
+
+
+
+
+
+test_that( "ensure row labels are being ordered correctly when variables in rows have the same levels.", {
+  
+  
+  run.samelevs <- summary_table( d = d.example,
+                                 metric = c( "count", "percent" ),
+                                 var1 = c( "v4", "v5" ),
+                                 order.rows = list( v4 = c( "Y", "N" ),
+                                                    v5 = c( "Y", "N" )),
+                                 var2 = "v2",
+                                 add.summary.row = TRUE,
+                                 add.summary.col = TRUE,
+                                 rate.supp = 5,
+                                 count.supp = 5,
+                                 nm.var1 = "new name",
+                                 percentages.rel = "var1",
+                                 row.variable.labels = list(  v4 = "var4",
+                                                              v5 = "var5" ) )
+  
+  expect_true( run.samelevs$frame$var1[ 2 ] == "var4" & run.samelevs$frame$var1[ 5 ] == "var5" )
+  
+  raw.count.v4 <- table( d.example$v4, d.example$v2 )
+  
+  expect_true( raw.count.v4[ "Y", "Char 2" ] == run.samelevs$frame[ 3, "Char 2,count" ] )
+  
+  expect_true( raw.count.v4[ "N", "Char 3" ] == run.samelevs$frame[ 4, "Char 3,count" ] )
+  
+  raw.count.v5 <- table( d.example$v5, d.example$v2 )
+  
+  expect_true( raw.count.v5[ "Y", "Char 1" ] == run.samelevs$frame[ 6, "Char 1,count" ] )
+})
+  
