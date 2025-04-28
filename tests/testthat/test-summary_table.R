@@ -19,6 +19,7 @@ test_that("`pop.var` missing", {
   )
 })
 
+
 test_that("`metric` called 'rate' but no `pop.var` specified", {
   expect_error( summary_table( d = d.example.na,
                                metric = c( "count", "rate" ),
@@ -68,6 +69,7 @@ test_that( "Ensure `summary.col.name` column total equals number of rows in inpu
   expect_equal( nrow( d.example ), count.tot.c )
   
 })
+
 
 test_that( "Ensure `summary.row.name` row total equals number of rows in input dataset.", {
   
@@ -180,7 +182,6 @@ test_that( "ensure that 0's are not suppressed v2.", {
                             contains( "count" ) ) %>%
                   pull() %>% as.numeric() )
 })
-
 
 
 test_that( "ensure no error when rate is called but not count.", {
@@ -495,7 +496,6 @@ test_that( "check equality of contents of table (percentages, counts) when `perc
 )
 
 
-
 # ensure all levels of two variables are present if more than 2 variables are called in `var1`
 test_that( "`var1` vector check.", {
   
@@ -685,6 +685,7 @@ test_that( "`order.rows` check when length( var1 ) > 1 when add.summary.row and 
   
 } )
 
+
 # ensure `order.rows` argument works when provided a list when length( var1 ) > 1
 test_that( "throw error when names of elements in list in `order.rows` do not match column names in `var1` when length( var1 ) > 1", {
   
@@ -703,6 +704,7 @@ test_that( "throw error when names of elements in list in `order.rows` do not ma
                                pop.var = "v_pop" ) )
   
 } )
+
 
 # ensure `order.rows` argument works when provided a list when length( var1 ) > 1
 test_that( "throw error when `row.variable.labels` is not a list or vector of strings", {
@@ -739,6 +741,7 @@ test_that( "throw error when `row.variable.labels` is not a list or vector of st
                                pop.var = "v_pop" ) )
   
 } )
+
 
 test_that( "no errors with proper usage of `row.variable.labels`", {
   
@@ -799,6 +802,7 @@ expect_true( all( var.tab %in% c( "var1", "var3","Geo 2", "Geo 3", "Other Char 2
 
 )
 
+
 test_that( "`nm.var1` can still be specified if `length( var1 )` > 1", {
   
  expect_no_error( summary_table( d = d.example,
@@ -837,9 +841,6 @@ test_that( "correct previous bug where order of `row.variable.labels` was conseq
 } )
 
 
-
-
-
 test_that( "ensure row labels are being ordered correctly when variables in rows have the same levels.", {
   
   
@@ -871,3 +872,35 @@ test_that( "ensure row labels are being ordered correctly when variables in rows
   expect_true( raw.count.v5[ "Y", "Char 1" ] == run.samelevs$frame[ 6, "Char 1,count" ] )
 })
   
+
+test_that( "ensure row labels are being ordered correctly when variables in rows have are different and .", {
+  
+
+run.difflevs <- summary_table( d = d.example,
+                               metric = c( "count", "percent" ),
+                               var1 = c( "v1", "v5" ),
+                               order.rows = list( v1 = c( "Geo 2", "Geo 3", "Geo 1" ),
+                                                  v5 = c( "Y", "N" )),
+                               var2 = "v2",
+                               add.summary.row = TRUE,
+                               add.summary.col = TRUE,
+                               rate.supp = 5,
+                               count.supp = 5,
+                               nm.var1 = "new name",
+                               percentages.rel = "var1",
+                               row.variable.labels = list( v5 = "var5",
+                                                            v1 = "geovar" ) )
+
+expect_true( run.difflevs$frame$var1[ 2 ] == "geovar" & run.difflevs$frame$var1[ 6 ] == "var5" )
+
+raw.count.v1 <- table( d.example$v1, d.example$v2 )
+
+expect_true( raw.count.v1[ "Geo 2", "Char 2" ] == run.difflevs$frame[ 3, "Char 2,count" ] )
+
+expect_true( raw.count.v1[ "Geo 1", "Char 3" ] == run.difflevs$frame[ 5, "Char 3,count" ] )
+
+raw.count.v5 <- table( d.example$v5, d.example$v2 )
+
+expect_true( raw.count.v5[ "Y", "Char 1" ] == run.difflevs$frame[ 7, "Char 1,count" ] )
+
+})
