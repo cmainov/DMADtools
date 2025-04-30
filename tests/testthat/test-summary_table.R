@@ -942,17 +942,19 @@ expect_true( raw.count.v5[ "Y", "Char 1" ] == run.difflevs$frame[ 7, "Char 1,cou
 
 
 
-test_that( "ensure row labels are being ordered correctly when variables in rows have are different and .", {
+test_that( "checks on order of spanning headers when multiple variables are specified in `var2`.", {
   
   
-  run.difflevs <- summary_table( d = d.example,
+  run.mult.cols <- summary_table( d = d.example,
                                  metric = c( "count", "percent" ),
                                  var1 = c( "v1", "v5" ),
                                  order.rows = list( v1 = c( "Summary", "Geo 2", "Geo 3", "Geo 1" ),
-                                                    v5 = c( "Y", "N", "Summary" )),
+                                                    v5 = c( "Y", "N", "" )),
                                  var2 = c( "v2", "v3" ),
                                  add.summary.row = TRUE,
                                  add.summary.col = TRUE,
+                                 summary.col.name = "All Col",
+                                 summary.col.pos = "end",
                                  summary.row.name = "Summary",
                                  rate.supp = 5,
                                  count.supp = 5,
@@ -961,16 +963,120 @@ test_that( "ensure row labels are being ordered correctly when variables in rows
                                  row.variable.labels = list( v5 = "var5",
                                                              v1 = "geovar" ) )
   
-  expect_true( run.difflevs$frame$var1[ 2 ] == "geovar" & run.difflevs$frame$var1[ 6 ] == "var5" )
+  expect_true( run.mult.cols$frame$var1[ 2 ] == "geovar" & run.mult.cols$frame$var1[ 6 ] == "var5" )
   
   raw.count.v1 <- table( d.example$v1, d.example$v2 )
   
-  expect_true( raw.count.v1[ "Geo 2", "Char 2" ] == run.difflevs$frame[ 3, "Char 2,count" ] )
+  expect_true( raw.count.v1[ "Geo 2", "Char 2" ] == run.mult.cols$frame[ 3, "Char 2,count" ] )
   
-  expect_true( raw.count.v1[ "Geo 1", "Char 3" ] == run.difflevs$frame[ 5, "Char 3,count" ] )
+  expect_true( raw.count.v1[ "Geo 1", "Char 3" ] == run.mult.cols$frame[ 5, "Char 3,count" ] )
   
   raw.count.v5 <- table( d.example$v5, d.example$v2 )
   
-  expect_true( raw.count.v5[ "Y", "Char 1" ] == run.difflevs$frame[ 7, "Char 1,count" ] )
+  expect_true( raw.count.v5[ "Y", "Char 1" ] == run.mult.cols$frame[ 7, "Char 1,count" ] )
   
+  ## check on column positions
+  
+  expect_true( all( str_detect( tail( names( run.mult.cols$frame ), 2 ), "All Col" ) ) )
+  
+  ## run again and specify "front"
+  run.mult.cols.v2 <- summary_table( d = d.example,
+                                  metric = c( "count", "percent" ),
+                                  var1 = c( "v1", "v5" ),
+                                  order.rows = list( v1 = c( "Summary", "Geo 2", "Geo 3", "Geo 1" ),
+                                                     v5 = c( "Y", "N", "" )),
+                                  var2 = c( "v2", "v3" ),
+                                  add.summary.row = TRUE,
+                                  add.summary.col = TRUE,
+                                  summary.col.name = "All Col",
+                                  summary.col.pos = "front",
+                                  summary.row.name = "Summary",
+                                  rate.supp = 5,
+                                  count.supp = 5,
+                                  nm.var1 = "new name",
+                                  percentages.rel = "var1",
+                                  row.variable.labels = list( v5 = "var5",
+                                                              v1 = "geovar" ) )
+
+
+expect_true( all( str_detect( head( names( run.mult.cols.v2$frame[-1] ), 2 ), "All Col" ) ) )
+
+## run again and specify integers
+run.mult.cols.v3 <- summary_table( d = d.example,
+                                   metric = c( "count", "percent" ),
+                                   var1 = c( "v1", "v5" ),
+                                   order.rows = list( v1 = c( "Summary", "Geo 2", "Geo 3", "Geo 1" ),
+                                                      v5 = c( "Y", "N", "" )),
+                                   var2 = c( "v2", "v3" ),
+                                   add.summary.row = TRUE,
+                                   add.summary.col = TRUE,
+                                   summary.col.name = "All Col",
+                                   summary.col.pos = 3,
+                                   summary.row.name = "Summary",
+                                   rate.supp = 5,
+                                   count.supp = 5,
+                                   nm.var1 = "new name",
+                                   percentages.rel = "var1",
+                                   row.variable.labels = list( v5 = "var5",
+                                                               v1 = "geovar" ) )
+
+
+expect_true( all( str_detect( names( run.mult.cols.v3$frame )[c(6,7)], "All Col" ) ) )
+
+
+## check that all column values are the same in both tables despite different position of "All Column"
+
+check.cols <- sapply( 1:ncol( run.mult.cols.v2$frame ), function( i ){
+  
+  col.to.check <- names( run.mult.cols.v2$frame )[i]
+  
+  all( run.mult.cols.v2$frame[, col.to.check ] ==  run.mult.cols.v3$frame[, col.to.check ],
+       na.rm = TRUE )
+} )
+
+expect_true( all( check.cols ) )
+
 })
+
+test_that( "expect error when summary.col.pos < 0.", {
+  
+## run again and specify integers
+expect_error( summary_table( d = d.example,
+                                   metric = c( "count", "percent" ),
+                                   var1 = c( "v1", "v5" ),
+                                   order.rows = list( v1 = c( "Summary", "Geo 2", "Geo 3", "Geo 1" ),
+                                                      v5 = c( "Y", "N", "" )),
+                                   var2 = c( "v2", "v3" ),
+                                   add.summary.row = TRUE,
+                                   add.summary.col = TRUE,
+                                   summary.col.name = "All Col",
+                                   summary.col.pos = -1,
+                                   summary.row.name = "Summary",
+                                   rate.supp = 5,
+                                   count.supp = 5,
+                                   nm.var1 = "new name",
+                                   percentages.rel = "var1",
+                                   row.variable.labels = list( v5 = "var5",
+                                                               v1 = "geovar" ) ) )
+  
+  expect_error( summary_table( d = d.example,
+                               metric = c( "count", "percent" ),
+                               var1 = c( "v1", "v5" ),
+                               order.rows = list( v1 = c( "Summary", "Geo 2", "Geo 3", "Geo 1" ),
+                                                  v5 = c( "Y", "N", "" )),
+                               var2 = c( "v2", "v3" ),
+                               add.summary.row = TRUE,
+                               add.summary.col = TRUE,
+                               summary.col.name = "All Col",
+                               summary.col.pos = "notback",
+                               summary.row.name = "Summary",
+                               rate.supp = 5,
+                               count.supp = 5,
+                               nm.var1 = "new name",
+                               percentages.rel = "var1",
+                               row.variable.labels = list( v5 = "var5",
+                                                           v1 = "geovar" ) ) )
+
+
+})
+

@@ -19,15 +19,13 @@
 #' @import rlang
 #' @importFrom magrittr "%>%"
 #'
-#' @usage summary_table( d, var1, var2 = NULL, table.grouping = NULL, 
-#' pop.var = NULL, add.summary.row = TRUE, summary.row.name = NULL, 
-#' add.summary.col = TRUE, digs.perc = 1, digs.rate = 2, summary.col.name = NULL, 
-#' order.rows = NULL, order.cols = NULL, order.groups = NULL, foot.lines = c(), 
-#' table.title = NULL, metric = c( "count", "rate" ), nm.var1 = NULL, 
-#' count.supp = NULL, remove.cols = NULL, rate.supp = NULL, 
-#' count.supp.symbol = "--", rate.supp.symbol = "*", per = 1000, 
-#' NAs.footnote = FALSE, percentages.rel = "var1", include.percent.sign = TRUE,
-#' row.variable.labels = "default", row.variable.col = "#eed8a4" )
+#' @usage summary_table( d, var1, var2 = NULL, table.grouping = NULL, pop.var = NULL,
+#' add.summary.row = TRUE, summary.row.name = NULL, add.summary.col = TRUE, digs.perc = 1, digs.rate = 2,
+#' summary.col.name = NULL, summary.col.pos = "front", order.rows = NULL, order.cols = NULL, 
+#' order.groups = NULL, foot.lines = c(), table.title = NULL, metric = c( "count", "rate" ), nm.var1 = NULL, 
+#' count.supp = NULL, remove.cols = NULL, rate.supp = NULL, count.supp.symbol = "--", rate.supp.symbol = "*", 
+#' per = 1000, NAs.footnote = FALSE, percentages.rel = "var1",
+#' include.percent.sign = TRUE, row.variable.labels = "default", row.variable.col = "#eed8a4")
 #'
 #' @param d A data frame or tibble. Data must be the exact subset of data that needs to analyzed for the table generation.
 #' @param var1 A string. Name of first variable to stratify on (as it appears in the input data, `d`). Cannot be  `NULL`.
@@ -38,6 +36,7 @@
 #' @param add.summary.col A logical. Add a row with unaggregated results (based on `var2`). Note that this argument is inconsequential if `var2 == NULL`.
 #' @param add.summary.row A logical. Add a row with unaggregated results (based on `var1`). `TRUE` is default and the name given to the row is "Summary Row". If another name is desired, it can be specified with `summary.row.name` and its order/position can be specified with the `order.rows` argument.
 #' @param summary.col.name A string. Name to appear for summary column header. Default is "All". This option is only relevant if `add.summary.col == TRUE`.
+#' @param summary.col.pos One of "front", "end", or an integer >= 0 and < the number of all levels of the categories in `var2` + 1.  Only a relevant argument if `length( var2 ) > 1` & `add.summary.col` is `TRUE`. 
 #' @param summary.row.name A string. Name to appear for summary row label. Default is "Summary Row". This option is only relevant if `add.summary.row == TRUE`.
 #' @param digs.perc An integer. Digits to round percents to.
 #' @param digs.rate An integer. Digits to round rates to.
@@ -275,9 +274,9 @@
 
 summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var = NULL,
                            add.summary.row = TRUE, summary.row.name = NULL, add.summary.col = TRUE, digs.perc = 1, digs.rate = 2,
-                           summary.col.name = NULL, order.rows = NULL, order.cols = NULL, order.groups = NULL, foot.lines = c(), 
-                           table.title = NULL, metric = c( "count", "rate" ), nm.var1 = NULL, count.supp = NULL, remove.cols = NULL,
-                           rate.supp = NULL, count.supp.symbol = "--", rate.supp.symbol = "*", 
+                           summary.col.name = NULL, summary.col.pos = "front", order.rows = NULL, order.cols = NULL, 
+                           order.groups = NULL, foot.lines = c(), table.title = NULL, metric = c( "count", "rate" ), nm.var1 = NULL, 
+                           count.supp = NULL, remove.cols = NULL, rate.supp = NULL, count.supp.symbol = "--", rate.supp.symbol = "*", 
                            per = 1000, NAs.footnote = FALSE, percentages.rel = "var1",
                            include.percent.sign = TRUE, row.variable.labels = "default", row.variable.col = "#eed8a4" ){
   
@@ -360,6 +359,11 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
   
   if( length( table.grouping ) > 1 & !is.null( table.grouping ) ){
     stop( "There can only be one variable, maximum, specified in `table.grouping` for grouping the table." )
+  }
+  
+  if( length( var2 ) > 1 & add.summary.col & ( !summary.col.pos %in% c( "front", "end" ) &
+                                               !( inherits( summary.col.pos, "numeric" ) | inherits( summary.col.pos, "integer" ) ) ) ){
+    stop( '`summary.col.pos` must be one of "front", "end", or an integer >= 0' )
   }
   
   if( !is.null( table.grouping ) ){
@@ -453,9 +457,9 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
       row.var <- as.character( this.combo[ i, "row" ] )
       col.var <- as.character( this.combo[ i, "col" ] )
       
-      arrange.rows <- if( !is.null( order.rows[[ row.var ]] ) ) order.rows[[ row.var ]] else levels( as.factor( d[[ row.var ]] ) )
+      arrange.rows <- if( !is.null( order.rows[[ row.var ]] ) ) order.rows[[ row.var ]] else c( sum.row.nm, levels( as.factor( d[[ row.var ]] ) ) )
       
-      arrange.cols <- if( !is.null( order.cols[[ col.var ]] ) ) order.cols[[ col.var ]] else levels( as.factor( d[[ col.var ]] ) )
+      arrange.cols <- if( !is.null( order.cols[[ col.var ]] ) ) unique( c( sum.col.nm, order.cols[[ col.var ]] )) else c( sum.col.nm, levels( as.factor( d[[ col.var ]] ) ) )
       
       
       call1 <- summary_table_1( d, var1 = row.var, var2 = col.var, table.grouping = table.grouping, 
@@ -469,6 +473,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
       
       
       d.call.out <- call1$frame %>%
+        select( !!sym( row.var ), contains( arrange.cols ) ) %>% # this arranges the columns in the desired order (note that the column with the value `sum.col.nm` will be moved later)
         filter( !!sym( row.var ) %in% arrange.rows )  %>% # this filters out any levels of var1 indicated in `order.rows` that are not desired in the table
         arrange( match( !!sym( row.var ), arrange.rows ), # arrange rows in custom order;
                  .by_group = TRUE ) %>%
@@ -484,7 +489,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     
     # extract frames
     frames.list <- lapply( seq_along( d.out ), function( i ) d.out[[ i ]]$frame )
-      
+    
     # since columns are only set once, we only need to keep one instance of each of `sp.h` and `col.w`
     col.ids <- sapply( d.out, function( x ) x$col.var ) # get column ids
     
@@ -541,19 +546,22 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
       data.frame()
     
     # join the datasets with same rows and then rowbind everything
-    d.out2 <- if( ncol( same.row.vars ) > 1 ){
+    d.out2 <- suppressMessages( # suppress messages because of the join message that is generated
+      if( ncol( same.row.vars ) > 1 ){
+        
+        lapply( 1:ncol( same.row.vars ), function( i ){
+          
+          frames.list[ same.row.vars[,i] ] %>% 
+            do.call( "left_join", . )
+          
+        } ) %>% 
+          do.call( "bind_rows", . )
+      } else{
+        frames.list  %>% 
+          do.call( "bind_rows", . )
+      } 
       
-      lapply( 1:ncol( same.row.vars ), function( i ){
-        
-        frames.list[ same.row.vars[,i] ] %>% 
-          do.call( "left_join", . )
-        
-      } ) %>% 
-        do.call( "bind_rows", . )
-    } else{
-      frames.list  %>% 
-        do.call( "bind_rows", . )
-    }
+    )
     
     
     ## now onward
@@ -583,6 +591,59 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     
     ## remove "row_var_name" column since it was only needed for arranging rows
     d.out3 <- d.out2 %>% select( -row_var_name )
+    
+    
+    ## if desired, move position of summary column ##
+    
+    if( summary.col.pos != "front" ){
+      
+      if( summary.col.pos == "end" ){
+        
+        d.out3 <- d.out3 %>% 
+          select( - contains( sum.col.nm ) ) %>% 
+          bind_cols( ., d.out3 %>% 
+                       select( contains( sum.col.nm ) ) )
+        
+        # reorder the `sp.h` vector for the spanning labels based on the desired repositioning
+        sp.h.all <- sp.h.all %>% 
+          .[ .!= sum.col.nm ] %>% 
+          c( ., sum.col.nm  )
+        
+      } else if( inherits( summary.col.pos, "numeric" ) | inherits( summary.col.pos, "integer" ) ){
+        
+        if( summary.col.pos >= 0 ){
+          if( summary.col.pos > length( sp.h.all %>% .[ .!= "" ] ) ) stop( paste0( "`summary.col.pos` cannot be > than ",
+                                                                                   length( sp.h.all %>% .[ .!= "" ] ),
+                                                                                 " which is the total number of levels for all variables listed in `var2`." ) )
+          
+          if( summary.col.pos <= length( sp.h.all %>% .[ .!= "" ] ) ){
+            
+            d.out3 <- if( summary.col.pos %in% c( 0, 1 ) ) d.out3 else{
+              
+              this.bump <- sp.h.all %>% .[ .!= "" ] %>% .[ summary.col.pos ] # the affected position
+              
+              this.new.pos <- max( which( str_detect( names( d.out3 ) , # take the first column where the level appears
+                                                 paste0( "^",
+                                                         this.bump, "\\," ) ) ) )
+              suppressWarnings( #`this.new.pos` in the `.after` argument creates a warning message that can be ignored for now
+              d.out3 %>%
+                relocate( contains( sum.col.nm ), .after = this.new.pos )
+              )
+            }
+            
+            # reorder the `sp.h` vector for the spanning labels based on the desired repositioning
+            sp.h.all <- if( !summary.col.pos %in% c( 0, 1 ) ) sp.h.all[ 1:( which( sp.h.all == this.bump ) ) ] %>% 
+              .[ .!= sum.col.nm ] %>% 
+              c( ., sum.col.nm, sp.h.all[ ( which( sp.h.all == this.bump ) + 1 ): length( sp.h.all ) ] ) else sp.h.all
+            
+          }
+          
+        }
+      }
+      
+      if( !summary.col.pos %in% c( "front", "end" ) &
+          !( summary.col.pos >= 0 ) ) stop( '`summary.col.pos` must be one of "front", "end", or an integer >= 0' )
+    }
     
     ## generate the final table with `flextable` ##
     
@@ -811,4 +872,3 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
                   frame = call2$frame ) )
   }
 }
-
