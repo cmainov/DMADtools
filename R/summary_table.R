@@ -4,7 +4,7 @@
 
 #' @title Generate "Nice" `flextable` From Input Data
 #'
-#' @description Create a "nice" publication-level table by tabulating up to three variables at once.
+#' @description Create a "nice" publication-level table by cross-tabulating up to three variables at once.
 #'
 #' @details
 #' Employs `flextable` to generate a "nice" publication-level table that can be easily exported or included in R Rmarkdown (.RMD) files.
@@ -41,7 +41,7 @@
 #' @param summary.row.name A string. Name to appear for summary row label. Default is "Summary Row". This option is only relevant if `add.summary.row == TRUE`.
 #' @param digs.perc An integer. Digits to round percents to.
 #' @param digs.rate An integer. Digits to round rates to.
-#' @param order.rows A vector with the levels in custom order of the stratifying variable in the rows(typically `var1` but can also be `table.grouping` depending on how the function is specified). Entries must match levels of stratifying variable exactly. If there are any levels of the row variable missing, they are omitted from the final table. Note that any rows removed from the final table do not remove that level from the data itself. If desired, that must be done outside the function with a data step.
+#' @param order.rows A vector with the levels in custom order of the stratifying variable in the rows(typically `var1` but can also be `table.grouping` depending on how the function is specified). Entries must match levels of stratifying variable exactly. If there are any levels of the row variable missing, they are omitted from the final table. Note that any rows removed from the final table do not remove that level from the data itself. If desired, that must be done outside the function with a data step. If multiple variables are listed in `var1`, then a named list with the variables specified in `var1` as the entry names and a character string with the desired order of each of those variable levels should be specified.
 #' @param order.cols A vector with the levels in custom order of the stratifying variable in the columns (typically `var2` but can also be `table.grouping` depending on how the function is specified). Must match the columns in the final table including the summary column name if `add.summary.col == TRUE` and `summary.col.name` is specified. If there are any levels of the column variable missing, they are omitted from the final table.
 #' @param order.groups A vector with the levels in custom order of the grouping variable in the columns. Must match the grouping variable (`table.grouping`) names in the final table. if there are any levels of the grouping variable missing, they are omitted from the final table. the orders of the rows within the group are preserved as indicated in `order.rows`. this argument is only valid if `!is.null( var2 ) & !is.null( table.grouping )`.
 #' @param foot.lines A vector with entries (strings) corresponding to each footline to be added to the table.
@@ -56,8 +56,8 @@
 #' @param NAs.footnote A logical. Include footnotes detailing number of missing values in the dataset based on `var1` and `var2`?
 #' @param percentages.rel A string. One of "var1" or "var2" or "table.grouping". Is the variables with which percentages should be calculated with respect to. `table.grouping` can only be specified if only `var1` is specified and `var2 == NULL`.
 #' @param include.percent.sign A logical. Include percent (\%) sign in computed percent columns? 
-#' @param row.variable.labels "default", "none" or a named list with the variables specified in `var1` as the entry names and a character string with the desired label for that variable in the rows.  If "default", the default variable names (i.e., those listed in `var1` are printed). If "none", no labels are printed. Default is "deafult".
-#' @param row.variable.col A string Hex code or color code for the background in the label row or "none". This argument is only relevant if `length( var1 )` is > 1 (i.e., multiple variables are desired in the rows of the table). Default is "#eed8a4". If "none" the default `flextable::theme_zebra` theme is used for that row.
+#' @param row.variable.labels "default", "none" or a named list with the variables specified in `var1` as the entry names and a character string with the desired label for that variable in the rows.  If "default", the default variable names (i.e., those listed in `var1` are printed). If "none", no labels are printed. Default is "default".
+#' @param row.variable.col A string Hex code or color code for the background in the label row or "none". This argument is only relevant if `length( var1 ) > 1` (i.e., multiple variables are desired in the rows of the table). Default is "#eed8a4". If "none" the default `flextable::theme_zebra` theme is used for that row.
 #' 
 #' @return Object of class \code{list} containing the following elements:
 #'
@@ -438,7 +438,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     call_env <- summary_table_1( d, var1 = var1[1], var2 = var2[1], table.grouping = table.grouping, 
                                  pop.var = pop.var, add.summary.row = add.summary.row, summary.row.name = summary.row.name, 
                                  add.summary.col = add.summary.col, digs.perc = digs.perc, digs.rate = digs.rate, summary.col.name = summary.col.name, 
-                                 order.rows = order.rows, order.cols = NULL, order.groups = order.groups, foot.lines = foot.lines, 
+                                 order.rows = NULL, order.cols = NULL, order.groups = order.groups, foot.lines = foot.lines, 
                                  table.title = table.title, metric = metric, nm.var1 = nm.var1, 
                                  count.supp = count.supp, remove.cols = remove.cols, rate.supp = rate.supp, 
                                  count.supp.symbol = count.supp.symbol, rate.supp.symbol = rate.supp.symbol, per = per, 
@@ -455,12 +455,13 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
       
       arrange.rows <- if( !is.null( order.rows[[ row.var ]] ) ) order.rows[[ row.var ]] else levels( as.factor( d[[ row.var ]] ) )
       
-      if( !sum.row.nm %in% arrange.rows ) arrange.rows <- c( sum.row.nm, arrange.rows ) # by default put summary row as first row if it is requested
+      arrange.cols <- if( !is.null( order.cols[[ col.var ]] ) ) order.cols[[ col.var ]] else levels( as.factor( d[[ col.var ]] ) )
+      
       
       call1 <- summary_table_1( d, var1 = row.var, var2 = col.var, table.grouping = table.grouping, 
                                 pop.var = pop.var, add.summary.row = add.summary.row, summary.row.name = summary.row.name, 
                                 add.summary.col = add.summary.col, digs.perc = digs.perc, digs.rate = digs.rate, summary.col.name = summary.col.name, 
-                                order.rows = NULL, order.cols = order.cols, order.groups = order.groups, foot.lines = foot.lines, 
+                                order.rows = NULL, order.cols = NULL, order.groups = order.groups, foot.lines = foot.lines, 
                                 table.title = table.title, metric = metric, nm.var1 = nm.var1, 
                                 count.supp = count.supp, remove.cols = remove.cols, rate.supp = rate.supp, 
                                 count.supp.symbol = count.supp.symbol, rate.supp.symbol = rate.supp.symbol, per = per, 
@@ -494,10 +495,10 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
                          function( i ) d.out[[ i ]]$sp.h ) # spanning header labels
     
     col.w.list <- lapply( as.vector( same.col.vars[1,] ), # first row only since we keep only 1 copy of each column
-                          function( i ) d.out[[ i ]]$col.w ) # spanning header labels
+                          function( i ) d.out[[ i ]]$col.w ) # spanning header widths
     
     new.nms.list <- lapply( as.vector( same.col.vars[1,] ), # first row only since we keep only 1 copy of each column
-                            function( i ) d.out[[ i ]]$new.nms ) # spanning header labels
+                            function( i ) d.out[[ i ]]$new.nms ) # header labels
     
     if( length( sp.h.list ) > 1 ){
       # assign names so we can track which column labels (for the levels) belong to which variable
@@ -563,7 +564,9 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
       
       for( i in seq_along( order.rows ) ){
         
-        before.grp <- which( d.out2$var1 == order.rows[[i]][1] & d.out2$row_var_name == names( order.rows )[i] )
+        row.labels <- order.rows[[i]] %>% .[ .!= sum.row.nm ] # fix to get issue with summary row name throwing off positioning of the separator
+        
+        before.grp <- which( d.out2$var1 == row.labels[1] & d.out2$row_var_name == names( order.rows )[i] )
         
         label.it <- if( inherits( row.variable.labels, "list" ) ) unlist( row.variable.labels )[ names(order.rows)[i] ] else if( row.variable.labels == "default" ) var1[i]
         

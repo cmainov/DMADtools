@@ -847,11 +847,12 @@ test_that( "ensure row labels are being ordered correctly when variables in rows
   run.samelevs <- summary_table( d = d.example,
                                  metric = c( "count", "percent" ),
                                  var1 = c( "v4", "v5" ),
-                                 order.rows = list( v4 = c( "Y", "N" ),
-                                                    v5 = c( "Y", "N" )),
                                  var2 = "v2",
                                  add.summary.row = TRUE,
                                  add.summary.col = TRUE,
+                                 summary.row.name = "Summary",
+                                 order.rows = list( v4 = c( "Summary", "Y", "N" ),
+                                                    v5 = c( "Y", "N" )),
                                  rate.supp = 5,
                                  count.supp = 5,
                                  nm.var1 = "new name",
@@ -873,17 +874,51 @@ test_that( "ensure row labels are being ordered correctly when variables in rows
 })
   
 
+test_that( "same test as prior but change position of summary row label", {
+  
+  
+  run.samelevs <- summary_table( d = d.example,
+                                 metric = c( "count", "percent" ),
+                                 var1 = c( "v4", "v5" ),
+                                 var2 = "v2",
+                                 add.summary.row = TRUE,
+                                 add.summary.col = TRUE,
+                                 summary.row.name = "Summary",
+                                 order.rows = list( v4 = c( "Y", "N" ),
+                                                    v5 = c( "Y", "N", "Summary" )),
+                                 rate.supp = 5,
+                                 count.supp = 5,
+                                 nm.var1 = "new name",
+                                 percentages.rel = "var1",
+                                 row.variable.labels = list(  v4 = "var4",
+                                                              v5 = "var5" ) )
+  
+  expect_true( run.samelevs$frame$var1[ 1 ] == "var4" & run.samelevs$frame$var1[ 4 ] == "var5" )
+  
+  raw.count.v4 <- table( d.example$v4, d.example$v2 )
+  
+  expect_true( raw.count.v4[ "Y", "Char 2" ] == run.samelevs$frame[ 2, "Char 2,count" ] )
+  
+  expect_true( raw.count.v4[ "N", "Char 3" ] == run.samelevs$frame[ 3, "Char 3,count" ] )
+  
+  raw.count.v5 <- table( d.example$v5, d.example$v2 )
+  
+  expect_true( raw.count.v5[ "Y", "Char 1" ] == run.samelevs$frame[ 5, "Char 1,count" ] )
+})
+
+
 test_that( "ensure row labels are being ordered correctly when variables in rows have are different and .", {
   
 
 run.difflevs <- summary_table( d = d.example,
                                metric = c( "count", "percent" ),
                                var1 = c( "v1", "v5" ),
-                               order.rows = list( v1 = c( "Geo 2", "Geo 3", "Geo 1" ),
+                               order.rows = list( v1 = c( "Summary", "Geo 2", "Geo 3", "Geo 1" ),
                                                   v5 = c( "Y", "N" )),
                                var2 = "v2",
                                add.summary.row = TRUE,
                                add.summary.col = TRUE,
+                               summary.row.name = "Summary",
                                rate.supp = 5,
                                count.supp = 5,
                                nm.var1 = "new name",
@@ -903,4 +938,39 @@ raw.count.v5 <- table( d.example$v5, d.example$v2 )
 
 expect_true( raw.count.v5[ "Y", "Char 1" ] == run.difflevs$frame[ 7, "Char 1,count" ] )
 
+})
+
+
+
+test_that( "ensure row labels are being ordered correctly when variables in rows have are different and .", {
+  
+  
+  run.difflevs <- summary_table( d = d.example,
+                                 metric = c( "count", "percent" ),
+                                 var1 = c( "v1", "v5" ),
+                                 order.rows = list( v1 = c( "Summary", "Geo 2", "Geo 3", "Geo 1" ),
+                                                    v5 = c( "Y", "N", "Summary" )),
+                                 var2 = c( "v2", "v3" ),
+                                 add.summary.row = TRUE,
+                                 add.summary.col = TRUE,
+                                 summary.row.name = "Summary",
+                                 rate.supp = 5,
+                                 count.supp = 5,
+                                 nm.var1 = "new name",
+                                 percentages.rel = "var1",
+                                 row.variable.labels = list( v5 = "var5",
+                                                             v1 = "geovar" ) )
+  
+  expect_true( run.difflevs$frame$var1[ 2 ] == "geovar" & run.difflevs$frame$var1[ 6 ] == "var5" )
+  
+  raw.count.v1 <- table( d.example$v1, d.example$v2 )
+  
+  expect_true( raw.count.v1[ "Geo 2", "Char 2" ] == run.difflevs$frame[ 3, "Char 2,count" ] )
+  
+  expect_true( raw.count.v1[ "Geo 1", "Char 3" ] == run.difflevs$frame[ 5, "Char 3,count" ] )
+  
+  raw.count.v5 <- table( d.example$v5, d.example$v2 )
+  
+  expect_true( raw.count.v5[ "Y", "Char 1" ] == run.difflevs$frame[ 7, "Char 1,count" ] )
+  
 })
