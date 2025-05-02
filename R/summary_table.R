@@ -505,6 +505,19 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     new.nms.list <- lapply( as.vector( same.col.vars[1,] ), # first row only since we keep only 1 copy of each column
                             function( i ) d.out[[ i ]]$new.nms ) # header labels
     
+    col.vars.list <- lapply( as.vector( same.col.vars[1,] ), # first row only since we keep only 1 copy of each column
+                            function( i ) d.out[[ i ]]$col.var ) # this will be used for the spanning header of the multiple variables
+    
+    # spanning headers for all variables (second layer for a spanning header)
+    sp.h.2 <- lapply( seq_along( sp.h.list ), function( i ){
+      
+      data.frame( level = sp.h.list[[i]],
+                  variable = col.vars.list[[i]] )
+      
+    }) %>% do.call( "rbind", . ) %>% 
+      filter( !level %in% c( "", sum.col.nm ) )
+  
+    
     if( length( sp.h.list ) > 1 ){
       # assign names so we can track which column labels (for the levels) belong to which variable
       names( sp.h.list ) <- colnames( same.col.vars )
@@ -673,7 +686,21 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
       
     }
     
+    ## second layer of spanning header (for the various variables in `var2` ##
+    sp.h.2.all <- c( "var1", sum.col.nm, unique( sp.h.2$variable ) )
     
+    sapply( 1:nrow( sp.h.2 ) function( i ) {
+      
+      lev <- sp.h.2[i, "level" ]
+      these.span <- str_which( names( d.out3 ), paste0( "^",
+                                          lev,
+                                          "\\," ) )
+      
+      # build the vector for the spanning header
+      c( )
+      
+    }
+    )
     ### make
     
     # generate the final table with `flextable`

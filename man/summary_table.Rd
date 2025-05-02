@@ -4,15 +4,13 @@
 \alias{summary_table}
 \title{Generate "Nice" `flextable` From Input Data}
 \usage{
-summary_table( d, var1, var2 = NULL, table.grouping = NULL, 
-pop.var = NULL, add.summary.row = TRUE, summary.row.name = NULL, 
-add.summary.col = TRUE, digs.perc = 1, digs.rate = 2, summary.col.name = NULL, 
-order.rows = NULL, order.cols = NULL, order.groups = NULL, foot.lines = c(), 
-table.title = NULL, metric = c( "count", "rate" ), nm.var1 = NULL, 
-count.supp = NULL, remove.cols = NULL, rate.supp = NULL, 
-count.supp.symbol = "--", rate.supp.symbol = "*", per = 1000, 
-NAs.footnote = FALSE, percentages.rel = "var1", include.percent.sign = TRUE,
-row.variable.labels = "default", row.variable.col = "#eed8a4" )
+summary_table( d, var1, var2 = NULL, table.grouping = NULL, pop.var = NULL,
+add.summary.row = TRUE, summary.row.name = NULL, add.summary.col = TRUE, digs.perc = 1, digs.rate = 2,
+summary.col.name = NULL, summary.col.pos = "front", order.rows = NULL, order.cols = NULL, 
+order.groups = NULL, foot.lines = c(), table.title = NULL, metric = c( "count", "rate" ), nm.var1 = NULL, 
+count.supp = NULL, remove.cols = NULL, rate.supp = NULL, count.supp.symbol = "--", rate.supp.symbol = "*", 
+per = 1000, NAs.footnote = FALSE, percentages.rel = "var1",
+include.percent.sign = TRUE, row.variable.labels = "default", row.variable.col = "#eed8a4")
 }
 \arguments{
 \item{d}{A data frame or tibble. Data must be the exact subset of data that needs to analyzed for the table generation.}
@@ -23,7 +21,7 @@ row.variable.labels = "default", row.variable.col = "#eed8a4" )
 
 \item{table.grouping}{A string or `NULL` (if no grouping in table is desired). Name of variable to create grouped output table with (creates grouping rows in the table). Can be 1 variable at maximum.}
 
-\item{pop.var}{A string or `NULL`. Variable in `d` with population count data for computing rates if "rate" is dplyr::selected in `metric`. This is normally an aggregate variable.}
+\item{pop.var}{A string or `NULL`. Variable in `d` with population count data for computing rates if "rate" is selected in `metric`. This is normally an aggregate variable.}
 
 \item{add.summary.row}{A logical. Add a row with unaggregated results (based on `var1`). `TRUE` is default and the name given to the row is "Summary Row". If another name is desired, it can be specified with `summary.row.name` and its order/position can be specified with the `order.rows` argument.}
 
@@ -37,7 +35,9 @@ row.variable.labels = "default", row.variable.col = "#eed8a4" )
 
 \item{summary.col.name}{A string. Name to appear for summary column header. Default is "All". This option is only relevant if `add.summary.col == TRUE`.}
 
-\item{order.rows}{A vector with the levels in custom order of the stratifying variable in the rows(typically `var1` but can also be `table.grouping` depending on how the function is specified). Entries must match levels of stratifying variable exactly. If there are any levels of the row variable missing, they are omitted from the final table. Note that any rows removed from the final table do not remove that level from the data itself. If desired, that must be done outside the function with a data step.}
+\item{summary.col.pos}{One of "front", "end", or an integer >= 0 and < the number of all levels of the categories in `var2` + 1.  Only a relevant argument if `length( var2 ) > 1` & `add.summary.col` is `TRUE`.}
+
+\item{order.rows}{A vector with the levels in custom order of the stratifying variable in the rows(typically `var1` but can also be `table.grouping` depending on how the function is specified). Entries must match levels of stratifying variable exactly. If there are any levels of the row variable missing, they are omitted from the final table. Note that any rows removed from the final table do not remove that level from the data itself. If desired, that must be done outside the function with a data step. If multiple variables are listed in `var1`, then a named list with the variables specified in `var1` as the entry names and a character string with the desired order of each of those variable levels should be specified.}
 
 \item{order.cols}{A vector with the levels in custom order of the stratifying variable in the columns (typically `var2` but can also be `table.grouping` depending on how the function is specified). Must match the columns in the final table including the summary column name if `add.summary.col == TRUE` and `summary.col.name` is specified. If there are any levels of the column variable missing, they are omitted from the final table.}
 
@@ -69,9 +69,9 @@ row.variable.labels = "default", row.variable.col = "#eed8a4" )
 
 \item{include.percent.sign}{A logical. Include percent (\%) sign in computed percent columns?}
 
-\item{row.variable.labels}{"default", "none" or a named list with the variables specified in `var1` as the entry names and a character string with the desired label for that variable in the rows.  If "default", the default variable names (i.e., those listed in `var1` are printed). If "none", no labels are printed. Default is "deafult".}
+\item{row.variable.labels}{"default", "none" or a named list with the variables specified in `var1` as the entry names and a character string with the desired label for that variable in the rows.  If "default", the default variable names (i.e., those listed in `var1` are printed). If "none", no labels are printed. Default is "default".}
 
-\item{row.variable.col}{A string Hex code or color code for the background in the label row or "none". This argument is only relevant if `length( var1 )` is > 1 (i.e., multiple variables are desired in the rows of the table). Default is "#eed8a4". If "none" the default `flextable::theme_zebra` theme is used for that row.}
+\item{row.variable.col}{A string Hex code or color code for the background in the label row or "none". This argument is only relevant if `length( var1 ) > 1` (i.e., multiple variables are desired in the rows of the table). Default is "#eed8a4". If "none" the default `flextable::theme_zebra` theme is used for that row.}
 }
 \value{
 Object of class \code{list} containing the following elements:
@@ -85,7 +85,7 @@ are only specified, then levels of `var1` appear in the columns and levels of `t
 appear in the rows, levels of `var2` appear in the columns, and levels of `table.grouping` appear as nested rows that group the table.
 }
 \description{
-Create a "nice" publication-level table by tabulating up to three variables at once.
+Create a "nice" publication-level table by cross-tabulating up to three variables at once.
 }
 \details{
 Employs `flextable` to generate a "nice" publication-level table that can be easily exported or included in R Rmarkdown (.RMD) files.
@@ -212,7 +212,6 @@ summary_table( d = d.example,
                pop.var = "v_pop" )
 
 # foot.lines argument and NAs.footnote
-set.seed( 974 )
 
 summary_table( d = d.example.na,
                metric = c( "count", "percent" ),
