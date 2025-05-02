@@ -1018,7 +1018,9 @@ run.mult.cols.v3 <- summary_table( d = d.example,
                                    nm.var1 = "new name",
                                    percentages.rel = "var1",
                                    row.variable.labels = list( v5 = "var5",
-                                                               v1 = "geovar" ) )
+                                                               v1 = "geovar" ),
+                                   col.variable.labels = list( v3 = "var3",
+                                                               v2 = "var2" ) )
 
 
 expect_true( all( str_detect( names( run.mult.cols.v3$frame )[c(6,7)], "All Col" ) ) )

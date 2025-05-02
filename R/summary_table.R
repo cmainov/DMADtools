@@ -278,7 +278,8 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
                            order.groups = NULL, foot.lines = c(), table.title = NULL, metric = c( "count", "rate" ), nm.var1 = NULL, 
                            count.supp = NULL, remove.cols = NULL, rate.supp = NULL, count.supp.symbol = "--", rate.supp.symbol = "*", 
                            per = 1000, NAs.footnote = FALSE, percentages.rel = "var1",
-                           include.percent.sign = TRUE, row.variable.labels = "default", row.variable.col = "#eed8a4" ){
+                           include.percent.sign = TRUE, add.spanning.header.col = TRUE, row.variable.labels = "default", 
+                           col.variable.labels = "default", row.variable.col = "#eed8a4" ){
   
   ## checks for all conditions ##
   
@@ -509,14 +510,31 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
                             function( i ) d.out[[ i ]]$col.var ) # this will be used for the spanning header of the multiple variables
     
     # spanning headers for all variables (second layer for a spanning header)
-    sp.h.2 <- lapply( seq_along( sp.h.list ), function( i ){
+    if( add.spanning.header.col ){
+      sp.h.2 <- lapply( seq_along( sp.h.list ), function( i ){
+        
+        data.frame( level = sp.h.list[[i]],
+                    variable = col.vars.list[[i]] )
+        
+      }) %>% do.call( "rbind", . ) %>% 
+        filter( !level %in% c( "", sum.col.nm ) ) %>% # first assign column widths to all variable levels that are not the summary column and the `var1` column which is length( metric )
+        group_by( variable ) %>% 
+        mutate( col.w = length( metric ) ) %>% 
+        ungroup() %>% bind_rows( ., # now do the same but for summary column and `var1` column, which are length( metric ) and 1, respectively
+                                 lapply( seq_along( sp.h.list ), function( i ){
+                                   
+                                   data.frame( level = sp.h.list[[i]],
+                                               variable = col.vars.list[[i]] )
+                                   
+                                 }) %>% do.call( "rbind", . ) %>% 
+                                   filter( level %in% c( "", sum.col.nm ) ) %>% 
+                                   mutate( col.w = ifelse( level == sum.col.nm, length( metric ),
+                                                           ifelse( level == "", 1, NA ) ),
+                                           variable = ifelse( level == sum.col.nm, sum.col.nm,
+                                                              ifelse( level == "", "", NA ) ) ) %>% 
+                                   distinct() )
       
-      data.frame( level = sp.h.list[[i]],
-                  variable = col.vars.list[[i]] )
-      
-    }) %>% do.call( "rbind", . ) %>% 
-      filter( !level %in% c( "", sum.col.nm ) )
-  
+    }
     
     if( length( sp.h.list ) > 1 ){
       # assign names so we can track which column labels (for the levels) belong to which variable
@@ -550,6 +568,28 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     col.w.all <- as.vector( unlist( col.w.list ) ) # final spanning header column widths vector
     
     new.nms.all <- as.vector( unlist( new.nms.list ) ) # final spanning header column widths vector
+    
+    
+    ## second layer of spanning header (for the various variables in `var2`) ##
+    if( add.spanning.header.col ){
+      # build the vector for the spanning header
+      order.sp.h.2.all <- c( "", { if( add.summary.col  ) sum.col.nm }, var2 )
+      
+      sp.h.2.specs <- sp.h.2 %>% 
+        summarise( col.w = sum( col.w ),
+                   .by = variable ) %>% 
+        arrange( match( variable,
+                        order.sp.h.2.all ) ) # order frame in specified order
+      
+      # create final vector of second spanning header labels
+      sp.h.2.all <- sp.h.2.specs %>% pull( variable ) %>% 
+        { if( any( str_detect( sp.h.2.specs$variable, sum.col.nm ) ) ) str_replace( ., sum.col.nm, "" ) else . } # label for summary column will be "" if present
+      
+      # and its column widths
+      col.w.2.all <- sp.h.2.specs %>% pull( col.w )
+      
+      names( col.w.2.all ) <- sp.h.2.all
+    }
     
     # first we will join dataframes with same row_var_name since entries in d.out are organized by row variables first
     row.ids <- sapply( seq_along( frames.list ), function( x ) unique( frames.list[[ x ]][ "row_var_name" ] ) %>% 
@@ -589,10 +629,10 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
         
         before.grp <- which( d.out2$var1 == row.labels[1] & d.out2$row_var_name == names( order.rows )[i] )
         
-        label.it <- if( inherits( row.variable.labels, "list" ) ) unlist( row.variable.labels )[ names(order.rows)[i] ] else if( row.variable.labels == "default" ) var1[i]
+        label.it.row <- if( inherits( row.variable.labels, "list" ) ) unlist( row.variable.labels )[ names(order.rows)[i] ] else if( row.variable.labels == "default" ) var1[i]
         
         d.out2 <- d.out2 %>%
-          add_row( var1 = label.it, .before = before.grp )
+          add_row( var1 = label.it.row, .before = before.grp )
         
       }
       
@@ -617,10 +657,21 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
           bind_cols( ., d.out3 %>% 
                        select( contains( sum.col.nm ) ) )
         
-        # reorder the `sp.h` vector for the spanning labels based on the desired repositioning
+        # reorder the `sp.h` vector (second layer for level names) for the spanning labels based on the desired repositioning
         sp.h.all <- sp.h.all %>% 
           .[ .!= sum.col.nm ] %>% 
           c( ., sum.col.nm  )
+        
+        if( add.spanning.header.col ){
+          # reorder the `sp.h.all.2` vector (second layer for variable names) for the spanning labels based on the desired repositioning
+          sp.h.2.all <- sp.h.2.all %>% 
+            .[ .!= sum.col.nm ] %>% 
+            c( ., sum.col.nm  )
+          
+          col.w.2.all <- col.w.2.all %>% # for this layer we also need to reposition the column width position (but not for the 1st layer)
+            .[ names( . ) != sum.col.nm ] %>% 
+            c( ., col.w.2.all[ names( col.w.2.all ) == sum.col.nm ] )
+        }
         
       } else if( inherits( summary.col.pos, "numeric" ) | inherits( summary.col.pos, "integer" ) ){
         
@@ -658,6 +709,16 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
           !( summary.col.pos >= 0 ) ) stop( '`summary.col.pos` must be one of "front", "end", or an integer >= 0' )
     }
     
+    
+    ## reassign spanning header labels (second layer) if assigned in `col.variable.labels`
+    sp.h.2.all <- if( all( col.variable.labels == "default" ) ) sp.h.2.all else if( inherits( col.variable.labels, "list" ) & all( names( col.variable.labels ) %in% var2 ) ){
+      
+      sapply( sp.h.2.all, function( x ){
+        if( x %in% names( col.variable.labels ) ) col.variable.labels[[x]] else x
+      } )
+    } else stop( '`col.variable.labels` should be a named list with variables in var2 as the entry names or "default" if original column names are desired.' )
+    
+    
     ## generate the final table with `flextable` ##
     
     # recompute `pos.vec.all`: columns to add the vertical border lines to (to the right of)
@@ -674,10 +735,24 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
         
       }
       
-      
     }
     
-    
+    # positions for vertical lines for second layer spanning header
+    if( add.spanning.header.col ){
+      pos.vec.2.all <- c( sum( col.w.2.all[ names( col.w.2.all ) == ""] ) ) # start position for first line
+      
+      for( i in seq_along( col.w.2.all ) ){
+        
+        if( names( col.w.2.all )[i] == "" ) next
+        
+        if( names( col.w.2.all )[i] != "" ){
+          if( i == length( col.w.2.all ) ) next else{
+            pos.vec.2.all <- c( pos.vec.2.all,
+                                tail( pos.vec.2.all, 1 ) + col.w.2.all[i] )
+          }
+        }
+      }
+    }
     
     # footnote for table
     if( !is.null( foot.lines ) ){
@@ -686,22 +761,6 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
       
     }
     
-    ## second layer of spanning header (for the various variables in `var2` ##
-    sp.h.2.all <- c( "var1", sum.col.nm, unique( sp.h.2$variable ) )
-    
-    sapply( 1:nrow( sp.h.2 ) function( i ) {
-      
-      lev <- sp.h.2[i, "level" ]
-      these.span <- str_which( names( d.out3 ), paste0( "^",
-                                          lev,
-                                          "\\," ) )
-      
-      # build the vector for the spanning header
-      c( )
-      
-    }
-    )
-    ### make
     
     # generate the final table with `flextable`
     
@@ -718,17 +777,24 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
           add_header_row( ., colwidths = col.w.all,
                           values = sp.h.all ) 
         } else{ . } } %>% 
+        { if( add.spanning.header.col ){
+          add_header_row( ., colwidths = col.w.2.all,
+                          values = sp.h.2.all ) } else . } %>% 
         theme_zebra() %>%
         theme_vanilla() %>%
         set_header_labels( values = new.nms.all ) %>% # change names based on new.nms vector created outside this flextable command
         { if( !is.null( nm.var1 ) ){
           set_header_labels( x = ., values = list( var1 = nm.var1 ) ) } else .} %>% # if nm.var is specified
-        align( part = "header", i = 1, align = "center" ) %>% # center align spanning headers
+        align( part = "header", 
+               align = "center" ) %>% 
         { if( !is.null( table.title ) ) add_header_lines( ., values = table.title ) %>% # title line
             align( part = "header", i = 1, align = "left" ) else . } %>% #left-align title
         vline( j = pos.vec.all, 
                part = "body",
                border = fp_border_default( width = 0.1 ) ) %>% # add vertical line borders after each spanning header group
+        vline( j = pos.vec.2.all, 
+               part = "header",
+               border = fp_border_default( width = 0.1 ) ) %>% # add vertical line borders after each spanning header group for second layer (variable names spanning header)
         border_inner_h( border = fp_border_default( width = 0.1 ), part = "header" ) %>% # make header border lines thinner
         hline_top( border = fp_border_default( width = 0.1 ), part = "body" ) %>% # make body top border line thinner
         flextable::font( fontname = "Arial", part = "all" ) %>% # change font for entire table and ensure arial
