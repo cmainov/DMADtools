@@ -7,7 +7,7 @@ on:
 
 jobs:
   render_my_file:
-    runs-on: self-hosted # virtual GitHub-hosted Ubuntu machine # virtual GitHub-hosted Ubuntu machine
+    runs-on: ubuntu-latest # virtual GitHub-hosted Ubuntu machine # virtual GitHub-hosted Ubuntu machine
 
     permissions:
       contents: write # permissions to write to repo
