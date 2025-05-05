@@ -1,4 +1,9 @@
 # DMADtools
+
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/cmainov/DMADtools/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/cmainov/DMADtools/actions/workflows/R-CMD-check.yaml)
+<!-- badges: end -->
+  
 Functions and data analysis tools.
 
 ### Description
