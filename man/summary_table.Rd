@@ -5,12 +5,12 @@
 \title{Generate "Nice" `flextable` From Input Data}
 \usage{
 summary_table( d, var1, var2 = NULL, table.grouping = NULL, pop.var = NULL,
-add.summary.row = TRUE, summary.row.name = NULL, add.summary.col = TRUE, digs.perc = 1, digs.rate = 2,
-summary.col.name = NULL, summary.col.pos = "front", order.rows = NULL, order.cols = NULL, 
+add.summary.row = TRUE, summary.row.name = NULL, add.summary.col = TRUE, font.family = "Calibri Light",
+digs.perc = 1, digs.rate = 2, summary.col.name = NULL, summary.col.pos = "front", order.rows = NULL, order.cols = NULL, 
 order.groups = NULL, foot.lines = c(), table.title = NULL, metric = c( "count", "rate" ), nm.var1 = NULL, 
 count.supp = NULL, remove.cols = NULL, rate.supp = NULL, count.supp.symbol = "--", rate.supp.symbol = "*", 
-per = 1000, NAs.footnote = FALSE, percentages.rel = "var1",
-include.percent.sign = TRUE, row.variable.labels = "default", row.variable.col = "#eed8a4")
+per = 1000, NAs.footnote = FALSE, percentages.rel = "var1", include.percent.sign = TRUE, 
+row.variable.labels = "default", col.variable.labels = "default", row.variable.col = "#eed8a4" )
 }
 \arguments{
 \item{d}{A data frame or tibble. Data must be the exact subset of data that needs to analyzed for the table generation.}
@@ -28,6 +28,8 @@ include.percent.sign = TRUE, row.variable.labels = "default", row.variable.col =
 \item{summary.row.name}{A string. Name to appear for summary row label. Default is "Summary Row". This option is only relevant if `add.summary.row == TRUE`.}
 
 \item{add.summary.col}{A logical. Add a row with unaggregated results (based on `var2`). Note that this argument is inconsequential if `var2 == NULL`.}
+
+\item{font.family}{A string with the font desired, to be applied to all sections of the table.}
 
 \item{digs.perc}{An integer. Digits to round percents to.}
 
@@ -70,6 +72,8 @@ include.percent.sign = TRUE, row.variable.labels = "default", row.variable.col =
 \item{include.percent.sign}{A logical. Include percent (\%) sign in computed percent columns?}
 
 \item{row.variable.labels}{"default", "none" or a named list with the variables specified in `var1` as the entry names and a character string with the desired label for that variable in the rows.  If "default", the default variable names (i.e., those listed in `var1` are printed). If "none", no labels are printed. Default is "default".}
+
+\item{col.variable.labels}{"default", "none" or a named list with the variables specified in `var2` as the entry names and a character string with the desired label for that variable in the columns  If "default", the default variable names (i.e., those listed in `var2` are printed). If "none", no labels are printed. Default is "default".}
 
 \item{row.variable.col}{A string Hex code or color code for the background in the label row or "none". This argument is only relevant if `length( var1 ) > 1` (i.e., multiple variables are desired in the rows of the table). Default is "#eed8a4". If "none" the default `flextable::theme_zebra` theme is used for that row.}
 }

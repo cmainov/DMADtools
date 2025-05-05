@@ -20,12 +20,12 @@
 #' @importFrom magrittr "%>%"
 #'
 #' @usage summary_table( d, var1, var2 = NULL, table.grouping = NULL, pop.var = NULL,
-#' add.summary.row = TRUE, summary.row.name = NULL, add.summary.col = TRUE, digs.perc = 1, digs.rate = 2,
-#' summary.col.name = NULL, summary.col.pos = "front", order.rows = NULL, order.cols = NULL, 
+#' add.summary.row = TRUE, summary.row.name = NULL, add.summary.col = TRUE, font.family = "Calibri Light",
+#' digs.perc = 1, digs.rate = 2, summary.col.name = NULL, summary.col.pos = "front", order.rows = NULL, order.cols = NULL, 
 #' order.groups = NULL, foot.lines = c(), table.title = NULL, metric = c( "count", "rate" ), nm.var1 = NULL, 
 #' count.supp = NULL, remove.cols = NULL, rate.supp = NULL, count.supp.symbol = "--", rate.supp.symbol = "*", 
-#' per = 1000, NAs.footnote = FALSE, percentages.rel = "var1",
-#' include.percent.sign = TRUE, row.variable.labels = "default", row.variable.col = "#eed8a4")
+#' per = 1000, NAs.footnote = FALSE, percentages.rel = "var1", include.percent.sign = TRUE, 
+#' row.variable.labels = "default", col.variable.labels = "default", row.variable.col = "#eed8a4" )
 #'
 #' @param d A data frame or tibble. Data must be the exact subset of data that needs to analyzed for the table generation.
 #' @param var1 A string. Name of first variable to stratify on (as it appears in the input data, `d`). Cannot be  `NULL`.
@@ -38,6 +38,7 @@
 #' @param summary.col.name A string. Name to appear for summary column header. Default is "All". This option is only relevant if `add.summary.col == TRUE`.
 #' @param summary.col.pos One of "front", "end", or an integer >= 0 and < the number of all levels of the categories in `var2` + 1.  Only a relevant argument if `length( var2 ) > 1` & `add.summary.col` is `TRUE`. 
 #' @param summary.row.name A string. Name to appear for summary row label. Default is "Summary Row". This option is only relevant if `add.summary.row == TRUE`.
+#' @param font.family A string with the font desired, to be applied to all sections of the table.
 #' @param digs.perc An integer. Digits to round percents to.
 #' @param digs.rate An integer. Digits to round rates to.
 #' @param order.rows A vector with the levels in custom order of the stratifying variable in the rows(typically `var1` but can also be `table.grouping` depending on how the function is specified). Entries must match levels of stratifying variable exactly. If there are any levels of the row variable missing, they are omitted from the final table. Note that any rows removed from the final table do not remove that level from the data itself. If desired, that must be done outside the function with a data step. If multiple variables are listed in `var1`, then a named list with the variables specified in `var1` as the entry names and a character string with the desired order of each of those variable levels should be specified.
@@ -56,6 +57,7 @@
 #' @param percentages.rel A string. One of "var1" or "var2" or "table.grouping". Is the variables with which percentages should be calculated with respect to. `table.grouping` can only be specified if only `var1` is specified and `var2 == NULL`.
 #' @param include.percent.sign A logical. Include percent (\%) sign in computed percent columns? 
 #' @param row.variable.labels "default", "none" or a named list with the variables specified in `var1` as the entry names and a character string with the desired label for that variable in the rows.  If "default", the default variable names (i.e., those listed in `var1` are printed). If "none", no labels are printed. Default is "default".
+#' @param col.variable.labels "default", "none" or a named list with the variables specified in `var2` as the entry names and a character string with the desired label for that variable in the columns  If "default", the default variable names (i.e., those listed in `var2` are printed). If "none", no labels are printed. Default is "default".
 #' @param row.variable.col A string Hex code or color code for the background in the label row or "none". This argument is only relevant if `length( var1 ) > 1` (i.e., multiple variables are desired in the rows of the table). Default is "#eed8a4". If "none" the default `flextable::theme_zebra` theme is used for that row.
 #' 
 #' @return Object of class \code{list} containing the following elements:
@@ -273,13 +275,12 @@
 #' @export
 
 summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var = NULL,
-                           add.summary.row = TRUE, summary.row.name = NULL, add.summary.col = TRUE, digs.perc = 1, digs.rate = 2,
-                           summary.col.name = NULL, summary.col.pos = "front", order.rows = NULL, order.cols = NULL, 
+                           add.summary.row = TRUE, summary.row.name = NULL, add.summary.col = TRUE, font.family = "Calibri Light",
+                           digs.perc = 1, digs.rate = 2, summary.col.name = NULL, summary.col.pos = "front", order.rows = NULL, order.cols = NULL, 
                            order.groups = NULL, foot.lines = c(), table.title = NULL, metric = c( "count", "rate" ), nm.var1 = NULL, 
                            count.supp = NULL, remove.cols = NULL, rate.supp = NULL, count.supp.symbol = "--", rate.supp.symbol = "*", 
-                           per = 1000, NAs.footnote = FALSE, percentages.rel = "var1",
-                           include.percent.sign = TRUE, add.spanning.header.col = TRUE, row.variable.labels = "default", 
-                           col.variable.labels = "default", row.variable.col = "#eed8a4" ){
+                           per = 1000, NAs.footnote = FALSE, percentages.rel = "var1", include.percent.sign = TRUE, 
+                           row.variable.labels = "default", col.variable.labels = "default", row.variable.col = "#eed8a4" ){
   
   ## checks for all conditions ##
   
@@ -510,7 +511,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
                             function( i ) d.out[[ i ]]$col.var ) # this will be used for the spanning header of the multiple variables
     
     # spanning headers for all variables (second layer for a spanning header)
-    if( add.spanning.header.col ){
+    if( all( col.variable.labels !=  "none" ) ){
       sp.h.2 <- lapply( seq_along( sp.h.list ), function( i ){
         
         data.frame( level = sp.h.list[[i]],
@@ -571,7 +572,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     
     
     ## second layer of spanning header (for the various variables in `var2`) ##
-    if( add.spanning.header.col ){
+    if( all( col.variable.labels !=  "none" ) ){
       # build the vector for the spanning header
       order.sp.h.2.all <- c( "", { if( add.summary.col  ) sum.col.nm }, var2 )
       
@@ -648,6 +649,19 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     
     ## if desired, move position of summary column ##
     
+    if( ( inherits( summary.col.pos, "numeric" ) | inherits( summary.col.pos, "integer" ) ) & !summary.col.pos %in% c( 0,1 ) & summary.col.pos >= 0 ){
+      
+      if( all( col.variable.labels !=  "none" ) ){
+        col.variable.labels <- "none"
+        
+        warning( paste0( "Position of summary column was specified as the integer, ", summary.col.pos,
+                         ", but spanning headers for variable names in `var2` cannot be generated when `summary.col.pos` is an integer.",
+                         ' Coercing `col.variable.labels` to "none" and suppressing spanning headers for `var2`. If spanning headers ',
+                         ' are desired, try specifying "front" or "end" for `summary.col.pos`.' ) )
+        
+      }
+    }
+    
     if( summary.col.pos != "front" ){
       
       if( summary.col.pos == "end" ){
@@ -662,18 +676,33 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
           .[ .!= sum.col.nm ] %>% 
           c( ., sum.col.nm  )
         
-        if( add.spanning.header.col ){
-          # reorder the `sp.h.all.2` vector (second layer for variable names) for the spanning labels based on the desired repositioning
-          sp.h.2.all <- sp.h.2.all %>% 
-            .[ .!= sum.col.nm ] %>% 
-            c( ., sum.col.nm  )
           
-          col.w.2.all <- col.w.2.all %>% # for this layer we also need to reposition the column width position (but not for the 1st layer)
-            .[ names( . ) != sum.col.nm ] %>% 
-            c( ., col.w.2.all[ names( col.w.2.all ) == sum.col.nm ] )
+        if( all( col.variable.labels !=  "none" ) ){
+          # reorder the `sp.h.all.2` vector (second layer for variable names) for the spanning labels based on the desired repositioning
+          
+          col.w.2.all <- c( sp.h.2.specs %>% 
+                              filter( !variable %in% sum.col.nm ) %>% 
+                              pull( col.w ), 
+                            sp.h.2.specs %>% 
+                              filter( variable %in% sum.col.nm ) %>% 
+                              pull( col.w ) )
+          
+          names( col.w.2.all ) <- c( sp.h.2.specs %>% 
+                                       filter( !variable %in% sum.col.nm ) %>% 
+                                       pull( variable ), 
+                                     sp.h.2.specs %>% 
+                                       filter( variable %in% sum.col.nm ) %>% 
+                                       pull( variable ) )
+          
+          sp.h.2.all <- names( col.w.2.all ) %>% 
+            { if( any( str_detect( ., sum.col.nm ) ) ) str_replace( ., sum.col.nm, "" ) else . } # label for summary column will be "" if present
+          
+          sp.h.2.specs <- sp.h.2.specs %>% 
+            arrange( match( variable, names( col.w.2.all ) ) )
         }
         
       } else if( inherits( summary.col.pos, "numeric" ) | inherits( summary.col.pos, "integer" ) ){
+  
         
         if( summary.col.pos >= 0 ){
           if( summary.col.pos > length( sp.h.all %>% .[ .!= "" ] ) ) stop( paste0( "`summary.col.pos` cannot be > than ",
@@ -710,15 +739,6 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     }
     
     
-    ## reassign spanning header labels (second layer) if assigned in `col.variable.labels`
-    sp.h.2.all <- if( all( col.variable.labels == "default" ) ) sp.h.2.all else if( inherits( col.variable.labels, "list" ) & all( names( col.variable.labels ) %in% var2 ) ){
-      
-      sapply( sp.h.2.all, function( x ){
-        if( x %in% names( col.variable.labels ) ) col.variable.labels[[x]] else x
-      } )
-    } else stop( '`col.variable.labels` should be a named list with variables in var2 as the entry names or "default" if original column names are desired.' )
-    
-    
     ## generate the final table with `flextable` ##
     
     # recompute `pos.vec.all`: columns to add the vertical border lines to (to the right of)
@@ -737,9 +757,19 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
       
     }
     
-    # positions for vertical lines for second layer spanning header
-    if( add.spanning.header.col ){
-      pos.vec.2.all <- c( sum( col.w.2.all[ names( col.w.2.all ) == ""] ) ) # start position for first line
+    ## 2nd spanning header labels relabeling and vertical line borders ##
+    if( all( col.variable.labels !=  "none" ) ){
+      
+      ## reassign spanning header labels (second layer) if assigned in `col.variable.labels`
+      sp.h.2.all <- if( all( col.variable.labels == "default" ) ) sp.h.2.all else if( inherits( col.variable.labels, "list" ) & all( names( col.variable.labels ) %in% var2 ) ){
+        
+        sapply( sp.h.2.all, function( x ){
+          if( x %in% names( col.variable.labels ) ) col.variable.labels[[x]] else x
+        } )
+      } else stop( '`col.variable.labels` should be a named list with variables in var2 as the entry names or "default" if original column names are desired or "none" if spanning headers are not desired.' )
+      
+      ## positions for vertical lines for second layer spanning header ##
+      pos.vec.2.all <- c( sum( col.w.2.all[ names( col.w.2.all ) == "" ] ) ) # start position for first line
       
       for( i in seq_along( col.w.2.all ) ){
         
@@ -777,9 +807,10 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
           add_header_row( ., colwidths = col.w.all,
                           values = sp.h.all ) 
         } else{ . } } %>% 
-        { if( add.spanning.header.col ){
-          add_header_row( ., colwidths = col.w.2.all,
-                          values = sp.h.2.all ) } else . } %>% 
+        { if( all( col.variable.labels !=  "none" ) ){
+          add_header_row( ., colwidths = as.numeric( col.w.2.all ),
+                          values = sp.h.2.all ) 
+        } else . } %>% 
         theme_zebra() %>%
         theme_vanilla() %>%
         set_header_labels( values = new.nms.all ) %>% # change names based on new.nms vector created outside this flextable command
@@ -789,15 +820,17 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
                align = "center" ) %>% 
         { if( !is.null( table.title ) ) add_header_lines( ., values = table.title ) %>% # title line
             align( part = "header", i = 1, align = "left" ) else . } %>% #left-align title
+        { if( all( col.variable.labels !=  "none" ) ){
+            vline( ., j = pos.vec.2.all, 
+                   part = "header",
+                   border = fp_border_default( width = 0.1 ) ) # add vertical line borders after each spanning header group for second layer (variable names spanning header)
+        } else . } %>% 
         vline( j = pos.vec.all, 
                part = "body",
                border = fp_border_default( width = 0.1 ) ) %>% # add vertical line borders after each spanning header group
-        vline( j = pos.vec.2.all, 
-               part = "header",
-               border = fp_border_default( width = 0.1 ) ) %>% # add vertical line borders after each spanning header group for second layer (variable names spanning header)
         border_inner_h( border = fp_border_default( width = 0.1 ), part = "header" ) %>% # make header border lines thinner
         hline_top( border = fp_border_default( width = 0.1 ), part = "body" ) %>% # make body top border line thinner
-        flextable::font( fontname = "Arial", part = "all" ) %>% # change font for entire table and ensure arial
+        flextable::font( fontname = font.family, part = "all" ) %>% # change font for entire table based on `font.family`
         fontsize( size = 8, part = "all" ) %>%
         fontsize( size = 7, part = "footer" ) %>%
         width( width = 0.45 ) %>% # change column widths to fit on one page
@@ -852,7 +885,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
                border = fp_border_default( width = 0.1 ) ) %>% # add vertical line borders after each spanning header group
         border_inner_h( border = fp_border_default( width = 0.1 ), part = "header" ) %>% # make header border lines thinner
         hline_top( border = fp_border_default( width = 0.1 ), part = "body" ) %>% # make body top border line thinner
-        flextable::font( fontname = "Arial", part = "all" ) %>% # change font for entire table and ensure arial
+        flextable::font( fontname = font.family, part = "all" ) %>% # change font for entire table based on `font.family`
         fontsize( size = 8, part = "all" ) %>%
         fontsize( size = 7, part = "footer" ) %>%
         width( width = 0.45 ) %>% # change column widths to fit on one page
