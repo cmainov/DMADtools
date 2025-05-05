@@ -4,7 +4,7 @@
 
 #' @title Generate "Nice" `flextable` From Input Data
 #'
-#' @description Create a "nice" publication-level table by tabulating up to three variables at once.
+#' @description Create a "nice" publication-level table by cross-tabulating up to three variables at once.
 #'
 #' @details
 #' Employs `flextable` to generate a "nice" publication-level table that can be easily exported or included in R Rmarkdown (.RMD) files.
@@ -19,15 +19,13 @@
 #' @import rlang
 #' @importFrom magrittr "%>%"
 #'
-#' @usage summary_table( d, var1, var2 = NULL, table.grouping = NULL, 
-#' pop.var = NULL, add.summary.row = TRUE, summary.row.name = NULL, 
-#' add.summary.col = TRUE, digs.perc = 1, digs.rate = 2, summary.col.name = NULL, 
-#' order.rows = NULL, order.cols = NULL, order.groups = NULL, foot.lines = c(), 
-#' table.title = NULL, metric = c( "count", "rate" ), nm.var1 = NULL, 
-#' count.supp = NULL, remove.cols = NULL, rate.supp = NULL, 
-#' count.supp.symbol = "--", rate.supp.symbol = "*", per = 1000, 
-#' NAs.footnote = FALSE, percentages.rel = "var1", include.percent.sign = TRUE,
-#' row.variable.labels = "default", row.variable.col = "#eed8a4" )
+#' @usage summary_table( d, var1, var2 = NULL, table.grouping = NULL, pop.var = NULL,
+#' add.summary.row = TRUE, summary.row.name = NULL, add.summary.col = TRUE, font.family = "Calibri Light",
+#' digs.perc = 1, digs.rate = 2, summary.col.name = NULL, summary.col.pos = "front", order.rows = NULL, order.cols = NULL, 
+#' order.groups = NULL, foot.lines = c(), table.title = NULL, metric = c( "count", "rate" ), nm.var1 = NULL, 
+#' count.supp = NULL, remove.cols = NULL, rate.supp = NULL, count.supp.symbol = "--", rate.supp.symbol = "*", 
+#' per = 1000, NAs.footnote = FALSE, percentages.rel = "var1", include.percent.sign = TRUE, 
+#' row.variable.labels = "default", col.variable.labels = "default", row.variable.col = "#eed8a4" )
 #'
 #' @param d A data frame or tibble. Data must be the exact subset of data that needs to analyzed for the table generation.
 #' @param var1 A string. Name of first variable to stratify on (as it appears in the input data, `d`). Cannot be  `NULL`.
@@ -38,10 +36,12 @@
 #' @param add.summary.col A logical. Add a row with unaggregated results (based on `var2`). Note that this argument is inconsequential if `var2 == NULL`.
 #' @param add.summary.row A logical. Add a row with unaggregated results (based on `var1`). `TRUE` is default and the name given to the row is "Summary Row". If another name is desired, it can be specified with `summary.row.name` and its order/position can be specified with the `order.rows` argument.
 #' @param summary.col.name A string. Name to appear for summary column header. Default is "All". This option is only relevant if `add.summary.col == TRUE`.
+#' @param summary.col.pos One of "front", "end", or an integer >= 0 and < the number of all levels of the categories in `var2` + 1.  Only a relevant argument if `length( var2 ) > 1` & `add.summary.col` is `TRUE`. 
 #' @param summary.row.name A string. Name to appear for summary row label. Default is "Summary Row". This option is only relevant if `add.summary.row == TRUE`.
+#' @param font.family A string with the font desired, to be applied to all sections of the table.
 #' @param digs.perc An integer. Digits to round percents to.
 #' @param digs.rate An integer. Digits to round rates to.
-#' @param order.rows A vector with the levels in custom order of the stratifying variable in the rows(typically `var1` but can also be `table.grouping` depending on how the function is specified). Entries must match levels of stratifying variable exactly. If there are any levels of the row variable missing, they are omitted from the final table. Note that any rows removed from the final table do not remove that level from the data itself. If desired, that must be done outside the function with a data step.
+#' @param order.rows A vector with the levels in custom order of the stratifying variable in the rows(typically `var1` but can also be `table.grouping` depending on how the function is specified). Entries must match levels of stratifying variable exactly. If there are any levels of the row variable missing, they are omitted from the final table. Note that any rows removed from the final table do not remove that level from the data itself. If desired, that must be done outside the function with a data step. If multiple variables are listed in `var1`, then a named list with the variables specified in `var1` as the entry names and a character string with the desired order of each of those variable levels should be specified.
 #' @param order.cols A vector with the levels in custom order of the stratifying variable in the columns (typically `var2` but can also be `table.grouping` depending on how the function is specified). Must match the columns in the final table including the summary column name if `add.summary.col == TRUE` and `summary.col.name` is specified. If there are any levels of the column variable missing, they are omitted from the final table.
 #' @param order.groups A vector with the levels in custom order of the grouping variable in the columns. Must match the grouping variable (`table.grouping`) names in the final table. if there are any levels of the grouping variable missing, they are omitted from the final table. the orders of the rows within the group are preserved as indicated in `order.rows`. this argument is only valid if `!is.null( var2 ) & !is.null( table.grouping )`.
 #' @param foot.lines A vector with entries (strings) corresponding to each footline to be added to the table.
@@ -56,8 +56,9 @@
 #' @param NAs.footnote A logical. Include footnotes detailing number of missing values in the dataset based on `var1` and `var2`?
 #' @param percentages.rel A string. One of "var1" or "var2" or "table.grouping". Is the variables with which percentages should be calculated with respect to. `table.grouping` can only be specified if only `var1` is specified and `var2 == NULL`.
 #' @param include.percent.sign A logical. Include percent (\%) sign in computed percent columns? 
-#' @param row.variable.labels "default", "none" or a named list with the variables specified in `var1` as the entry names and a character string with the desired label for that variable in the rows.  If "default", the default variable names (i.e., those listed in `var1` are printed). If "none", no labels are printed. Default is "deafult".
-#' @param row.variable.col A string Hex code or color code for the background in the label row or "none". This argument is only relevant if `length( var1 )` is > 1 (i.e., multiple variables are desired in the rows of the table). Default is "#eed8a4". If "none" the default `flextable::theme_zebra` theme is used for that row.
+#' @param row.variable.labels "default", "none" or a named list with the variables specified in `var1` as the entry names and a character string with the desired label for that variable in the rows.  If "default", the default variable names (i.e., those listed in `var1` are printed). If "none", no labels are printed. Default is "default".
+#' @param col.variable.labels "default", "none" or a named list with the variables specified in `var2` as the entry names and a character string with the desired label for that variable in the columns  If "default", the default variable names (i.e., those listed in `var2` are printed). If "none", no labels are printed. Default is "default".
+#' @param row.variable.col A string Hex code or color code for the background in the label row or "none". This argument is only relevant if `length( var1 ) > 1` (i.e., multiple variables are desired in the rows of the table). Default is "#eed8a4". If "none" the default `flextable::theme_zebra` theme is used for that row.
 #' 
 #' @return Object of class \code{list} containing the following elements:
 #'
@@ -274,12 +275,12 @@
 #' @export
 
 summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var = NULL,
-                           add.summary.row = TRUE, summary.row.name = NULL, add.summary.col = TRUE, digs.perc = 1, digs.rate = 2,
-                           summary.col.name = NULL, order.rows = NULL, order.cols = NULL, order.groups = NULL, foot.lines = c(), 
-                           table.title = NULL, metric = c( "count", "rate" ), nm.var1 = NULL, count.supp = NULL, remove.cols = NULL,
-                           rate.supp = NULL, count.supp.symbol = "--", rate.supp.symbol = "*", 
-                           per = 1000, NAs.footnote = FALSE, percentages.rel = "var1",
-                           include.percent.sign = TRUE, row.variable.labels = "default", row.variable.col = "#eed8a4" ){
+                           add.summary.row = TRUE, summary.row.name = NULL, add.summary.col = TRUE, font.family = "Calibri Light",
+                           digs.perc = 1, digs.rate = 2, summary.col.name = NULL, summary.col.pos = "front", order.rows = NULL, order.cols = NULL, 
+                           order.groups = NULL, foot.lines = c(), table.title = NULL, metric = c( "count", "rate" ), nm.var1 = NULL, 
+                           count.supp = NULL, remove.cols = NULL, rate.supp = NULL, count.supp.symbol = "--", rate.supp.symbol = "*", 
+                           per = 1000, NAs.footnote = FALSE, percentages.rel = "var1", include.percent.sign = TRUE, 
+                           row.variable.labels = "default", col.variable.labels = "default", row.variable.col = "#eed8a4" ){
   
   ## checks for all conditions ##
   
@@ -362,6 +363,11 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     stop( "There can only be one variable, maximum, specified in `table.grouping` for grouping the table." )
   }
   
+  if( length( var2 ) > 1 & add.summary.col & ( !summary.col.pos %in% c( "front", "end" ) &
+                                               !( inherits( summary.col.pos, "numeric" ) | inherits( summary.col.pos, "integer" ) ) ) ){
+    stop( '`summary.col.pos` must be one of "front", "end", or an integer >= 0' )
+  }
+  
   if( !is.null( table.grouping ) ){
     if( is.null( d[[ table.grouping ]] ) ) stop( "`table.grouping` variable not detected in dataset." )
   }
@@ -401,8 +407,8 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
   
   ## subsection where if length of `var1` is > 1 ##
   
-  if( length( var1 ) > 1 & 
-      !is.null( var2 )  ){
+  if( length( var1 ) > 1 | 
+      length( var2 ) > 1 ){
     
     if( !is.null( table.grouping ) ) stop( "Current functionality of summary_table only supports multiple variables in the rows when only `var1` and `var2` are called but `table.grouping` is NULL" )
     
@@ -427,11 +433,18 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
       }
     }
     
+    # combination of variable calls that need to be made
+    this.combo <- expand.grid( var1, var2 )
+    
+    # order the rows we want displayed
+    colnames( this.combo ) <- c( "row", "col" )
+    
+    
     # get environment
-    call_env <- summary_table_1( d, var1 = var1[1], var2 = var2, table.grouping = table.grouping, 
+    call_env <- summary_table_1( d, var1 = var1[1], var2 = var2[1], table.grouping = table.grouping, 
                                  pop.var = pop.var, add.summary.row = add.summary.row, summary.row.name = summary.row.name, 
                                  add.summary.col = add.summary.col, digs.perc = digs.perc, digs.rate = digs.rate, summary.col.name = summary.col.name, 
-                                 order.rows = NULL, order.cols = order.cols, order.groups = order.groups, foot.lines = foot.lines, 
+                                 order.rows = NULL, order.cols = NULL, order.groups = order.groups, foot.lines = foot.lines, 
                                  table.title = table.title, metric = metric, nm.var1 = nm.var1, 
                                  count.supp = count.supp, remove.cols = remove.cols, rate.supp = rate.supp, 
                                  count.supp.symbol = count.supp.symbol, rate.supp.symbol = rate.supp.symbol, per = per, 
@@ -441,64 +454,335 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     list2env( x = call_env, envir = current_env() ) # load elements needed from function call into current environment
     
     
-    d.out <- lapply( var1, function(x){
+    d.out <- lapply( 1:nrow( this.combo ), function( i ){
       
-      arrange.rows <- if( !is.null( order.rows[[x]] ) ) order.rows[[x]] else levels( as.factor( d[[ x ]] ) )
+      row.var <- as.character( this.combo[ i, "row" ] )
+      col.var <- as.character( this.combo[ i, "col" ] )
       
-      if( !sum.row.nm %in% arrange.rows ) arrange.rows <- c( sum.row.nm, arrange.rows ) # by default put summary row as first row if it is requested
+      arrange.rows <- if( !is.null( order.rows[[ row.var ]] ) ) order.rows[[ row.var ]] else c( sum.row.nm, levels( as.factor( d[[ row.var ]] ) ) )
       
-      call1 <- summary_table_1( d, var1 = x, var2 = var2, table.grouping = table.grouping, 
+      arrange.cols <- if( !is.null( order.cols[[ col.var ]] ) ) unique( c( sum.col.nm, order.cols[[ col.var ]] )) else c( sum.col.nm, levels( as.factor( d[[ col.var ]] ) ) )
+      
+      
+      call1 <- summary_table_1( d, var1 = row.var, var2 = col.var, table.grouping = table.grouping, 
                                 pop.var = pop.var, add.summary.row = add.summary.row, summary.row.name = summary.row.name, 
                                 add.summary.col = add.summary.col, digs.perc = digs.perc, digs.rate = digs.rate, summary.col.name = summary.col.name, 
-                                order.rows = NULL, order.cols = order.cols, order.groups = order.groups, foot.lines = foot.lines, 
+                                order.rows = NULL, order.cols = NULL, order.groups = order.groups, foot.lines = foot.lines, 
                                 table.title = table.title, metric = metric, nm.var1 = nm.var1, 
                                 count.supp = count.supp, remove.cols = remove.cols, rate.supp = rate.supp, 
                                 count.supp.symbol = count.supp.symbol, rate.supp.symbol = rate.supp.symbol, per = per, 
                                 NAs.footnote = NAs.footnote, percentages.rel = percentages.rel, include.percent.sign = include.percent.sign )
       
       
-      call1$frame %>%
-        filter( !!sym( x ) %in% arrange.rows )  %>% # this filters out any levels of var1 indicated in `order.rows` that are not desired in the table
-        arrange( match( !!sym( x ), arrange.rows ), # arrange rows in custom order;
+      d.call.out <- call1$frame %>%
+        select( !!sym( row.var ), contains( arrange.cols ) ) %>% # this arranges the columns in the desired order (note that the column with the value `sum.col.nm` will be moved later)
+        filter( !!sym( row.var ) %in% arrange.rows )  %>% # this filters out any levels of var1 indicated in `order.rows` that are not desired in the table
+        arrange( match( !!sym( row.var ), arrange.rows ), # arrange rows in custom order;
                  .by_group = TRUE ) %>%
-        rename( `var1` = !!sym( x ) ) %>%
-        mutate( var_name = x ) %>% 
+        rename( `var1` = !!sym( row.var ) ) %>%
+        mutate( row_var_name = row.var ) %>% 
         { if( add.summary.row ){
-          mutate( ., var_name = ifelse( `var1` == sum.row.nm, "", var_name ) ) # make summary rows the same so that `distinct` picks up and deletes redundant versions of them
+          mutate( ., row_var_name = ifelse( `var1` == sum.row.nm, "", row_var_name ) ) # make summary rows the same so that `distinct` picks up and deletes redundant versions of them
         } else . }
-        
       
-    }) %>%
-      do.call( "rbind", . ) %>%
-      distinct() # ensures add.summary.row row appears only once in table when binding from different calls
+      return( list( frame = d.call.out, sp.h = call1$env$sp.h, col.w = call1$env$col.w, 
+                    new.nms = call1$env$new.nms, pos.vec = call1$env$pos.vec, col.var = col.var ) )
+    })
     
+    # extract frames
+    frames.list <- lapply( seq_along( d.out ), function( i ) d.out[[ i ]]$frame )
+    
+    # since columns are only set once, we only need to keep one instance of each of `sp.h` and `col.w`
+    col.ids <- sapply( d.out, function( x ) x$col.var ) # get column ids
+    
+    same.col.vars <- sapply( var2, function( x ) which( col.ids == x ) ) 
+    
+    # get unique `sp.h` and `col.w` and `new.nms`
+    sp.h.list <- lapply( as.vector( same.col.vars[1,] ), # first row only since we keep only 1 copy of each column
+                         function( i ) d.out[[ i ]]$sp.h ) # spanning header labels
+    
+    col.w.list <- lapply( as.vector( same.col.vars[1,] ), # first row only since we keep only 1 copy of each column
+                          function( i ) d.out[[ i ]]$col.w ) # spanning header widths
+    
+    new.nms.list <- lapply( as.vector( same.col.vars[1,] ), # first row only since we keep only 1 copy of each column
+                            function( i ) d.out[[ i ]]$new.nms ) # header labels
+    
+    col.vars.list <- lapply( as.vector( same.col.vars[1,] ), # first row only since we keep only 1 copy of each column
+                            function( i ) d.out[[ i ]]$col.var ) # this will be used for the spanning header of the multiple variables
+    
+    # spanning headers for all variables (second layer for a spanning header)
+    if( all( col.variable.labels !=  "none" ) ){
+      sp.h.2 <- lapply( seq_along( sp.h.list ), function( i ){
+        
+        data.frame( level = sp.h.list[[i]],
+                    variable = col.vars.list[[i]] )
+        
+      }) %>% do.call( "rbind", . ) %>% 
+        filter( !level %in% c( "", sum.col.nm ) ) %>% # first assign column widths to all variable levels that are not the summary column and the `var1` column which is length( metric )
+        group_by( variable ) %>% 
+        mutate( col.w = length( metric ) ) %>% 
+        ungroup() %>% bind_rows( ., # now do the same but for summary column and `var1` column, which are length( metric ) and 1, respectively
+                                 lapply( seq_along( sp.h.list ), function( i ){
+                                   
+                                   data.frame( level = sp.h.list[[i]],
+                                               variable = col.vars.list[[i]] )
+                                   
+                                 }) %>% do.call( "rbind", . ) %>% 
+                                   filter( level %in% c( "", sum.col.nm ) ) %>% 
+                                   mutate( col.w = ifelse( level == sum.col.nm, length( metric ),
+                                                           ifelse( level == "", 1, NA ) ),
+                                           variable = ifelse( level == sum.col.nm, sum.col.nm,
+                                                              ifelse( level == "", "", NA ) ) ) %>% 
+                                   distinct() )
+      
+    }
+    
+    if( length( sp.h.list ) > 1 ){
+      # assign names so we can track which column labels (for the levels) belong to which variable
+      names( sp.h.list ) <- colnames( same.col.vars )
+      
+      names( col.w.list ) <- colnames( same.col.vars )
+      
+      names( new.nms.list ) <- colnames( same.col.vars )
+      
+      # remove unnecesary "All" column from all other sets of columns besides first variable in `var2`
+      remove.all.these <- var2[-1]
+      
+      these.col.w.rem <- which( sp.h.list[[ remove.all.these ]] %in% c( "", sum.col.nm ) )
+      
+      these.new.nms.rem <- which( str_detect( names( new.nms.list[[ remove.all.these ]] ), paste0( "v1", "|", sum.col.nm ) ) )
+      
+      # now remove
+      sp.h.list[[ remove.all.these ]] <- sp.h.list[[ remove.all.these ]] %>%
+        .[ !. %in% c( "", sum.col.nm ) ]
+      
+      col.w.list[[ remove.all.these ]] <- col.w.list[[ remove.all.these ]] %>%
+        .[ -these.col.w.rem ]
+      
+      new.nms.list[[ remove.all.these ]] <- new.nms.list[[ remove.all.these ]] %>%
+        .[ -these.new.nms.rem ]
+      
+    }
+    
+    sp.h.all <- as.vector( unlist( sp.h.list ) ) # final spanning header vector
+    
+    col.w.all <- as.vector( unlist( col.w.list ) ) # final spanning header column widths vector
+    
+    new.nms.all <- as.vector( unlist( new.nms.list ) ) # final spanning header column widths vector
+    
+    
+    ## second layer of spanning header (for the various variables in `var2`) ##
+    if( all( col.variable.labels !=  "none" ) ){
+      # build the vector for the spanning header
+      order.sp.h.2.all <- c( "", { if( add.summary.col  ) sum.col.nm }, var2 )
+      
+      sp.h.2.specs <- sp.h.2 %>% 
+        summarise( col.w = sum( col.w ),
+                   .by = variable ) %>% 
+        arrange( match( variable,
+                        order.sp.h.2.all ) ) # order frame in specified order
+      
+      # create final vector of second spanning header labels
+      sp.h.2.all <- sp.h.2.specs %>% pull( variable ) %>% 
+        { if( any( str_detect( sp.h.2.specs$variable, sum.col.nm ) ) ) str_replace( ., sum.col.nm, "" ) else . } # label for summary column will be "" if present
+      
+      # and its column widths
+      col.w.2.all <- sp.h.2.specs %>% pull( col.w )
+      
+      names( col.w.2.all ) <- sp.h.2.all
+    }
+    
+    # first we will join dataframes with same row_var_name since entries in d.out are organized by row variables first
+    row.ids <- sapply( seq_along( frames.list ), function( x ) unique( frames.list[[ x ]][ "row_var_name" ] ) %>% 
+                         .[ . != "" ] )
+    
+    same.row.vars <- sapply( var1, function( x ) which( row.ids == x ) ) %>% 
+      data.frame()
+    
+    # join the datasets with same rows and then rowbind everything
+    d.out2 <- suppressMessages( # suppress messages because of the join message that is generated
+      if( ncol( same.row.vars ) > 1 ){
+        
+        lapply( 1:ncol( same.row.vars ), function( i ){
+          
+          frames.list[ same.row.vars[,i] ] %>% 
+            do.call( "left_join", . )
+          
+        } ) %>% 
+          do.call( "bind_rows", . )
+      } else{
+        frames.list  %>% 
+          do.call( "bind_rows", . )
+      } 
+      
+    )
+    
+    
+    ## now onward
     
     ## add row separators/labels if desired for the different variables in the rows
-    
     
     if( all( row.variable.labels == "default" ) | inherits( row.variable.labels, "list" ) ){
       
       for( i in seq_along( order.rows ) ){
         
-        before.grp <- which( d.out$var1 == order.rows[[i]][1] & d.out$var_name == names( order.rows )[i] )
+        row.labels <- order.rows[[i]] %>% .[ .!= sum.row.nm ] # fix to get issue with summary row name throwing off positioning of the separator
         
-        label.it <- if( inherits( row.variable.labels, "list" ) ) unlist( row.variable.labels )[ names(order.rows)[i] ] else if( row.variable.labels == "default" ) var1[i]
+        before.grp <- which( d.out2$var1 == row.labels[1] & d.out2$row_var_name == names( order.rows )[i] )
         
-        d.out <- d.out %>%
-          add_row( var1 = label.it, .before = before.grp )
+        label.it.row <- if( inherits( row.variable.labels, "list" ) ) unlist( row.variable.labels )[ names(order.rows)[i] ] else if( row.variable.labels == "default" ) var1[i]
+        
+        d.out2 <- d.out2 %>%
+          add_row( var1 = label.it.row, .before = before.grp )
         
       }
       
       # vector of final outputted names in the table for bolding and coloring below in the flextable code
       row.var.labs <- if( inherits( row.variable.labels, "list" ) ) unlist( row.variable.labels ) else if( row.variable.labels == "default" ) var1
       
-      row.var.labs.which <- which( d.out$var1 %in% row.var.labs )
+      row.var.labs.which <- which( d.out2$var1 %in% row.var.labs )
     }
     
-    ## remove "var_name" column since it was only needed for arranging rows
-    d.out <- d.out %>% select( -var_name )
+    ## remove "row_var_name" column since it was only needed for arranging rows
+    d.out3 <- d.out2 %>% select( -row_var_name )
+    
+    
+    ## if desired, move position of summary column ##
+    
+    if( ( inherits( summary.col.pos, "numeric" ) | inherits( summary.col.pos, "integer" ) ) & !summary.col.pos %in% c( 0,1 ) & summary.col.pos >= 0 ){
+      
+      if( all( col.variable.labels !=  "none" ) ){
+        col.variable.labels <- "none"
+        
+        warning( paste0( "Position of summary column was specified as the integer, ", summary.col.pos,
+                         ", but spanning headers for variable names in `var2` cannot be generated when `summary.col.pos` is an integer.",
+                         ' Coercing `col.variable.labels` to "none" and suppressing spanning headers for `var2`. If spanning headers ',
+                         ' are desired, try specifying "front" or "end" for `summary.col.pos`.' ) )
+        
+      }
+    }
+    
+    if( summary.col.pos != "front" ){
+      
+      if( summary.col.pos == "end" ){
+        
+        d.out3 <- d.out3 %>% 
+          select( - contains( sum.col.nm ) ) %>% 
+          bind_cols( ., d.out3 %>% 
+                       select( contains( sum.col.nm ) ) )
+        
+        # reorder the `sp.h` vector (second layer for level names) for the spanning labels based on the desired repositioning
+        sp.h.all <- sp.h.all %>% 
+          .[ .!= sum.col.nm ] %>% 
+          c( ., sum.col.nm  )
+        
+          
+        if( all( col.variable.labels !=  "none" ) ){
+          # reorder the `sp.h.all.2` vector (second layer for variable names) for the spanning labels based on the desired repositioning
+          
+          col.w.2.all <- c( sp.h.2.specs %>% 
+                              filter( !variable %in% sum.col.nm ) %>% 
+                              pull( col.w ), 
+                            sp.h.2.specs %>% 
+                              filter( variable %in% sum.col.nm ) %>% 
+                              pull( col.w ) )
+          
+          names( col.w.2.all ) <- c( sp.h.2.specs %>% 
+                                       filter( !variable %in% sum.col.nm ) %>% 
+                                       pull( variable ), 
+                                     sp.h.2.specs %>% 
+                                       filter( variable %in% sum.col.nm ) %>% 
+                                       pull( variable ) )
+          
+          sp.h.2.all <- names( col.w.2.all ) %>% 
+            { if( any( str_detect( ., sum.col.nm ) ) ) str_replace( ., sum.col.nm, "" ) else . } # label for summary column will be "" if present
+          
+          sp.h.2.specs <- sp.h.2.specs %>% 
+            arrange( match( variable, names( col.w.2.all ) ) )
+        }
+        
+      } else if( inherits( summary.col.pos, "numeric" ) | inherits( summary.col.pos, "integer" ) ){
+  
+        
+        if( summary.col.pos >= 0 ){
+          if( summary.col.pos > length( sp.h.all %>% .[ .!= "" ] ) ) stop( paste0( "`summary.col.pos` cannot be > than ",
+                                                                                   length( sp.h.all %>% .[ .!= "" ] ),
+                                                                                 " which is the total number of levels for all variables listed in `var2`." ) )
+          
+          if( summary.col.pos <= length( sp.h.all %>% .[ .!= "" ] ) ){
+            
+            d.out3 <- if( summary.col.pos %in% c( 0, 1 ) ) d.out3 else{
+              
+              this.bump <- sp.h.all %>% .[ .!= "" ] %>% .[ summary.col.pos ] # the affected position
+              
+              this.new.pos <- max( which( str_detect( names( d.out3 ) , # take the first column where the level appears
+                                                 paste0( "^",
+                                                         this.bump, "\\," ) ) ) )
+              suppressWarnings( #`this.new.pos` in the `.after` argument creates a warning message that can be ignored for now
+              d.out3 %>%
+                relocate( contains( sum.col.nm ), .after = this.new.pos )
+              )
+            }
+            
+            # reorder the `sp.h` vector for the spanning labels based on the desired repositioning
+            sp.h.all <- if( !summary.col.pos %in% c( 0, 1 ) ) sp.h.all[ 1:( which( sp.h.all == this.bump ) ) ] %>% 
+              .[ .!= sum.col.nm ] %>% 
+              c( ., sum.col.nm, sp.h.all[ ( which( sp.h.all == this.bump ) + 1 ): length( sp.h.all ) ] ) else sp.h.all
+            
+          }
+          
+        }
+      }
+      
+      if( !summary.col.pos %in% c( "front", "end" ) &
+          !( summary.col.pos >= 0 ) ) stop( '`summary.col.pos` must be one of "front", "end", or an integer >= 0' )
+    }
+    
     
     ## generate the final table with `flextable` ##
+    
+    # recompute `pos.vec.all`: columns to add the vertical border lines to (to the right of)
+    pos.vec.all <- vector()
+    for( i in 1:( length( col.w.all ) - 1 ) ){
+      
+      if( i == 1 ){
+        
+        pos.vec.all[i] <- 1
+        
+      } else{
+        
+        pos.vec.all[i] <- pos.vec.all[i-1] + length( metric )
+        
+      }
+      
+    }
+    
+    ## 2nd spanning header labels relabeling and vertical line borders ##
+    if( all( col.variable.labels !=  "none" ) ){
+      
+      ## reassign spanning header labels (second layer) if assigned in `col.variable.labels`
+      sp.h.2.all <- if( all( col.variable.labels == "default" ) ) sp.h.2.all else if( inherits( col.variable.labels, "list" ) & all( names( col.variable.labels ) %in% var2 ) ){
+        
+        sapply( sp.h.2.all, function( x ){
+          if( x %in% names( col.variable.labels ) ) col.variable.labels[[x]] else x
+        } )
+      } else stop( '`col.variable.labels` should be a named list with variables in var2 as the entry names or "default" if original column names are desired or "none" if spanning headers are not desired.' )
+      
+      ## positions for vertical lines for second layer spanning header ##
+      pos.vec.2.all <- c( sum( col.w.2.all[ names( col.w.2.all ) == "" ] ) ) # start position for first line
+      
+      for( i in seq_along( col.w.2.all ) ){
+        
+        if( names( col.w.2.all )[i] == "" ) next
+        
+        if( names( col.w.2.all )[i] != "" ){
+          if( i == length( col.w.2.all ) ) next else{
+            pos.vec.2.all <- c( pos.vec.2.all,
+                                tail( pos.vec.2.all, 1 ) + col.w.2.all[i] )
+          }
+        }
+      }
+    }
     
     # footnote for table
     if( !is.null( foot.lines ) ){
@@ -508,37 +792,45 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     }
     
     
-    ### make
-    
     # generate the final table with `flextable`
     
     if( !tb.grp.var2.wide.logic ){
       
-      t.out <- { if( tb.grp.logic ){ as_grouped_data( d.out, groups = "group" ) %>%
+      t.out <- { if( tb.grp.logic ){ as_grouped_data( d.out3, groups = "group" ) %>%
           flextable::as_flextable( hide_grouplabel = TRUE )  %>% # first two lines of this command are used to create the grouping headers within the table
           surround( i = ~ !is.na( group ), # this `surround` command is to add the top horizontal and bottom horizonal lines to the grouping header title
                     border.top = fp_border_default( width = 0.1 ), 
                     border.bottom = fp_border_default( width = 0.1 ),
                     part = "body") 
-      } else{ flextable::flextable( d.out ) } } %>%
+      } else{ flextable::flextable( d.out3 ) } } %>%
         { if( length( metric ) > 1 & var.logic.2 ){ # spanning headers for `var2` only if more than one metric is requested and if there is cross-tabulation
-          add_header_row( ., colwidths = col.w,
-                          values = sp.h ) 
+          add_header_row( ., colwidths = col.w.all,
+                          values = sp.h.all ) 
         } else{ . } } %>% 
+        { if( all( col.variable.labels !=  "none" ) ){
+          add_header_row( ., colwidths = as.numeric( col.w.2.all ),
+                          values = sp.h.2.all ) 
+        } else . } %>% 
         theme_zebra() %>%
         theme_vanilla() %>%
-        set_header_labels( values = new.nms ) %>% # change names based on new.nms vector created outside this flextable command
+        set_header_labels( values = new.nms.all ) %>% # change names based on new.nms vector created outside this flextable command
         { if( !is.null( nm.var1 ) ){
           set_header_labels( x = ., values = list( var1 = nm.var1 ) ) } else .} %>% # if nm.var is specified
-        align( part = "header", i = 1, align = "center" ) %>% # center align spanning headers
+        align( part = "header", 
+               align = "center" ) %>% 
         { if( !is.null( table.title ) ) add_header_lines( ., values = table.title ) %>% # title line
             align( part = "header", i = 1, align = "left" ) else . } %>% #left-align title
-        vline( j = pos.vec, 
+        { if( all( col.variable.labels !=  "none" ) ){
+            vline( ., j = pos.vec.2.all, 
+                   part = "header",
+                   border = fp_border_default( width = 0.1 ) ) # add vertical line borders after each spanning header group for second layer (variable names spanning header)
+        } else . } %>% 
+        vline( j = pos.vec.all, 
                part = "body",
                border = fp_border_default( width = 0.1 ) ) %>% # add vertical line borders after each spanning header group
         border_inner_h( border = fp_border_default( width = 0.1 ), part = "header" ) %>% # make header border lines thinner
         hline_top( border = fp_border_default( width = 0.1 ), part = "body" ) %>% # make body top border line thinner
-        flextable::font( fontname = "Arial", part = "all" ) %>% # change font for entire table and ensure arial
+        flextable::font( fontname = font.family, part = "all" ) %>% # change font for entire table based on `font.family`
         fontsize( size = 8, part = "all" ) %>%
         fontsize( size = 7, part = "footer" ) %>%
         width( width = 0.45 ) %>% # change column widths to fit on one page
@@ -575,25 +867,25 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     # for wider table when there is only 1 level of var2 but var2 and table.grouping are specified
     if( tb.grp.var2.wide.logic ){
       
-      t.out <- flextable::flextable( d.out) %>%
+      t.out <- flextable::flextable( d.out3) %>%
         { if( length( metric ) > 1 & var.logic.2 ){ # spanning headers for `var2` only if more than one metric is requested and if there is cross-tabulation
-          add_header_row( ., colwidths = col.w,
-                          values = sp.h ) 
+          add_header_row( ., colwidths = col.w.all,
+                          values = sp.h.all ) 
         } else{ . } } %>% 
         theme_zebra() %>%
         theme_vanilla() %>%
-        set_header_labels( values = new.nms ) %>% # change names based on new.nms vector created outside this flextable command
+        set_header_labels( values = new.nms.all ) %>% # change names based on new.nms vector created outside this flextable command
         { if( !is.null( nm.var1 ) ){
           set_header_labels( x = ., values = list( var1 = nm.var1 ) ) } else .} %>% # if nm.var is specified
         align( part = "header", i = 1, align = "center" ) %>% # center align spanning headers
         { if( !is.null( table.title ) ) add_header_lines( ., values = table.title ) %>% # title line
             align( part = "header", i = 1, align = "left" ) else . } %>% #left-align title
-        vline( j = pos.vec, 
+        vline( j = pos.vec.all, 
                part = "body",
                border = fp_border_default( width = 0.1 ) ) %>% # add vertical line borders after each spanning header group
         border_inner_h( border = fp_border_default( width = 0.1 ), part = "header" ) %>% # make header border lines thinner
         hline_top( border = fp_border_default( width = 0.1 ), part = "body" ) %>% # make body top border line thinner
-        flextable::font( fontname = "Arial", part = "all" ) %>% # change font for entire table and ensure arial
+        flextable::font( fontname = font.family, part = "all" ) %>% # change font for entire table based on `font.family`
         fontsize( size = 8, part = "all" ) %>%
         fontsize( size = 7, part = "footer" ) %>%
         width( width = 0.45 ) %>% # change column widths to fit on one page
@@ -651,7 +943,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     }
     
     # footnotes for suppressed cell values and rates
-    include.ft.nt.cell.supp <- length( d.out[ d.out == count.supp.symbol ] ) > 0 # logical for if there are any suppressed cells in the table, otherwise footnote not needed
+    include.ft.nt.cell.supp <- length( d.out3[ d.out3 == count.supp.symbol ] ) > 0 # logical for if there are any suppressed cells in the table, otherwise footnote not needed
     
     if( !is.null( count.supp ) & "count" %in% metric & include.ft.nt.cell.supp ){
       
@@ -667,7 +959,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
       
     }
     
-    include.ft.nt.rate.supp <- length( d.out[ d.out == rate.supp.symbol ] ) > 0 # logical for if there are any suppressed cells in the table, otherwise footnote not needed
+    include.ft.nt.rate.supp <- length( d.out3[ d.out3 == rate.supp.symbol ] ) > 0 # logical for if there are any suppressed cells in the table, otherwise footnote not needed
     
     if( !is.null( rate.supp ) & "rate" %in% metric & include.ft.nt.rate.supp ){
       
@@ -681,8 +973,11 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
       }
     }
     
+    
+    
+    
     return( list( flextable = t.out,
-                  frame = d.out ) )
+                  frame = d.out3 ) )
     
   }
   
@@ -703,4 +998,3 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
                   frame = call2$frame ) )
   }
 }
-

@@ -847,11 +847,12 @@ test_that( "ensure row labels are being ordered correctly when variables in rows
   run.samelevs <- summary_table( d = d.example,
                                  metric = c( "count", "percent" ),
                                  var1 = c( "v4", "v5" ),
-                                 order.rows = list( v4 = c( "Y", "N" ),
-                                                    v5 = c( "Y", "N" )),
                                  var2 = "v2",
                                  add.summary.row = TRUE,
                                  add.summary.col = TRUE,
+                                 summary.row.name = "Summary",
+                                 order.rows = list( v4 = c( "Summary", "Y", "N" ),
+                                                    v5 = c( "Y", "N" )),
                                  rate.supp = 5,
                                  count.supp = 5,
                                  nm.var1 = "new name",
@@ -873,17 +874,51 @@ test_that( "ensure row labels are being ordered correctly when variables in rows
 })
   
 
+test_that( "same test as prior but change position of summary row label", {
+  
+  
+  run.samelevs <- summary_table( d = d.example,
+                                 metric = c( "count", "percent" ),
+                                 var1 = c( "v4", "v5" ),
+                                 var2 = "v2",
+                                 add.summary.row = TRUE,
+                                 add.summary.col = TRUE,
+                                 summary.row.name = "Summary",
+                                 order.rows = list( v4 = c( "Y", "N" ),
+                                                    v5 = c( "Y", "N", "Summary" )),
+                                 rate.supp = 5,
+                                 count.supp = 5,
+                                 nm.var1 = "new name",
+                                 percentages.rel = "var1",
+                                 row.variable.labels = list(  v4 = "var4",
+                                                              v5 = "var5" ) )
+  
+  expect_true( run.samelevs$frame$var1[ 1 ] == "var4" & run.samelevs$frame$var1[ 4 ] == "var5" )
+  
+  raw.count.v4 <- table( d.example$v4, d.example$v2 )
+  
+  expect_true( raw.count.v4[ "Y", "Char 2" ] == run.samelevs$frame[ 2, "Char 2,count" ] )
+  
+  expect_true( raw.count.v4[ "N", "Char 3" ] == run.samelevs$frame[ 3, "Char 3,count" ] )
+  
+  raw.count.v5 <- table( d.example$v5, d.example$v2 )
+  
+  expect_true( raw.count.v5[ "Y", "Char 1" ] == run.samelevs$frame[ 5, "Char 1,count" ] )
+})
+
+
 test_that( "ensure row labels are being ordered correctly when variables in rows have are different and .", {
   
 
 run.difflevs <- summary_table( d = d.example,
                                metric = c( "count", "percent" ),
                                var1 = c( "v1", "v5" ),
-                               order.rows = list( v1 = c( "Geo 2", "Geo 3", "Geo 1" ),
+                               order.rows = list( v1 = c( "Summary", "Geo 2", "Geo 3", "Geo 1" ),
                                                   v5 = c( "Y", "N" )),
                                var2 = "v2",
                                add.summary.row = TRUE,
                                add.summary.col = TRUE,
+                               summary.row.name = "Summary",
                                rate.supp = 5,
                                count.supp = 5,
                                nm.var1 = "new name",
@@ -904,3 +939,350 @@ raw.count.v5 <- table( d.example$v5, d.example$v2 )
 expect_true( raw.count.v5[ "Y", "Char 1" ] == run.difflevs$frame[ 7, "Char 1,count" ] )
 
 })
+
+
+
+test_that( "checks on order of spanning headers when multiple variables are specified in `var2`.", {
+  
+  
+  run.mult.cols <- summary_table( d = d.example,
+                                 metric = c( "count", "percent" ),
+                                 var1 = c( "v1", "v5" ),
+                                 order.rows = list( v1 = c( "Summary", "Geo 2", "Geo 3", "Geo 1" ),
+                                                    v5 = c( "Y", "N", "" )),
+                                 var2 = c( "v2", "v3" ),
+                                 add.summary.row = TRUE,
+                                 add.summary.col = TRUE,
+                                 summary.col.name = "All Col",
+                                 summary.col.pos = "end",
+                                 summary.row.name = "Summary",
+                                 rate.supp = 5,
+                                 count.supp = 5,
+                                 nm.var1 = "new name",
+                                 percentages.rel = "var1",
+                                 row.variable.labels = list( v5 = "var5",
+                                                             v1 = "geovar" ) )
+  
+  expect_true( run.mult.cols$frame$var1[ 2 ] == "geovar" & run.mult.cols$frame$var1[ 6 ] == "var5" )
+  
+  raw.count.v1 <- table( d.example$v1, d.example$v2 )
+  
+  expect_true( raw.count.v1[ "Geo 2", "Char 2" ] == run.mult.cols$frame[ 3, "Char 2,count" ] )
+  
+  expect_true( raw.count.v1[ "Geo 1", "Char 3" ] == run.mult.cols$frame[ 5, "Char 3,count" ] )
+  
+  raw.count.v5 <- table( d.example$v5, d.example$v2 )
+  
+  expect_true( raw.count.v5[ "Y", "Char 1" ] == run.mult.cols$frame[ 7, "Char 1,count" ] )
+  
+  ## check on column positions
+  
+  expect_true( all( str_detect( tail( names( run.mult.cols$frame ), 2 ), "All Col" ) ) )
+  
+  ## run again and specify "front"
+  run.mult.cols.v2 <- summary_table( d = d.example,
+                                  metric = c( "count", "percent" ),
+                                  var1 = c( "v1", "v5" ),
+                                  order.rows = list( v1 = c( "Summary", "Geo 2", "Geo 3", "Geo 1" ),
+                                                     v5 = c( "Y", "N", "" )),
+                                  var2 = c( "v2", "v3" ),
+                                  add.summary.row = TRUE,
+                                  add.summary.col = TRUE,
+                                  summary.col.name = "All Col",
+                                  summary.col.pos = "front",
+                                  summary.row.name = "Summary",
+                                  rate.supp = 5,
+                                  count.supp = 5,
+                                  nm.var1 = "new name",
+                                  percentages.rel = "var1",
+                                  row.variable.labels = list( v5 = "var5",
+                                                              v1 = "geovar" ) )
+
+
+expect_true( all( str_detect( head( names( run.mult.cols.v2$frame[-1] ), 2 ), "All Col" ) ) )
+
+## run again and specify integers
+run.mult.cols.v3 <- summary_table( d = d.example,
+                                   metric = c( "count", "percent" ),
+                                   var1 = c( "v1", "v5" ),
+                                   order.rows = list( v1 = c( "Summary", "Geo 2", "Geo 3", "Geo 1" ),
+                                                      v5 = c( "Y", "N", "" )),
+                                   var2 = c( "v2", "v3" ),
+                                   add.summary.row = TRUE,
+                                   add.summary.col = TRUE,
+                                   summary.col.name = "All Col",
+                                   summary.col.pos = 3,
+                                   summary.row.name = "Summary",
+                                   rate.supp = 5,
+                                   count.supp = 5,
+                                   nm.var1 = "new name",
+                                   percentages.rel = "var1",
+                                   row.variable.labels = list( v5 = "var5",
+                                                               v1 = "geovar" ))
+
+
+expect_true( all( str_detect( names( run.mult.cols.v3$frame )[c(6,7)], "All Col" ) ) )
+
+
+## check that all column values are the same in both tables despite different position of "All Column"
+
+check.cols <- sapply( 1:ncol( run.mult.cols.v2$frame ), function( i ){
+  
+  col.to.check <- names( run.mult.cols.v2$frame )[i]
+  
+  all( run.mult.cols.v2$frame[, col.to.check ] ==  run.mult.cols.v3$frame[, col.to.check ],
+       na.rm = TRUE )
+} )
+
+expect_true( all( check.cols ) )
+
+})
+
+
+test_that( "expect error when summary.col.pos < 0.", {
+  
+## run again and specify integers
+expect_error( summary_table( d = d.example,
+                                   metric = c( "count", "percent" ),
+                                   var1 = c( "v1", "v5" ),
+                                   order.rows = list( v1 = c( "Summary", "Geo 2", "Geo 3", "Geo 1" ),
+                                                      v5 = c( "Y", "N", "" )),
+                                   var2 = c( "v2", "v3" ),
+                                   add.summary.row = TRUE,
+                                   add.summary.col = TRUE,
+                                   summary.col.name = "All Col",
+                                   summary.col.pos = -1,
+                                   summary.row.name = "Summary",
+                                   rate.supp = 5,
+                                   count.supp = 5,
+                                   nm.var1 = "new name",
+                                   percentages.rel = "var1",
+                                   row.variable.labels = list( v5 = "var5",
+                                                               v1 = "geovar" ) ) )
+  
+  expect_error( summary_table( d = d.example,
+                               metric = c( "count", "percent" ),
+                               var1 = c( "v1", "v5" ),
+                               order.rows = list( v1 = c( "Summary", "Geo 2", "Geo 3", "Geo 1" ),
+                                                  v5 = c( "Y", "N", "" )),
+                               var2 = c( "v2", "v3" ),
+                               add.summary.row = TRUE,
+                               add.summary.col = TRUE,
+                               summary.col.name = "All Col",
+                               summary.col.pos = "notback",
+                               summary.row.name = "Summary",
+                               rate.supp = 5,
+                               count.supp = 5,
+                               nm.var1 = "new name",
+                               percentages.rel = "var1",
+                               row.variable.labels = list( v5 = "var5",
+                                                           v1 = "geovar" ) ) )
+
+
+})
+
+
+test_that( "ensure second layer of spanning headers works.", {
+  
+span.head.2.a <- summary_table( d = d.example,
+               metric = c( "count", "percent" ),
+               var1 = c( "v1", "v5" ),
+               order.rows = list( v1 = c( "Summary", "Geo 2", "Geo 3", "Geo 1" ),
+                                  v5 = c( "Y", "N", "" )),
+               var2 = c( "v2", "v3" ),
+               add.summary.row = TRUE,
+               add.summary.col = TRUE,
+               summary.col.name = "All Col",
+               summary.col.pos = "front",
+               summary.row.name = "Summary",
+               rate.supp = 5,
+               count.supp = 5,
+               nm.var1 = "new name",
+               percentages.rel = "var1",
+               row.variable.labels = list( v5 = "var5",
+                                           v1 = "geovar" ),
+               col.variable.labels = list( v3 = "var3",
+                                           v2 = "var2" ) )
+
+expect_true( all( str_detect( span.head.2.a$flextable$header$dataset[ 1, 4:9 ], "var2" ) ) )
+
+expect_true( all( str_detect( span.head.2.a$flextable$header$dataset[ 1, 10:15 ], "var3" ) ) )
+
+# change `summary.col.pos` to "end"
+span.head.2.b <- summary_table( d = d.example,
+                                metric = c( "count", "percent" ),
+                                var1 = c( "v1", "v5" ),
+                                order.rows = list( v1 = c( "Summary", "Geo 2", "Geo 3", "Geo 1" ),
+                                                   v5 = c( "Y", "N", "" )),
+                                var2 = c( "v2", "v3" ),
+                                add.summary.row = TRUE,
+                                add.summary.col = TRUE,
+                                summary.col.name = "All Col",
+                                summary.col.pos = "end",
+                                summary.row.name = "Summary",
+                                rate.supp = 5,
+                                count.supp = 5,
+                                nm.var1 = "new name",
+                                percentages.rel = "var1",
+                                row.variable.labels = list( v5 = "var5",
+                                                            v1 = "geovar" ),
+                                col.variable.labels = list( v3 = "var3",
+                                                            v2 = "var2" ) )
+
+expect_true( all( str_detect( names( span.head.2.b$flextable$header$dataset[ 1, 14:15 ] ), "All\\sCol" ) ) )
+
+expect_true( all( str_detect( span.head.2.b$flextable$header$dataset[ 1, 8:13 ], "var3" ) ) )
+
+expect_true( all( str_detect( span.head.2.b$flextable$header$dataset[ 1, 2:7 ], "var2" ) ) )
+
+
+# change `col.variable.labels` to "none"
+span.head.2.c <- summary_table( d = d.example,
+                                metric = c( "count", "percent" ),
+                                var1 = c( "v1", "v5" ),
+                                order.rows = list( v1 = c( "Summary", "Geo 2", "Geo 3", "Geo 1" ),
+                                                   v5 = c( "Y", "N", "" )),
+                                var2 = c( "v2", "v3" ),
+                                add.summary.row = TRUE,
+                                add.summary.col = TRUE,
+                                summary.col.name = "All Col",
+                                summary.col.pos = "end",
+                                summary.row.name = "Summary",
+                                rate.supp = 5,
+                                count.supp = 5,
+                                nm.var1 = "new name",
+                                percentages.rel = "var1",
+                                row.variable.labels = list( v5 = "var5",
+                                                            v1 = "geovar" ),
+                                col.variable.labels = "none" )
+
+expect_true( all( str_detect( span.head.2.c$flextable$header$dataset[ 1, 14:15 ], "All\\sCol" ) ) )
+
+expect_true( all( str_detect( span.head.2.c$flextable$header$dataset[ 1, 8:13 ], "Other Char\\s" ) ) )
+
+expect_true( all( str_detect( span.head.2.c$flextable$header$dataset[ 1, 2:7 ], "^Char\\s" ) ) )
+
+
+# change order of entries in col.variable.labels
+span.head.2.d <- summary_table( d = d.example,
+                                metric = c( "count", "percent" ),
+                                var1 = c( "v1", "v5" ),
+                                order.rows = list( v1 = c( "Summary", "Geo 2", "Geo 3", "Geo 1" ),
+                                                   v5 = c( "Y", "N", "" )),
+                                var2 = c( "v2", "v3" ),
+                                add.summary.row = TRUE,
+                                add.summary.col = TRUE,
+                                summary.col.name = "All Col",
+                                summary.col.pos = "end",
+                                summary.row.name = "Summary",
+                                rate.supp = 5,
+                                count.supp = 5,
+                                nm.var1 = "new name",
+                                percentages.rel = "var1",
+                                row.variable.labels = list( v5 = "var5",
+                                                            v1 = "geovar" ),
+                                col.variable.labels = list( v2 = "var2",
+                                                            v3 = "var3" ) )
+
+expect_true( all( str_detect( names( span.head.2.d$flextable$header$dataset[ 1, 14:15 ] ), "All\\sCol" ) ) )
+
+expect_true( all( str_detect( span.head.2.d$flextable$header$dataset[ 1, 8:13 ], "var3" ) ) )
+
+expect_true( all( str_detect( span.head.2.d$flextable$header$dataset[ 1, 2:7 ], "var2" ) ) )
+
+
+})
+            
+
+
+test_that( "spanning header suppression when ", {
+  
+  
+  expect_warning( summary_table( d = d.example,
+                                 metric = c( "count", "percent" ),
+                                 var1 = c( "v1", "v5" ),
+                                 order.rows = list( v1 = c( "Summary", "Geo 2", "Geo 3", "Geo 1" ),
+                                                    v5 = c( "Y", "N", "" )),
+                                 var2 = c( "v2", "v3" ),
+                                 add.summary.row = TRUE,
+                                 add.summary.col = TRUE,
+                                 summary.col.name = "All Col",
+                                 summary.col.pos = 4,
+                                 summary.row.name = "Summary",
+                                 rate.supp = 5,
+                                 count.supp = 5,
+                                 nm.var1 = "new name",
+                                 percentages.rel = "var1",
+                                 row.variable.labels = list( v5 = "var5",
+                                                             v1 = "geovar" ),
+                                 col.variable.labels = list( v2 = "var2",
+                                                             v3 = "var3" ) ) )
+  
+  # check that summary.col.pos %in% 0,1 works fine
+  d.0 <- summary_table( d = d.example,
+                 metric = c( "count", "percent" ),
+                 var1 = c( "v1", "v5" ),
+                 order.rows = list( v1 = c( "Summary", "Geo 2", "Geo 3", "Geo 1" ),
+                                    v5 = c( "Y", "N", "" )),
+                 var2 = c( "v2", "v3" ),
+                 add.summary.row = TRUE,
+                 add.summary.col = TRUE,
+                 summary.col.name = "All Col",
+                 summary.col.pos = 0,
+                 summary.row.name = "Summary",
+                 rate.supp = 5,
+                 count.supp = 5,
+                 nm.var1 = "new name",
+                 percentages.rel = "var1",
+                 row.variable.labels = list( v5 = "var5",
+                                             v1 = "geovar" ),
+                 col.variable.labels = list( v2 = "var2",
+                                             v3 = "var3" ) )
+  
+  d.1 <- summary_table( d = d.example,
+                        metric = c( "count", "percent" ),
+                        var1 = c( "v1", "v5" ),
+                        order.rows = list( v1 = c( "Summary", "Geo 2", "Geo 3", "Geo 1" ),
+                                           v5 = c( "Y", "N", "" )),
+                        var2 = c( "v2", "v3" ),
+                        add.summary.row = TRUE,
+                        add.summary.col = TRUE,
+                        summary.col.name = "All Col",
+                        summary.col.pos = 1,
+                        summary.row.name = "Summary",
+                        rate.supp = 5,
+                        count.supp = 5,
+                        nm.var1 = "new name",
+                        percentages.rel = "var1",
+                        row.variable.labels = list( v5 = "var5",
+                                                    v1 = "geovar" ),
+                        col.variable.labels = list( v2 = "var2",
+                                                    v3 = "var3" ) )
+  
+  d.front <- summary_table( d = d.example,
+                        metric = c( "count", "percent" ),
+                        var1 = c( "v1", "v5" ),
+                        order.rows = list( v1 = c( "Summary", "Geo 2", "Geo 3", "Geo 1" ),
+                                           v5 = c( "Y", "N", "" )),
+                        var2 = c( "v2", "v3" ),
+                        add.summary.row = TRUE,
+                        add.summary.col = TRUE,
+                        summary.col.name = "All Col",
+                        summary.col.pos = "front",
+                        summary.row.name = "Summary",
+                        rate.supp = 5,
+                        count.supp = 5,
+                        nm.var1 = "new name",
+                        percentages.rel = "var1",
+                        row.variable.labels = list( v5 = "var5",
+                                                    v1 = "geovar" ),
+                        col.variable.labels = list( v2 = "var2",
+                                                    v3 = "var3" ) )
+  
+  
+  expect_true( all.equal( d.1, d.front ) )
+  
+  expect_true( all.equal( d.0, d.front ) )
+  
+})
+  
