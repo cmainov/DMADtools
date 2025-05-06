@@ -297,14 +297,16 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
       stop( "`var1` variable not detected in dataset." )
     }
     
-    if( !is.null( order.rows ) ){
-      if( inherits( order.rows, "list" ) ){ 
-        warning( "Length of `var1` is 1 and `order.rows` is a list but should be a vector with strings corresponding to the order of rows desired for `var1.` Ignoring `order.rows`.")
-        
-        order.rows <- NULL # coerce `order.rows` in this condition, otherwise throws error (in example "no errors with proper usage of `row.variable.labels`" in the test-summary_table.R script)
+    if( length( var2 ) == 1 ){
+      if( !is.null( order.rows ) ){
+        if( inherits( order.rows, "list" ) ){ 
+          warning( "Length of `var1` is 1 and `order.rows` is a list but should be a vector with strings corresponding to the order of rows desired for `var1.` Ignoring `order.rows`.")
+          
+          order.rows <- NULL # coerce `order.rows` in this condition, otherwise throws error (in example "no errors with proper usage of `row.variable.labels`" in the test-summary_table.R script)
+        }
       }
+      
     }
-    
   }
   
   if( !is.null( summary.row.name ) ){
@@ -459,7 +461,13 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
       row.var <- as.character( this.combo[ i, "row" ] )
       col.var <- as.character( this.combo[ i, "col" ] )
       
-      arrange.rows <- if( !is.null( order.rows[[ row.var ]] ) ) order.rows[[ row.var ]] else c( sum.row.nm, levels( as.factor( d[[ row.var ]] ) ) )
+      if( inherits( order.rows, "list" ) ){
+        arrange.rows <- order.rows[[ row.var ]]
+      } else if( inherits( order.rows, "character" ) ){
+        arrange.rows <- order.rows 
+      } else if( is.null( order.rows ) ){
+        arrange.rows <- c( sum.row.nm, levels( as.factor( d[[ row.var ]] )))
+      }
       
       arrange.cols <- if( !is.null( order.cols[[ col.var ]] ) ) unique( c( sum.col.nm, order.cols[[ col.var ]] )) else c( sum.col.nm, levels( as.factor( d[[ col.var ]] ) ) )
       
@@ -497,6 +505,15 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     
     same.col.vars <- sapply( var2, function( x ) which( col.ids == x ) ) 
     
+    # `same.col.vars` will not be in required matrix form in some cases, this converts vector form back to matrix form
+    if( inherits( same.col.vars, "integer" ) ){
+      
+      same.col.vars <- matrix( same.col.vars, ncol = length( same.col.vars ) )
+      
+      colnames( same.col.vars ) <- var2
+      
+    }
+    
     # get unique `sp.h` and `col.w` and `new.nms`
     sp.h.list <- lapply( as.vector( same.col.vars[1,] ), # first row only since we keep only 1 copy of each column
                          function( i ) d.out[[ i ]]$sp.h ) # spanning header labels
@@ -505,10 +522,20 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
                           function( i ) d.out[[ i ]]$col.w ) # spanning header widths
     
     new.nms.list <- lapply( as.vector( same.col.vars[1,] ), # first row only since we keep only 1 copy of each column
-                            function( i ) d.out[[ i ]]$new.nms ) # header labels
+                            function( i ){
+                              
+                              this.out <- d.out[[ i ]]$new.nms 
+                              
+                              rmv.this.var1 <- which( var1 %in% names( this.out ) )
+                              
+                              names( this.out )[ names( this.out ) == var1[ rmv.this.var1 ] ] <- "var1" # this is a bug fix
+                              
+                              return( this.out )
+                              
+                              }) # header labels
     
     col.vars.list <- lapply( as.vector( same.col.vars[1,] ), # first row only since we keep only 1 copy of each column
-                            function( i ) d.out[[ i ]]$col.var ) # this will be used for the spanning header of the multiple variables
+                             function( i ) d.out[[ i ]]$col.var ) # this will be used for the spanning header of the multiple variables
     
     # spanning headers for all variables (second layer for a spanning header)
     if( all( col.variable.labels !=  "none" ) ){
@@ -550,7 +577,8 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
       
       these.col.w.rem <- which( sp.h.list[[ remove.all.these ]] %in% c( "", sum.col.nm ) )
       
-      these.new.nms.rem <- which( str_detect( names( new.nms.list[[ remove.all.these ]] ), paste0( "v1", "|", sum.col.nm ) ) )
+      these.new.nms.rem <- which( str_detect( names( new.nms.list[[ remove.all.these ]] ), paste0( "var1", "|", 
+                                                                                                   sum.col.nm ) ) )
       
       # now remove
       sp.h.list[[ remove.all.these ]] <- sp.h.list[[ remove.all.these ]] %>%
@@ -601,7 +629,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     
     # join the datasets with same rows and then rowbind everything
     d.out2 <- suppressMessages( # suppress messages because of the join message that is generated
-      if( ncol( same.row.vars ) > 1 ){
+      if( ncol( same.row.vars ) > 1 | ( length( var1 ) == 1 & length( var2 ) > 1 ) ){
         
         lapply( 1:ncol( same.row.vars ), function( i ){
           
@@ -610,7 +638,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
           
         } ) %>% 
           do.call( "bind_rows", . )
-      } else{
+      } else if ( length( var1 ) > 1 & length( var2 ) == 1 ) {
         frames.list  %>% 
           do.call( "bind_rows", . )
       } 
@@ -676,7 +704,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
           .[ .!= sum.col.nm ] %>% 
           c( ., sum.col.nm  )
         
-          
+        
         if( all( col.variable.labels !=  "none" ) ){
           # reorder the `sp.h.all.2` vector (second layer for variable names) for the spanning labels based on the desired repositioning
           
@@ -702,12 +730,12 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
         }
         
       } else if( inherits( summary.col.pos, "numeric" ) | inherits( summary.col.pos, "integer" ) ){
-  
+        
         
         if( summary.col.pos >= 0 ){
           if( summary.col.pos > length( sp.h.all %>% .[ .!= "" ] ) ) stop( paste0( "`summary.col.pos` cannot be > than ",
                                                                                    length( sp.h.all %>% .[ .!= "" ] ),
-                                                                                 " which is the total number of levels for all variables listed in `var2`." ) )
+                                                                                   " which is the total number of levels for all variables listed in `var2`." ) )
           
           if( summary.col.pos <= length( sp.h.all %>% .[ .!= "" ] ) ){
             
@@ -716,11 +744,11 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
               this.bump <- sp.h.all %>% .[ .!= "" ] %>% .[ summary.col.pos ] # the affected position
               
               this.new.pos <- max( which( str_detect( names( d.out3 ) , # take the first column where the level appears
-                                                 paste0( "^",
-                                                         this.bump, "\\," ) ) ) )
+                                                      paste0( "^",
+                                                              this.bump, "\\," ) ) ) )
               suppressWarnings( #`this.new.pos` in the `.after` argument creates a warning message that can be ignored for now
-              d.out3 %>%
-                relocate( contains( sum.col.nm ), .after = this.new.pos )
+                d.out3 %>%
+                  relocate( contains( sum.col.nm ), .after = this.new.pos )
               )
             }
             
@@ -821,9 +849,9 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
         { if( !is.null( table.title ) ) add_header_lines( ., values = table.title ) %>% # title line
             align( part = "header", i = 1, align = "left" ) else . } %>% #left-align title
         { if( all( col.variable.labels !=  "none" ) ){
-            vline( ., j = pos.vec.2.all, 
-                   part = "header",
-                   border = fp_border_default( width = 0.1 ) ) # add vertical line borders after each spanning header group for second layer (variable names spanning header)
+          vline( ., j = pos.vec.2.all, 
+                 part = "header",
+                 border = fp_border_default( width = 0.1 ) ) # add vertical line borders after each spanning header group for second layer (variable names spanning header)
         } else . } %>% 
         vline( j = pos.vec.all, 
                part = "body",

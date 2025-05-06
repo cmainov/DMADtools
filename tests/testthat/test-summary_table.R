@@ -1285,4 +1285,79 @@ test_that( "spanning header suppression when ", {
   expect_true( all.equal( d.0, d.front ) )
   
 })
+
+
+test_that( "test that var1 length 1 and var2 length > 1 produces desired result", {
   
+
+  short.var1 <- summary_table( d = d.example,
+                          metric = c( "count", "percent" ),
+                          var1 = c( "v1"),
+                          order.rows = c("Summary", "Geo 2", "Geo 3", "Geo 1" ),
+                          var2 = c( "v2", "v3" ),
+                          add.summary.row = TRUE,
+                          add.summary.col = TRUE,
+                          summary.col.name = "All Col",
+                          summary.col.pos = "front",
+                          summary.row.name = "Summary",
+                          rate.supp = 5,
+                          count.supp = 5,
+                          nm.var1 = "new name",
+                          percentages.rel = "var1",
+                          row.variable.labels = list( v1 = "geovar" ),
+                          col.variable.labels = list( v2 = "var2",
+                                                      v3 = "var3" ) )
+  
+  
+  expect_true( nrow( short.var1$frame ) == 4 )
+  
+  expect_true( short.var1$frame$var1[ 3 ] == "Geo 3" )
+  
+  expect_true( short.var1$frame$var1[ 3 ] == "Geo 3" )
+  
+ expect_true( short.var1$frame %>%
+    filter( var1 == "Geo 2" ) %>% 
+    pull( `Char 2,count`) == table( d.example$v1, d.example$v2 )[ "Geo 2", "Char 2" ] )
+ 
+ expect_true( short.var1$frame[4, 14 ]  == table( d.example$v1, d.example$v3 )[ "Geo 1", "Other Char 3" ] )
+ 
+})    
+                  
+# next do example where v1 only has 1 level  
+
+# test_that( "test that var1 length 1 and var2 length > 1 produces desired result when var1 only has 1 level", {
+#   
+#   
+#   short.var1 <- summary_table( d = d.example %>%
+#                                  filter( v3 == "Other Char 1" ),
+#                                metric = c( "count", "percent" ),
+#                                var1 = c( "v1"),
+#                                order.rows = c("Summary", "Geo 2", "Geo 3", "Geo 1" ),
+#                                var2 = c( "v2", "v3" ),
+#                                add.summary.row = FALSE,
+#                                add.summary.col = TRUE,
+#                                summary.col.name = "All Col",
+#                                summary.col.pos = "front",
+#                                summary.row.name = "Summary",
+#                                rate.supp = 5,
+#                                count.supp = 5,
+#                                nm.var1 = "new name",
+#                                percentages.rel = "var1",
+#                                row.variable.labels = list( v1 = "geovar" ),
+#                                col.variable.labels = list( v2 = "var2",
+#                                                            v3 = "var3" ) )
+#   
+#   
+#   expect_true( nrow( short.var1$frame ) == 4 )
+#   
+#   expect_true( short.var1$frame$var1[ 3 ] == "Geo 3" )
+#   
+#   expect_true( short.var1$frame$var1[ 3 ] == "Geo 3" )
+#   
+#   expect_true( short.var1$frame %>%
+#                  filter( var1 == "Geo 2" ) %>% 
+#                  pull( `Char 2,count`) == table( d.example$v1, d.example$v2 )[ "Geo 2", "Char 2" ] )
+#   
+#   expect_true( short.var1$frame[4, 14 ]  == table( d.example$v1, d.example$v3 )[ "Geo 1", "Other Char 3" ] )
+#   
+# })    
