@@ -14,5 +14,5 @@ Suggests:
 Config/testthat/edition: 3
 Depends: 
     R (>= 2.10)
-Imports: dplyr, eRTG3D, magrittr, stringr, flextable, officer, tidyr, tibble, rlang
+Imports: dplyr, eRTG3D, magrittr, stringr, flextable, officer, tidyr, tibble, rlang, purrr
 LazyData: true

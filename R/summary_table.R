@@ -17,6 +17,7 @@
 #' @import tibble
 #' @import officer
 #' @import rlang
+#' @importFrom purrr "reduce"
 #' @importFrom magrittr "%>%"
 #'
 #' @usage summary_table( d, var1, var2 = NULL, table.grouping = NULL, pop.var = NULL,
@@ -361,6 +362,22 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     stop( "At least one of `var1` or `var2` must be specified in the function call." )
   }
   
+  if( !is.null( var1 ) ){
+    
+    empt <- sapply( var1, function(x) "" %in% levels( as.factor( d[[ x ]] ) ) )
+    if( any( empt ) ) stop( 'The empty string (i.e., "") was detected in ',
+                            names( which( empt ) ),
+                            ". Please ensure no variables in `var1` have a level as the empty string." )
+  }
+  
+  if( !is.null( var2 ) ){
+    
+    empt <- sapply( var2, function(x) "" %in% levels( as.factor( d[[ x ]] ) ) )
+    if( any( empt ) ) stop( 'The empty string (i.e., "") was detected in ',
+                            names( which( empt ) ),
+                            ". Please ensure no variables in `var2` have a level as the empty string." )
+  }
+  
   if( length( table.grouping ) > 1 & !is.null( table.grouping ) ){
     stop( "There can only be one variable, maximum, specified in `table.grouping` for grouping the table." )
   }
@@ -446,7 +463,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     call_env <- summary_table_1( d, var1 = var1[1], var2 = var2[1], table.grouping = table.grouping, 
                                  pop.var = pop.var, add.summary.row = add.summary.row, summary.row.name = summary.row.name, 
                                  add.summary.col = add.summary.col, digs.perc = digs.perc, digs.rate = digs.rate, summary.col.name = summary.col.name, 
-                                 order.rows = NULL, order.cols = NULL, order.groups = order.groups, foot.lines = foot.lines, 
+                                 order.rows = NULL, order.cols = NULL, order.groups = NULL, foot.lines = foot.lines, 
                                  table.title = table.title, metric = metric, nm.var1 = nm.var1, 
                                  count.supp = count.supp, remove.cols = remove.cols, rate.supp = rate.supp, 
                                  count.supp.symbol = count.supp.symbol, rate.supp.symbol = rate.supp.symbol, per = per, 
@@ -516,23 +533,35 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     
     # get unique `sp.h` and `col.w` and `new.nms`
     sp.h.list <- lapply( as.vector( same.col.vars[1,] ), # first row only since we keep only 1 copy of each column
-                         function( i ) d.out[[ i ]]$sp.h ) # spanning header labels
+                         function( i ){
+                           
+                           names( d.out[[ i ]]$frame ) %>% 
+                             .[ !str_detect( ., "row_var_name" ) ] %>% 
+                             str_remove_all( ., "\\,|count|percent|rate" ) %>% 
+                             unique() %>% 
+                             str_replace( ., "var1", "" ) } ) 
     
-    col.w.list <- lapply( as.vector( same.col.vars[1,] ), # first row only since we keep only 1 copy of each column
-                          function( i ) d.out[[ i ]]$col.w ) # spanning header widths
+    col.w.list <- lapply( seq_along( sp.h.list ), # first row only since we keep only 1 copy of each column
+                          function( i ){
+                            
+                            vapply( sp.h.list[[i]], FUN = function(x){
+                              if( x == "" ) 1 else length( metric )
+                            }, FUN.VALUE = c( 0 ) ) } ) # spanning header widths
     
     new.nms.list <- lapply( as.vector( same.col.vars[1,] ), # first row only since we keep only 1 copy of each column
                             function( i ){
                               
-                              this.out <- d.out[[ i ]]$new.nms 
+                              this.out <- names( d.out[[ i ]]$frame ) %>% 
+                                .[ !str_detect( ., "row_var_name" ) ] %>% 
+                                str_replace( ., "var1", "" ) %>%
+                                ifelse( stringr::str_detect( ., "count" ), "No.", . ) %>%
+                                ifelse( stringr::str_detect( ., "percent" ), "%", . ) %>%
+                                ifelse( stringr::str_detect( ., "rate" ), "Rate", . )
                               
-                              rmv.this.var1 <- which( var1 %in% names( this.out ) )
+                              names( this.out) <- names( d.out[[ i ]]$frame ) %>% 
+                                .[ !str_detect( ., "row_var_name" ) ] 
                               
-                              names( this.out )[ names( this.out ) == var1[ rmv.this.var1 ] ] <- "var1" # this is a bug fix
-                              
-                              return( this.out )
-                              
-                              }) # header labels
+                              return( this.out ) } ) # header labels
     
     col.vars.list <- lapply( as.vector( same.col.vars[1,] ), # first row only since we keep only 1 copy of each column
                              function( i ) d.out[[ i ]]$col.var ) # this will be used for the spanning header of the multiple variables
@@ -575,20 +604,25 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
       # remove unnecesary "All" column from all other sets of columns besides first variable in `var2`
       remove.all.these <- var2[-1]
       
-      these.col.w.rem <- which( sp.h.list[[ remove.all.these ]] %in% c( "", sum.col.nm ) )
+      # loop on all remove.all.these 
+      for( k in seq_along( remove.all.these ) ){
+        
+      these.col.w.rem <- which( sp.h.list[[ remove.all.these[k] ]] %in% c( "", sum.col.nm ) )
       
-      these.new.nms.rem <- which( str_detect( names( new.nms.list[[ remove.all.these ]] ), paste0( "var1", "|", 
+      these.new.nms.rem <- which( str_detect( names( new.nms.list[[ remove.all.these[k] ]] ), paste0( "var1", "|", 
                                                                                                    sum.col.nm ) ) )
       
       # now remove
-      sp.h.list[[ remove.all.these ]] <- sp.h.list[[ remove.all.these ]] %>%
+      sp.h.list[[ remove.all.these[k] ]] <- sp.h.list[[ remove.all.these[k] ]] %>%
         .[ !. %in% c( "", sum.col.nm ) ]
       
-      col.w.list[[ remove.all.these ]] <- col.w.list[[ remove.all.these ]] %>%
+      col.w.list[[ remove.all.these[k] ]] <- col.w.list[[ remove.all.these[k] ]] %>%
         .[ -these.col.w.rem ]
       
-      new.nms.list[[ remove.all.these ]] <- new.nms.list[[ remove.all.these ]] %>%
+      new.nms.list[[ remove.all.these[k] ]] <- new.nms.list[[ remove.all.these[k] ]] %>%
         .[ -these.new.nms.rem ]
+      
+      }
       
     }
     
@@ -631,10 +665,14 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     d.out2 <- suppressMessages( # suppress messages because of the join message that is generated
       if( ncol( same.row.vars ) > 1 | ( length( var1 ) == 1 & length( var2 ) > 1 ) ){
         
+        # address bug where `left_join` doesn't work if levels of at least two variables in `var2` are the same (bc of same column names)
         lapply( 1:ncol( same.row.vars ), function( i ){
           
           frames.list[ same.row.vars[,i] ] %>% 
-            do.call( "left_join", . )
+            purrr::reduce(., left_join, by = c( "row_var_name", # join based on common columns
+                                         "var1",
+                                         { if( add.summary.col ){ # if summary column is called, then it is a common column
+                                           paste0( sum.col.nm, ",", metric ) } else NULL }  ) ) 
           
         } ) %>% 
           do.call( "bind_rows", . )

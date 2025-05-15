@@ -745,6 +745,7 @@ test_that( "throw error when `row.variable.labels` is not a list or vector of st
 
 test_that( "no errors with proper usage of `row.variable.labels`", {
   
+  suppressWarnings( 
   expect_warning( summary_table( d = d.example,
                                  metric = c( "count", "percent" ),
                                  var1 = c( "v1" ),
@@ -759,6 +760,7 @@ test_that( "no errors with proper usage of `row.variable.labels`", {
                                  row.variable.labels = list( v1 = "variable 1",
                                                              v3 = "variable 3"),
                                  pop.var = "v_pop" ) )
+  )
   
   expect_no_error( summary_table( d = d.example,
                                   metric = c( "count", "percent" ),
@@ -1002,7 +1004,7 @@ test_that( "checks on order of spanning headers when multiple variables are spec
 expect_true( all( str_detect( head( names( run.mult.cols.v2$frame[-1] ), 2 ), "All Col" ) ) )
 
 ## run again and specify integers
-run.mult.cols.v3 <- summary_table( d = d.example,
+run.mult.cols.v3 <- suppressWarnings( summary_table( d = d.example,
                                    metric = c( "count", "percent" ),
                                    var1 = c( "v1", "v5" ),
                                    order.rows = list( v1 = c( "Summary", "Geo 2", "Geo 3", "Geo 1" ),
@@ -1018,7 +1020,7 @@ run.mult.cols.v3 <- summary_table( d = d.example,
                                    nm.var1 = "new name",
                                    percentages.rel = "var1",
                                    row.variable.labels = list( v5 = "var5",
-                                                               v1 = "geovar" ))
+                                                               v1 = "geovar" )) )
 
 
 expect_true( all( str_detect( names( run.mult.cols.v3$frame )[c(6,7)], "All Col" ) ) )
@@ -1323,6 +1325,148 @@ test_that( "test that var1 length 1 and var2 length > 1 produces desired result"
  
 })    
                   
+
+test_that( "checks on more than 2 vars in `var2`", {
+  
+expect_no_error( suppressWarnings( summary_table( d = d.example,
+               metric = c( "count", "percent" ),
+               var1 = c("v1", "v2" ),
+               var2 = c("v4", "v5", "v3"),
+               nm.var1 = "Assissted Reproductive Technology",
+               col.variable.labels = list(v4 = "SMM Excluding Blood Transfusions", 
+                                          
+                                          v5 = "SMM Including Blood Transfusions"), 
+               percentages.rel = "var1",
+               
+               summary.row.name = "Total",
+               summary.col.name = "Total",
+               NAs.footnote = TRUE )$flextable ) ) 
+  
+})
+
+
+test_that( "checks on more than 2 vars in `var2` and `order.cols`", {
+  
+d.out <- suppressWarnings( summary_table( d = d.example,
+                        metric = c( "count", "percent" ),
+                        var1 = c("v1", "v2" ),
+                        var2 = c("v4", "v5", "v3"),
+                        nm.var1 = "Assissted Reproductive Technology",
+                        col.variable.labels = list(v4 = "SMM Excluding Blood Transfusions", 
+                                                   
+                                                   v5 = "SMM Including Blood Transfusions"), 
+                        order.cols = list( v4 = "Y"),
+                        percentages.rel = "var1",
+                        
+                        summary.row.name = "Total",
+                        summary.col.name = "Total",
+                        NAs.footnote = TRUE ) )
+
+# check that "N" level of `v4` is not in table
+expect_true( all( d.out$flextable$header$col_keys[4:9] == c( "Y,count.x", 
+                                                             "Y,percent.x", 
+                                                             "N,count", 
+                                                             "N,percent", 
+                                                             "Y,count.y", 
+                                                             "Y,percent.y" ) ) )
+
+# check top level spanning headers
+expect_true( all( d.out$flextable$header$dataset[ 1, ] == c( "", "", "", "SMM Excluding Blood Transfusions", 
+                                           "SMM Excluding Blood Transfusions", 
+                                           "SMM Including Blood Transfusions", 
+                                           "SMM Including Blood Transfusions", 
+                                           "SMM Including Blood Transfusions", 
+                                           "SMM Including Blood Transfusions", 
+                                           "v3", "v3", "v3", "v3", "v3", "v3" ) ) )
+
+
+# reshuffle order of 'v3' and keep "n' level of `v4` out
+# and take "n" out of level 5
+d.out2 <- suppressWarnings( summary_table( d = d.example,
+                         metric = c( "count", "percent" ),
+                         var1 = c("v1", "v2" ),
+                         var2 = c("v4", "v5", "v3"),
+                         nm.var1 = "variable 1",
+                         col.variable.labels = list(v4 = "variable 4", 
+                                                    
+                                                    v5 = "variable 5"), 
+                         order.cols = list( v4 = "Y",
+                                            v5 = "Y",
+                                            v3 = c( "Other Char 2",
+                                                    "Other Char 1",
+                                                    "Other Char 3")),
+                         percentages.rel = "var1",
+                         
+                         summary.row.name = "Total",
+                         summary.col.name = "Total",
+                         NAs.footnote = TRUE ) )
+
+
+paste0( d.out2$flextable$header$dataset[ 1, ], collapse = '", "')
+
+# check top level spanning header
+expect_true( all( d.out2$flextable$header$dataset[ 1, ] == c( "", "", "", "variable 4", "variable 4", 
+                                                              "variable 5", "variable 5", "v3", "v3", 
+                                                              "v3", "v3", "v3", "v3") ) )
+
+# check second level spanning header
+expect_true( all( d.out2$flextable$header$dataset[ 2, ] == c( "", "Total", "Total", "Y", "Y", 
+                                                              "Y", "Y", "Other Char 2", 
+                                                              "Other Char 2", "Other Char 1", 
+                                                              "Other Char 1", "Other Char 3", 
+                                                              "Other Char 3" ) ) )
+
+
+})
+
+
+test_that( "empty string tests that should throw error", {
+  
+## error for empty string in one variable in var2
+expect_error( summary_table( d = d.example %>% 
+                               mutate( v3 = ifelse( v3 == "Other Char 2", "",
+                                                    v3)),
+                             metric = c( "count", "percent" ),
+                             var1 = c("v1", "v2" ),
+                             var2 = c("v4", "v5", "v3"),
+                             nm.var1 = "variable 1",
+                             col.variable.labels = list(v4 = "variable 4", 
+                                                        
+                                                        v5 = "variable 5"), 
+                             order.cols = list( v4 = "Y",
+                                                v5 = "Y",
+                                                v3 = c( "Other Char 2",
+                                                        "Other Char 1",
+                                                        "Other Char 3")),
+                             percentages.rel = "var1",
+                             
+                             summary.row.name = "Total",
+                             summary.col.name = "Total",
+                             NAs.footnote = TRUE ) )
+
+## error for empty string in one variable in var1
+expect_error( summary_table( d = d.example %>% 
+                               mutate( v1 = ifelse( v1 == "Geo 1", "",
+                                                    v1)),
+                             metric = c( "count", "percent" ),
+                             var1 = c("v1", "v2" ),
+                             var2 = c("v4", "v5", "v3"),
+                             nm.var1 = "variable 1",
+                             col.variable.labels = list(v4 = "variable 4", 
+                                                        
+                                                        v5 = "variable 5"), 
+                             order.cols = list( v4 = "Y",
+                                                v5 = "Y",
+                                                v3 = c( "Other Char 2",
+                                                        "Other Char 1",
+                                                        "Other Char 3")),
+                             percentages.rel = "var1",
+                             
+                             summary.row.name = "Total",
+                             summary.col.name = "Total",
+                             NAs.footnote = TRUE ) )
+})
+
 # next do example where v1 only has 1 level  
 
 # test_that( "test that var1 length 1 and var2 length > 1 produces desired result when var1 only has 1 level", {
