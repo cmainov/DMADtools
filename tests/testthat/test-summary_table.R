@@ -1332,10 +1332,10 @@ expect_no_error( suppressWarnings( summary_table( d = d.example,
                metric = c( "count", "percent" ),
                var1 = c("v1", "v2" ),
                var2 = c("v4", "v5", "v3"),
-               nm.var1 = "Assissted Reproductive Technology",
-               col.variable.labels = list(v4 = "SMM Excluding Blood Transfusions", 
+               nm.var1 = "characteristic",
+               col.variable.labels = list(v4 = "variable 4", 
                                           
-                                          v5 = "SMM Including Blood Transfusions"), 
+                                          v5 = "variable 5"), 
                percentages.rel = "var1",
                
                summary.row.name = "Total",
@@ -1351,10 +1351,10 @@ d.out <- suppressWarnings( summary_table( d = d.example,
                         metric = c( "count", "percent" ),
                         var1 = c("v1", "v2" ),
                         var2 = c("v4", "v5", "v3"),
-                        nm.var1 = "Assissted Reproductive Technology",
-                        col.variable.labels = list(v4 = "SMM Excluding Blood Transfusions", 
+                        nm.var1 = "characteristic",
+                        col.variable.labels = list(v4 = "variable 4", 
                                                    
-                                                   v5 = "SMM Including Blood Transfusions"), 
+                                                   v5 = "variable 5"), 
                         order.cols = list( v4 = "Y"),
                         percentages.rel = "var1",
                         
@@ -1371,12 +1371,12 @@ expect_true( all( d.out$flextable$header$col_keys[4:9] == c( "Y,count.x",
                                                              "Y,percent.y" ) ) )
 
 # check top level spanning headers
-expect_true( all( d.out$flextable$header$dataset[ 1, ] == c( "", "", "", "SMM Excluding Blood Transfusions", 
-                                           "SMM Excluding Blood Transfusions", 
-                                           "SMM Including Blood Transfusions", 
-                                           "SMM Including Blood Transfusions", 
-                                           "SMM Including Blood Transfusions", 
-                                           "SMM Including Blood Transfusions", 
+expect_true( all( d.out$flextable$header$dataset[ 1, ] == c( "", "", "", "variable 4", 
+                                           "variable 4", 
+                                           "variable 5", 
+                                           "variable 5", 
+                                           "variable 5", 
+                                           "variable 5", 
                                            "v3", "v3", "v3", "v3", "v3", "v3" ) ) )
 
 
