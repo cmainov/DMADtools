@@ -149,6 +149,39 @@ colorDist <- function( hex.1, hex.2 ){
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
+## Function For Determining Percentage and Euclidian Distance ##
+##            Between Two Colors (Hex codes)                  ##
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+colorDist <- function( hex.1, hex.2 ){
+  
+  # hex.1 = A string. Hexadecimal code for the first color.
+  # hex.2 = A string. Hexadecimal code for the second color.
+  
+  # Credit/Source: https://stackoverflow.com/a/9018153
+  
+  col.1 <- setNames( as.vector( grDevices::col2rgb( hex.1 ) ),
+                     str_extract( rownames( grDevices::col2rgb( hex.1 ) ), "^\\w" ) )
+  
+  col.2 <- setNames( as.vector( grDevices::col2rgb( hex.2 ) ),
+                     str_extract( rownames( grDevices::col2rgb( hex.2 ) ), "^\\w" ) )
+  
+  
+  # Euclidian distance
+  eq.d <- sqrt( ( col.2["r"] - col.1["r"] )^2 + ( col.2["g"] - col.1["g"] )^2 + ( col.2["b"]  - col.1["b"] )^2 )
+  
+  # percentage difference
+  p.d <- eq.d / sqrt( (255)^2 + (255)^2 + (255)^2 )
+  
+  return( data.frame( eq.d = unname( eq.d ),
+                      p.d = unname( p.d ) ) )
+}
+
+# example:
+# if( colorDist( "black", "#7a1315")$p.d < 30 ) "grey" else "black"
+
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 ## Deparsing Function Arguments ##
 deparse_arg <- function(x) parse_expr(x) %>% as.character()

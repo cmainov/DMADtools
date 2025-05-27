@@ -14,7 +14,7 @@ library( sf )
 # 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------
 
-source( "data-raw/utils.R" )
+source( "data-R/utils.R" )
 
 ##-------------------------------------##
 ## (1.0.0) Function: `summary_table`   ##
@@ -156,7 +156,7 @@ if( !file.exists( "./R/sysdata.rda" ) ){
   dir.create( "./data/data-public" )
   
   # this query is by county FIPS code and so we loop with `Map`
-  linear.water.dc.md.va <- Map( function( yr, fips ){
+  linear.water.download <- Map( function( yr, fips ){
     
     # download file into repository
     file.nm.zip <- paste0( "tl_", yr, "_", fips, "_linearwater.zip" )
@@ -187,7 +187,9 @@ if( !file.exists( "./R/sysdata.rda" ) ){
       mutate( GEOID = fips )
     
   }, yr = yr, fips = fips.to.use
-  ) %>%
+  ) 
+  
+  linear.water.dc.md.va <- linear.water.download %>% 
     do.call( "rbind", . ) %>% 
     mutate( LABEL_WATER = ifelse( GEOID == "11001" & str_detect( FULLNAME, "Potomac R" ),
                                   "Potomac River",
@@ -196,7 +198,7 @@ if( !file.exists( "./R/sysdata.rda" ) ){
     st_as_sf() %>% 
     st_transform( crs = crs.projec )
   
-
+  
   
   # ---------------------------------------------------------------------------------------------------------------------------------------------------------
   
@@ -205,7 +207,7 @@ if( !file.exists( "./R/sysdata.rda" ) ){
   # ---------------------------------------------------------------------------------------------------------------------------------------------------------
   
   # this query is by county FIPS code and so we loop with `Map`
-  area.water.dc.md.va <- Map( function( yr, fips ){
+  area.water.download <- Map( function( yr, fips ){
     
     # download file into repository
     file.nm.zip <- paste0( "tl_", yr, "_", fips, "_areawater.zip" )
@@ -236,14 +238,33 @@ if( !file.exists( "./R/sysdata.rda" ) ){
       mutate( GEOID = fips )
     
   }, yr = yr, fips = fips.to.use
-  ) %>%
+  ) 
+  
+  area.water.dc.md.va <- area.water.download %>%
     do.call( "rbind", . ) %>% 
     mutate( LABEL_WATER = ifelse( GEOID == "11001" & str_detect( FULLNAME, "Potomac R" ),
                                   "Potomac River",
                                   ifelse( GEOID == "11001" & str_detect( FULLNAME, "Anacostia R" ),
                                           "Anacostia River", NA ) ) ) %>% 
     st_as_sf() %>% 
-    st_transform( crs = crs.projec )
+    st_transform( crs = crs.projec ) %>% 
+    # nudging
+    filter( MTFCC == "H3010" ) %>% # only rivers and creeks
+    mutate( label.water.txtsize = ifelse( LABEL_WATER == "Potomac River", 2.9,
+                                          ifelse( LABEL_WATER == "Anacostia River", 1.8, NA ) ),
+            label.water.txtcol= ifelse( LABEL_WATER == "Potomac River", "gray50",
+                                        ifelse( LABEL_WATER == "Anacostia River", "gray40", NA ) ),
+            label.water.nudge.y = ifelse( LABEL_WATER == "Potomac River", -0.03,
+                                          ifelse( LABEL_WATER == "Anacostia River", -0.0108, NA ) ),
+            label.water.nudge.x = ifelse( LABEL_WATER == "Potomac River", 0.0029,
+                                          ifelse( LABEL_WATER == "Anacostia River", -0.018, NA ) ),
+            label.water.angle = ifelse( LABEL_WATER == "Potomac River", 78,
+                                        ifelse( LABEL_WATER == "Anacostia River", 31.4, NA ) ) ) %>%
+    # remove some waterways from following counties to make map less messy
+    filter( !GEOID %in% c( "51013", # Arlington County, VA
+                           "51059", # Fairfax County, VA
+                           "51510" ) ) # Alexandria City
+  
   
   # ---------------------------------------------------------------------------------------------------------------------------------------------------------
   
@@ -327,7 +348,25 @@ if( !file.exists( "./R/sysdata.rda" ) ){
             LABEL_CTY = paste0( NAMELSAD, " (", STATE, ")" ) ) %>%
     mutate( LABEL_CTY = add_new_lines( dat = .$LABEL_CTY, n = 2 ) ) %>% 
     st_as_sf() %>% 
-    st_transform( crs = crs.projec )
+    st_transform( crs = crs.projec ) %>%
+    # nudging of labels
+    mutate( 
+      label.cty = paste0( NAMELSAD, " (", STATE, ")" ),
+      label.cty.nudge.y = ifelse( str_detect( NAMELSAD, "Arlington" ),
+                                  -0.015, 
+                                  ifelse( str_detect( NAMELSAD, "Montgomery" ),
+                                          -0.162, 
+                                          ifelse( str_detect( NAMELSAD, "Prince George" ),
+                                                  -0.01,
+                                                  0 ) ) ),
+      label.cty.nudge.x = ifelse( str_detect( NAMELSAD, "Montgomery" ),
+                                  0.147,
+                                  ifelse( str_detect( NAMELSAD, "Prince George" ),
+                                          -0.1, 
+                                          ifelse( str_detect( NAMELSAD, "Arlington" ),
+                                                  0.01,
+                                                  0 ) ) ) )%>%
+    mutate( label.cty = add_new_lines( dat = .$label.cty, n = 2 ) )
   
   # ---------------------------------------------------------------------------------------------------------------------------------------------------------
   
@@ -366,7 +405,28 @@ if( !file.exists( "./R/sysdata.rda" ) ){
   dc.ward22 <- sf::st_read( paste0( "./data/", "/data-public/dc-ward-shapefiles/",
                                     file.nm.shp ) ) %>% 
     st_as_sf() %>% 
-    st_transform( crs = crs.projec )
+    st_transform( crs = crs.projec ) %>% 
+    # nudging
+    mutate( ., labelward.nudge.y = ifelse( NAMELSAD == "Ward 1", -0.001,
+                                           ifelse( NAMELSAD == "Ward 2", 0.01,
+                                                   ifelse( NAMELSAD == "Ward 3", 0,
+                                                           ifelse( NAMELSAD == "Ward 4", 0,
+                                                                   ifelse( NAMELSAD == "Ward 5", 0,
+                                                                           ifelse( NAMELSAD == "Ward 6", 0.015, 
+                                                                                   ifelse( NAMELSAD == "Ward 7", 0, 
+                                                                                           ifelse( NAMELSAD == "Ward 8", 0.015, 
+                                                                                                   0 )))))))),
+            labelward.nudge.x = ifelse( NAMELSAD == "Ward 1", -0.001,
+                                        ifelse( NAMELSAD == "Ward 2", 0.005,
+                                                ifelse( NAMELSAD == "Ward 3", 0,
+                                                        ifelse( NAMELSAD == "Ward 4", 0.01,
+                                                                ifelse( NAMELSAD == "Ward 5", 0,
+                                                                        ifelse( NAMELSAD == "Ward 6", 0.02, 
+                                                                                ifelse( NAMELSAD == "Ward 7", 0.01, 
+                                                                                        ifelse( NAMELSAD == "Ward 8", 0.019, 
+                                                                                                0 )))))))),
+            labelward.segcolor = ifelse( mar_ward %in% c( paste0( "Ward ", 1:8 ) ), "transparent",
+                                         "navyblue" ) ) 
   
   # ---------------------------------------------------------------------------------------------------------------------------------------------------------
   
@@ -403,7 +463,28 @@ if( !file.exists( "./R/sysdata.rda" ) ){
   dc.ward12 <- sf::st_read( paste0( "./data/", "/data-public/dc-ward-shapefiles/",
                                     file.nm.shp ) ) %>% 
     st_as_sf() %>% 
-    st_transform( crs = crs.projec )
+    st_transform( crs = crs.projec ) %>% 
+    # nudging
+    mutate( ., labelward.nudge.y = ifelse( NAMELSAD == "Ward 1", -0.002,
+                                           ifelse( NAMELSAD == "Ward 2", 0.01,
+                                                   ifelse( NAMELSAD == "Ward 3", 0,
+                                                           ifelse( NAMELSAD == "Ward 4", 0,
+                                                                   ifelse( NAMELSAD == "Ward 5", 0,
+                                                                           ifelse( NAMELSAD == "Ward 6", 0.005, 
+                                                                                   ifelse( NAMELSAD == "Ward 7", 0, 
+                                                                                           ifelse( NAMELSAD == "Ward 8", 0.015, 
+                                                                                                   0 )))))))),
+            labelward.nudge.x = ifelse( NAMELSAD == "Ward 1", 0.001,
+                                        ifelse( NAMELSAD == "Ward 2", 0,
+                                                ifelse( NAMELSAD == "Ward 3", 0,
+                                                        ifelse( NAMELSAD == "Ward 4", 0.01,
+                                                                ifelse( NAMELSAD == "Ward 5", 0,
+                                                                        ifelse( NAMELSAD == "Ward 6", -0.005, 
+                                                                                ifelse( NAMELSAD == "Ward 7", 0, 
+                                                                                        ifelse( NAMELSAD == "Ward 8", 0.015, 
+                                                                                                0 )))))))),
+            labelward.segcolor = ifelse( NAMELSAD %in% c( paste0( "Ward ", 1:8 ) ), "transparent",
+                                         "navyblue" ) )
   
   # ---------------------------------------------------------------------------------------------------------------------------------------------------------
   
@@ -412,13 +493,13 @@ if( !file.exists( "./R/sysdata.rda" ) ){
   # ---------------------------------------------------------------------------------------------------------------------------------------------------------
   
   usethis::use_data( linear.water.dc.md.va, # liner water shapefiles
-        area.water.dc.md.va, # area water shapefile
-        dc.st, # dc boundary shapefile
-        dc.surr.counties, # surrounding counties shapefile
-        dc.ward12, # 2012 ward boundaries shapefile
-        dc.ward22, # 2022 ward boundaries shapefile
-        internal = TRUE,
-        overwrite = TRUE )
+                     area.water.dc.md.va, # area water shapefile
+                     dc.st, # dc boundary shapefile
+                     dc.surr.counties, # surrounding counties shapefile
+                     dc.ward12, # 2012 ward boundaries shapefile
+                     dc.ward22, # 2022 ward boundaries shapefile
+                     internal = TRUE,
+                     overwrite = TRUE )
   
   # remove folder with raw data since it won't be needed
   unlink( paste0( getwd(), "/data/data-public/" ), force = TRUE )
@@ -444,49 +525,49 @@ d.ward$age <- {
   
   vapply( d.ward$ward, FUN = function(x){
     
-  mn.ag <- switch( x, # assign mean ages for each ward
-          "Ward 1" = 48,
-          "Ward 2" = 42,
-          "Ward 3" = 43,
-          "Ward 4" = 40,
-          "Ward 5" = 41,
-          "Ward 6" = 38,
-          "Ward 7" = 34,
-          "Ward 8" = 32 )
-  
-  ag <- truncnorm::rtruncnorm( n = 1, a = 2, b = 120, mean = mn.ag, sd = 15 )
-  
-  return( ag)
-  
+    mn.ag <- switch( x, # assign mean ages for each ward
+                     "Ward 1" = 48,
+                     "Ward 2" = 42,
+                     "Ward 3" = 43,
+                     "Ward 4" = 40,
+                     "Ward 5" = 41,
+                     "Ward 6" = 38,
+                     "Ward 7" = 34,
+                     "Ward 8" = 32 )
+    
+    ag <- truncnorm::rtruncnorm( n = 1, a = 2, b = 120, mean = mn.ag, sd = 15 )
+    
+    return( ag)
+    
   }, FUN.VALUE = c(1), 
   USE.NAMES = FALSE ) 
   
 }
-  
+
 # add categorical variable
 d.ward$cat <- { 
   
   vapply( d.ward$ward, FUN = function(x){
+    
+    pr.ag <- switch( x, # assign mean ages for each ward
+                     "Ward 1" = c( 0.54, 0.32, 0.21 ),
+                     "Ward 2" = c( 0.21, 0.59, 0.18 ),
+                     "Ward 3" = c( 0.33, 0.32, 0.33 ),
+                     "Ward 4" = c( 0.65, 0.17, 0.17 ),
+                     "Ward 5" = c( 0.15, 0.27, 0.67 ),
+                     "Ward 6" = c( 0.85, 0.1, 0.05 ),
+                     "Ward 7" = c( 0.75, 0.2, 0.05 ),
+                     "Ward 8" = c( 0.75, 0.2, 0.05 ) )
+    
+    ag.cat <- sample( x = c( "Cat 1", "Cat 2", "Cat 3" ), size = 1,
+                      replace = TRUE,
+                      prob = pr.ag )
+    
+    return( ag.cat )
+    
+  }, FUN.VALUE = "Char", 
+  USE.NAMES = FALSE ) 
   
-  pr.ag <- switch( x, # assign mean ages for each ward
-                   "Ward 1" = c( 0.54, 0.32, 0.21 ),
-                   "Ward 2" = c( 0.21, 0.59, 0.18 ),
-                   "Ward 3" = c( 0.33, 0.32, 0.33 ),
-                   "Ward 4" = c( 0.65, 0.17, 0.17 ),
-                   "Ward 5" = c( 0.15, 0.27, 0.67 ),
-                   "Ward 6" = c( 0.85, 0.1, 0.05 ),
-                   "Ward 7" = c( 0.75, 0.2, 0.05 ),
-                   "Ward 8" = c( 0.75, 0.2, 0.05 ) )
-  
-  ag.cat <- sample( x = c( "Cat 1", "Cat 2", "Cat 3" ), size = 1,
-                replace = TRUE,
-                prob = pr.ag )
-  
-  return( ag.cat )
-  
-}, FUN.VALUE = "Char", 
-USE.NAMES = FALSE ) 
-
 }
 
 # add binary character variable
@@ -495,14 +576,14 @@ d.ward$bin <- {
   vapply( d.ward$ward, FUN = function(x){
     
     pr.bin <- switch( x, # assign mean ages for each ward
-                     "Ward 1" = c( 0.54, 0.46 ),
-                     "Ward 2" = c( 0.21, 0.78 ),
-                     "Ward 3" = c( 0.31, 0.69 ),
-                     "Ward 4" = c( 0.65, 0.35 ),
-                     "Ward 5" = c( 0.15, 0.85 ),
-                     "Ward 6" = c( 0.85, 0.15 ),
-                     "Ward 7" = c( 0.80, 0.2 ),
-                     "Ward 8" = c( 0.82, 0.18 ) )
+                      "Ward 1" = c( 0.54, 0.46 ),
+                      "Ward 2" = c( 0.21, 0.78 ),
+                      "Ward 3" = c( 0.31, 0.69 ),
+                      "Ward 4" = c( 0.65, 0.35 ),
+                      "Ward 5" = c( 0.15, 0.85 ),
+                      "Ward 6" = c( 0.85, 0.15 ),
+                      "Ward 7" = c( 0.80, 0.2 ),
+                      "Ward 8" = c( 0.82, 0.18 ) )
     
     ag.bin <- sample( x = c( "Binary 1", "Binary 2" ), size = 1,
                       replace = TRUE,
