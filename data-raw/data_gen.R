@@ -489,7 +489,7 @@ USE.NAMES = FALSE )
 
 }
 
-# add categorical variable
+# add binary character variable
 d.ward$bin <- { 
   
   vapply( d.ward$ward, FUN = function(x){
@@ -511,6 +511,32 @@ d.ward$bin <- {
     return( ag.bin )
     
   }, FUN.VALUE = "Char", 
+  USE.NAMES = FALSE ) 
+  
+}
+
+# add binary 1/0 variable
+d.ward$bin_other <- { 
+  
+  vapply( d.ward$ward, FUN = function(x){
+    
+    pr.bin <- switch( x, # assign mean ages for each ward
+                      "Ward 1" = c( 0.44, 0.56 ),
+                      "Ward 2" = c( 0.31, 0.68 ),
+                      "Ward 3" = c( 0.21, 0.79 ),
+                      "Ward 4" = c( 0.45, 0.55 ),
+                      "Ward 5" = c( 0.05, 0.95 ),
+                      "Ward 6" = c( 0.55, 0.45 ),
+                      "Ward 7" = c( 0.60, 0.4 ),
+                      "Ward 8" = c( 0.82, 0.18 ) )
+    
+    ag.bin <- sample( x = c( 1, 0 ), size = 1,
+                      replace = TRUE,
+                      prob = pr.bin )
+    
+    return( ag.bin )
+    
+  }, FUN.VALUE = c(1), 
   USE.NAMES = FALSE ) 
   
 }
@@ -547,6 +573,6 @@ d.ward %>%
 ## (2.9.0) Save example data for export ##
 # --------------------------------------------------------------------------------------------------------------------------------------------------------
 
-usethis::use_data( d.ward )
+usethis::use_data( d.ward, overwrite = TRUE )
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------

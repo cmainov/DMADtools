@@ -38,6 +38,7 @@
 #'   \item{age}{A numeric variable. The age of the observation.}
 #'   \item{cat}{A character variable. Three levels (Cat 1:3)}
 #'   \item{bin}{A character variable. Two levels ("Binary 1" "Binary 2")}
+#'   \item{bin_other}{An integer variable. Two levels (1, 0)}
 #'   \item{ward_pop}{An integer variable. The ward population count.}
 #' }
 #'
