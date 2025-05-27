@@ -5,6 +5,8 @@
 library( tidyverse )
 library( sf )
 
+## NOTE: use `usethis::use_data_raw()` to create the data-raw folder and write to .Rbuildignore
+
 # --------------------------------------------------------------------------------------------------------------------------------------------------------
 # 
 # In this script, we generate some fake example data for use in the examples
@@ -129,6 +131,7 @@ if( !file.exists( "./data/d.example.rda" ) ){
   # --------------------------------------------------------------------------------------------------------------------------------------------------------
   
 }
+
 
 ##-------------------------------------##
 ## (2.0.0) Function: `dc_mapr`         ##
@@ -408,17 +411,142 @@ if( !file.exists( "./R/sysdata.rda" ) ){
   ## (2.7.0) Save Shapefiles Data for Internal Use ##
   # ---------------------------------------------------------------------------------------------------------------------------------------------------------
   
-  save( linear.water.dc.md.va, # liner water shapefiles
+  usethis::use_data( linear.water.dc.md.va, # liner water shapefiles
         area.water.dc.md.va, # area water shapefile
         dc.st, # dc boundary shapefile
         dc.surr.counties, # surrounding counties shapefile
         dc.ward12, # 2012 ward boundaries shapefile
         dc.ward22, # 2022 ward boundaries shapefile
-        file = 'R/sysdata.rda',
-        compress = 'bzip2')
+        internal = TRUE,
+        overwrite = TRUE )
   
   # remove folder with raw data since it won't be needed
   unlink( paste0( getwd(), "/data/data-public/" ), force = TRUE )
   
   # ---------------------------------------------------------------------------------------------------------------------------------------------------------
 }
+
+
+## (2.8.0) Dataset for Examples and Tests ##
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# obs
+nd <- 500
+d.ward <- data.frame( id = 1:nd )
+
+# add ward variable (equal probability for each ward)
+d.ward$ward <- sample( paste0( "Ward ", 1:8 ), size = nd, replace = TRUE )
+
+table( d.ward$ward ) # check distribution
+
+# add continuous variable (simulate age)
+d.ward$age <- { 
+  
+  vapply( d.ward$ward, FUN = function(x){
+    
+  mn.ag <- switch( x, # assign mean ages for each ward
+          "Ward 1" = 48,
+          "Ward 2" = 42,
+          "Ward 3" = 43,
+          "Ward 4" = 40,
+          "Ward 5" = 41,
+          "Ward 6" = 38,
+          "Ward 7" = 34,
+          "Ward 8" = 32 )
+  
+  ag <- truncnorm::rtruncnorm( n = 1, a = 2, b = 120, mean = mn.ag, sd = 15 )
+  
+  return( ag)
+  
+  }, FUN.VALUE = c(1), 
+  USE.NAMES = FALSE ) 
+  
+}
+  
+# add categorical variable
+d.ward$cat <- { 
+  
+  vapply( d.ward$ward, FUN = function(x){
+  
+  pr.ag <- switch( x, # assign mean ages for each ward
+                   "Ward 1" = c( 0.54, 0.32, 0.21 ),
+                   "Ward 2" = c( 0.21, 0.59, 0.18 ),
+                   "Ward 3" = c( 0.33, 0.32, 0.33 ),
+                   "Ward 4" = c( 0.65, 0.17, 0.17 ),
+                   "Ward 5" = c( 0.15, 0.27, 0.67 ),
+                   "Ward 6" = c( 0.85, 0.1, 0.05 ),
+                   "Ward 7" = c( 0.75, 0.2, 0.05 ),
+                   "Ward 8" = c( 0.75, 0.2, 0.05 ) )
+  
+  ag.cat <- sample( x = c( "Cat 1", "Cat 2", "Cat 3" ), size = 1,
+                replace = TRUE,
+                prob = pr.ag )
+  
+  return( ag.cat )
+  
+}, FUN.VALUE = "Char", 
+USE.NAMES = FALSE ) 
+
+}
+
+# add categorical variable
+d.ward$bin <- { 
+  
+  vapply( d.ward$ward, FUN = function(x){
+    
+    pr.bin <- switch( x, # assign mean ages for each ward
+                     "Ward 1" = c( 0.54, 0.46 ),
+                     "Ward 2" = c( 0.21, 0.78 ),
+                     "Ward 3" = c( 0.31, 0.69 ),
+                     "Ward 4" = c( 0.65, 0.35 ),
+                     "Ward 5" = c( 0.15, 0.85 ),
+                     "Ward 6" = c( 0.85, 0.15 ),
+                     "Ward 7" = c( 0.80, 0.2 ),
+                     "Ward 8" = c( 0.82, 0.18 ) )
+    
+    ag.bin <- sample( x = c( "Binary 1", "Binary 2" ), size = 1,
+                      replace = TRUE,
+                      prob = pr.bin )
+    
+    return( ag.bin )
+    
+  }, FUN.VALUE = "Char", 
+  USE.NAMES = FALSE ) 
+  
+}
+
+# add population variable (distinct to levels of `ward`)
+d.ward$ward_pop <- { 
+  
+  vapply( d.ward$ward, FUN = function(x){
+    
+    pr.pop <- switch( x, # assign mean ages for each ward
+                      "Ward 1" = 84000,
+                      "Ward 2" = 78000,
+                      "Ward 3" = 85000,
+                      "Ward 4" = 86000,
+                      "Ward 5" = 87000,
+                      "Ward 6" = 91000,
+                      "Ward 7" = 80000,
+                      "Ward 8" = 86000 )
+    
+    return( pr.pop )
+    
+  }, FUN.VALUE = c(1), 
+  USE.NAMES = FALSE ) 
+  
+}
+
+# ensure population variable is distinct
+d.ward %>% 
+  distinct( ward, ward_pop )
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+## (2.9.0) Save example data for export ##
+# --------------------------------------------------------------------------------------------------------------------------------------------------------
+
+usethis::use_data( d.ward )
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------

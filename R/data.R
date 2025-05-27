@@ -1,4 +1,4 @@
-#' Test data for examples in the summary_table function.
+#' Test data for examples in the `summary_table` function.
 #'
 #' @format `d.example`
 #' \describe{
@@ -13,7 +13,7 @@
 #'
 "d.example"
 
-#' Test data for examples in the summary_table function.
+#' Test data for examples in the `summary_table` function.
 #'
 #' @format `d.example.na`
 #' \describe{
@@ -27,3 +27,18 @@
 #' }
 #'
 "d.example.na"
+
+#' Test data for examples in the `dc_mapr` function.
+#'
+#' @format `d.obs`
+#' \describe{
+#' A data frame with 45 rows and 19 columns:
+#'   \item{id}{An integer. The unique id.
+#'   \item{ward}{A character variable. The DC ward. Eight levels (Ward 1:8)}
+#'   \item{age}{A numeric variable. The age of the observation.}
+#'   \item{cat}{A character variable. Three levels (Cat 1:3)}
+#'   \item{bin}{A character variable. Two levels ("Binary 1" "Binary 2")}
+#'   \item{ward_pop}{An integer variable. The ward population count.}
+#' }
+#'
+"d.obs"
