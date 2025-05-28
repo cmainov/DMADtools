@@ -235,7 +235,8 @@ if( !file.exists( "./R/sysdata.rda" ) ){
     # read in shapefile
     sf::st_read( paste0( "./data/", "/data-public/area-hydrology-shapefiles/",
                          file.nm.shp ) ) %>%
-      mutate( GEOID = fips )
+      mutate( GEOID = fips,
+              STATE = str_sub( fips, start = 1, end = 2 ) )
     
   }, yr = yr, fips = fips.to.use
   ) 

@@ -18,6 +18,8 @@
 #' @param pop.var A string or `NULL`. Variable in `d` with population count data for computing rates if "rate" is selected in `metric`. This is normally an aggregate variable. Default is NULL.
 #' @param percentages.rel A string. One of "dc" or "geo". If `metric` is "percent", then this is used to specify denominator for the percentage. "dc" uses `nrow(d)` as the denominator while the "geo" option uses geography-specific (e.g., ward- or tract-specific) totals. Default is "geo".
 #' @param per A numeric. The numerator "per" value to use for computing rates. Default is per `1000` (e.g., 25 births per 1,000 individuals).
+#' @param count.supp an integer or  `NULL` if suppression of counts below a certain threshold is desired, specify the integer value. Any cells with counts less than or equal to `count.supp` will be suppressed. default is `NULL`.
+#' @param rate.supp An integer or  `NULL` if suppression of rates where the count the rate is based off is less than some threshold. Any cells with rates based on counts less than or equal to `rate.supp` will be suppressed. default is `NULL`.
 #' @param colorbar.bins An integer. Number of bins for the fill colorbar. Default is 5.
 #' @param colorbar.round A multiple of 10. Used for rounding colorbar labels. Default is 1.
 #' @param colorbar.high A Hex color code for the fill gradient. The value used for the "high" end of the scale. Default is "#7a1315".
@@ -35,6 +37,8 @@
 #' @param size.scale.title A numeric. Scaling parameter for title sizing on map.
 #' @param size.scale.labels A numeric. Scaling parameter for label sizing on map.
 #' @param legend.top.margin Passed to `ggplot2::theme()`. Numeric for sizing top margin of legend.
+#' @param missing.pattern A theme from `ggpattern` for polygons with missing data. Default is "stripe". See [ggpattern](https://coolbutuseless.github.io/package/ggpattern/).
+#' 
 # rate.supp
 # count.supp
 #' 
@@ -56,7 +60,8 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
                      colorbar.direction = "horizontal", text.color = "black", 
                      alt.text.color = "grey", font.family = "Calibri Light", 
                      include.compass = TRUE, include.scale = TRUE, size.scale.title = 2,
-                     size.scale.labels = 0.7, legend.top.margin = -15  ){
+                     size.scale.labels = 0.7, legend.top.margin = -15,
+                     missing.pattern = "stripe"  ){
   
   ## checks ##
   if( eRTG3D::is.sf.3d( d ) ) d <- data.frame( d ) # if `sf` object, keep only attributes table
@@ -152,7 +157,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
                      .by = !!sym( id ) )
         }
         
-        ## final aggregation step (1. find denominator and 2. compute metric)
+        ## final aggregation step (1. find denominator and 2. compute metric) ##
         
         # constant to multiply numerator of metric by (depends on metric type)
         numer <- if( metric == "percent" ) 100 else if( metric == "rate" ) per
@@ -315,7 +320,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
   ## make the breaks for the color bar ##
   no.brks <- round( colorbar.bins, 0 )
   
-  brks.nr <- seq( min( d.map$out_metric ), max( d.map$out_metric ),
+  brks.nr <- seq( min( d.map$out_metric, na.rm = TRUE ), max( d.map$out_metric, na.rm = TRUE ),
                   length.out = no.brks ) 
   
   ## round the breaks not equal to the limits to the 1's place using `plyr::round_any`
@@ -343,14 +348,27 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
     select( NAMELSAD, color_dist, fill, color_text )
   
   # continue adding other final layers
-  p.out <- suppressWarnings( p.1 ) + geom_sf( data = dc.surr.counties,
+  p.out <- suppressWarnings( p.1 ) + 
+    # missing values
+    geom_sf_pattern( data = d.map %>%
+                       filter( is.na( out_metric )) %>%
+                       mutate( no.pop = "Missing data" ),
+                     
+                     aes( pattern = no.pop ),
+                     pattern_spacing = 0.008 ) +
+    # bounding box coordinates
+    ggpattern::scale_pattern_manual( values = missing.pattern ) +
+    geom_sf( data = dc.surr.counties,
                           fill = "antiquewhite",
                           color = "gray67") +
-    geom_sf( data = area.water.dc.md.va, fill = "aliceblue",
-             color = "gray67" ) +
-    geom_sf( data = dc.st, fill = "transparent") + # relayer the ward boundaries with transparent fill
-    # bounding box coordinates
-    ggpattern::scale_pattern_manual( values = "stripe" ) +
+    geom_sf( data = area.water.dc.md.va %>% 
+               filter( STATE != "11" ), fill = "aliceblue", 
+             color = "gray67" ) + # non-DC states water file (non-transparent border)
+    geom_sf( data = area.water.dc.md.va %>% 
+               filter( STATE == "11" ), fill = "aliceblue", 
+             color = "transparent" ) + # DC water file (transparent border around water shapes)
+    geom_sf( data = dc.st, fill = "transparent") + # later the DC boundary with transparent fill
+    geom_sf( data = d.map, fill = "transparent") + # relayer the ZCTA boundaries with transparent fill
     coord_sf( xlim = c( bbox1[["xmin"]], bbox1[["xmax"]] ), # min & max of x values
               ylim = c( bbox1[["ymin"]], bbox1[["ymax"]] ) ) +
     
