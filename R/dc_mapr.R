@@ -16,7 +16,7 @@
 #' @param bypass A logical. If data supplied in `d` is already in aggregate form ready for mapping, then the function will only map the values supplied. Default is FALSE.
 #' @param metric A vector of string(s). One of: "percent", "mean", "median", "rate", "count". Default if "percent"
 #' @param pop.var A string or `NULL`. Variable in `d` with population count data for computing rates if "rate" is selected in `metric`. This is normally an aggregate variable. Default is NULL.
-#' @param percentages.rel A string. One of "dc" or "geo". If `metric` is "percent", then this is used to specify denominator for the percentage. "dc" uses `nrow(d)` as the denominator while the "geo" option uses geography-specific (e.g., ward- or tract-specific) totals. Default is NULL.
+#' @param percentages.rel A string. One of "dc" or "geo". If `metric` is "percent", then this is used to specify denominator for the percentage. "dc" uses `nrow(d)` as the denominator while the "geo" option uses geography-specific (e.g., ward- or tract-specific) totals. Default is "geo".
 #' @param per A numeric. The numerator "per" value to use for computing rates. Default is per `1000` (e.g., 25 births per 1,000 individuals).
 #' @param colorbar.bins An integer. Number of bins for the fill colorbar. Default is 5.
 #' @param colorbar.round A multiple of 10. Used for rounding colorbar labels. Default is 1.
@@ -45,10 +45,11 @@
 #' @import eRTG3D
 #' @import tidyr
 #' @import ggspatial
+#' @import ggsflabel
 #' @export
 
-dc_mapr <- function( d, geo, id, bypass = FALSE,
-                     metric = "percent", pop.var = NULL, percentages.rel = NULL,
+dc_mapr <- function( d, geo, var, id, bypass = FALSE,
+                     metric = "percent", pop.var = NULL, percentages.rel = "geo",
                      per = 1000, colorbar.bins = 5, colorbar.round = 1,
                      colorbar.high = "#7a1315", colorbar.low = "#f4e2d9",
                      colorbar.h = 0.6, colorbar.w = 10, colorbar.position = "bottom", 
@@ -112,14 +113,12 @@ dc_mapr <- function( d, geo, id, bypass = FALSE,
     # percent, count (binary case)
     if( metric %in% c( "percent", "count", "rate" ) ){
       
-      message( "Checking qualities of `var`..." )
+      message( "Step 1: Checking qualities of `var`..." )
       
       if( inherits( d[[ var ]], "character" ) | # ok for character variable class
           inherits( d[[ var ]], "factor" ) | # ok for factor variable class
           ( all( levels( as.factor( d[[ var ]] ) ) %in% c( 1, 0 ) ) & # if it's an integer with 1/0 values
             length( levels( as.factor( d[[ var ]] ) ) ) == 2 ) ){
-        
-        message( "...`var" )
         
         # get levels of the variable
         levs.binary <-  d %>% count( !!sym( var ) ) %>% pull( !!sym( var ) )
@@ -216,7 +215,7 @@ dc_mapr <- function( d, geo, id, bypass = FALSE,
   
   ### (2.0) Merge attributes data to shapefile ###
   
-  message( "Calling shapefiles and merging attributes data..." )
+  message( "Step 2: Calling shapefiles and merging attributes data..." )
   
   ## call shapefile based on `geo` specification ##
   d.geo <- if( geo == "ward 2022" ){ 
@@ -293,7 +292,7 @@ dc_mapr <- function( d, geo, id, bypass = FALSE,
       
     }
     
-    message( "Merging attributes (i.e., `var`) to shapefile for ward." )
+    message( "...Merging attributes (i.e., `var`) to shapefile for ward..." )
     
     
     
@@ -303,12 +302,12 @@ dc_mapr <- function( d, geo, id, bypass = FALSE,
   d.map <- left_join( d.geo, d.aggr,
                       by = c( "NAMELSAD" = id ) )
   
-  message( "Attribute and shapefile merging...DONE" )
+  message( "...Attribute and shapefile merging...DONE" )
   
   
   ### (3.0) Assemble map ###
   
-  message( "...Assembling final map..." )
+  message( "Step 3: Assembling final map..." )
   
   # plot tracts with `sf
   bbox1 <- sf::st_bbox( dc.st ) # bounding box
@@ -325,13 +324,8 @@ dc_mapr <- function( d, geo, id, bypass = FALSE,
                                                                                                       max( d.map$out_metric ) ) ], 
                                                                             colorbar.round ) # round colorbar values to this order of magnitude
   
-  # subtitle
-  # sub.t <- {if( length( y ) > 1 ){
-  #   paste0( min(y), "-", max(y) )
-  # } else y }
-  
   # first pass the fill aesthetic so we can get exact colors mapped
- p.1 <-  ggplot( data = d.map ) +
+ p.1 <- ggplot( data = d.map ) +
     geom_sf( aes( fill = out_metric ) ) + 
     scale_fill_gradient( low = colorbar.low, high = colorbar.high, guide = "colorbar",
                          breaks = brks.nr, labels = pretty.num( brks.nr,
@@ -348,9 +342,8 @@ dc_mapr <- function( d, geo, id, bypass = FALSE,
                                  alt.text.color ) ) %>%
     select( NAMELSAD, color_dist, fill, color_text )
   
-  
   # continue adding other final layers
-  p.1 + geom_sf( data = dc.surr.counties,
+  p.out <- suppressWarnings( p.1 ) + geom_sf( data = dc.surr.counties,
                           fill = "antiquewhite",
                           color = "gray67") +
     geom_sf( data = area.water.dc.md.va, fill = "aliceblue",
@@ -382,14 +375,55 @@ dc_mapr <- function( d, geo, id, bypass = FALSE,
                                    label.position = colorbar.position ) ) +
     
     { if( include.compass ){ ggspatial::annotation_north_arrow( location = "tr", which_north = "true", 
-                                                                pad_x = unit(0.2, "cm"), pad_y = unit(0.2, "cm"),
-                                                                style = north_arrow_fancy_orienteering, width = unit(0.73, "cm"), 
+                                                                pad_x = unit( 0.2, "cm" ), pad_y = unit( 0.2, "cm" ),
+                                                                style = north_arrow_fancy_orienteering, width = unit( 0.73, "cm" ), 
                                                                 height = unit(1.0, "cm") ) } } +
-    { if( include.scale ){ ggspatial::annotation_scale( height = unit(0.14, "cm"), 
+    { if( include.scale ){ ggspatial::annotation_scale( height = unit( 0.14, "cm" ), 
                                                         style = "bar",
                                                         unit_category = "imperial",
-                                                        location = "br" ) } }
+                                                        location = "br" ) } } +
+    # Potomac and Anacostia River labels #
+     geom_sf_text_repel( 
+      data = area.water.dc.md.va,
+      mapping = aes( label = LABEL_WATER ),
+      segment.color = "transparent",
+      colour = area.water.dc.md.va$label.water.txtcol,
+      force = 0, # minimized force of repulsion between labels
+      size = area.water.dc.md.va$label.water.txtsize,
+      # manual location of ward labels (x and y)
+      nudge_y = area.water.dc.md.va$label.water.nudge.y,
+      nudge_x = area.water.dc.md.va$label.water.nudge.x,
+      angle = area.water.dc.md.va$label.water.angle,
+      seed = 34, family = font.family ) +
+    # Surrounding County Labels #
+    geom_sf_text_repel( 
+      data = dc.surr.counties,
+      mapping = aes( label = LABEL_CTY ),
+      segment.color = "transparent",
+      colour = "gray50",
+      force = 0, # minimized force of repulsion between labels
+      size = ( 3.1 + size.scale.labels ),
+      # manual location of ward labels (x and y)
+      nudge_y = dc.surr.counties$label.cty.nudge.y,
+      nudge_x = dc.surr.counties$label.cty.nudge.x,
+      seed = 34, family = font.family ) +
+    # DC Ward labels #
+    geom_sf_text_repel( 
+      mapping = aes( label = NAMELSAD ),
+      force = 0, # minimized force of repulsion between labels
+      size = ( 3.1 + size.scale.labels ),
+      nudge_x = d.geo$labelward.nudge.x,
+      nudge_y = d.geo$labelward.nudge.y,
+      segment.color = "transparent",
+      colour = d.fill$color_text,
+      seed = 34, family = font.family ) 
+  
+  message( "...Mapping DONE" )
+  
+  return( suppressWarnings( print( p.out ) ) )
+  
 }
+
 
 
 
