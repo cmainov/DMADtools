@@ -33,7 +33,7 @@
 #' @format `d.obs`
 #' \describe{
 #' A data frame with 45 rows and 19 columns:
-#'   \item{id}{An integer. The unique id.
+#'   \item{id}{An integer. The unique id}.
 #'   \item{ward}{A character variable. The DC ward. Eight levels (Ward 1:8)}
 #'   \item{age}{A numeric variable. The age of the observation.}
 #'   \item{cat}{A character variable. Three levels (Cat 1:3)}

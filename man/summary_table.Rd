@@ -49,7 +49,7 @@ row.variable.labels = "default", col.variable.labels = "default", row.variable.c
 
 \item{table.title}{A string. Name of table to display as the title. `NULL` is default for no title in the table.}
 
-\item{metric}{A vector of string(s). One or two of: "percent", "rate", "count". Can dplyr::select up to two options to plot at maximum.}
+\item{metric}{A vector of string(s). One or two of: "percent", "rate", "count". Can select up to two options to plot at maximum.}
 
 \item{nm.var1}{A string. Name of `var1` that you would like to appear in the table. `NULL` is default, which prompts the column name as it is written in the input dataset, `d`.}
 
@@ -63,7 +63,7 @@ row.variable.labels = "default", col.variable.labels = "default", row.variable.c
 
 \item{rate.supp.symbol}{A string. The character to display in the table where the rate is suppressed.}
 
-\item{per}{A numeric. The denominator "per" value to use for computing rates. Default is per `1000` (e.g., 25 births per 1,000 individuals).}
+\item{per}{A numeric. The numerator "per" value to use for computing rates. Default is per `1000` (e.g., 25 births per 1,000 individuals).}
 
 \item{NAs.footnote}{A logical. Include footnotes detailing number of missing values in the dataset based on `var1` and `var2`?}
 

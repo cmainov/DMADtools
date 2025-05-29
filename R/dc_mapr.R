@@ -2,13 +2,29 @@
 ###  `dc_mapr`: Generate Plain or Chropleth Map of DC
 ###---------------------------------------------------------------
 
+#' @md
 #' @title Generate a plain or choropleth map of Washington, D.C. 
 #'
 #' @description Create a "nice" publication-level map of Washington, D.C. by ward (2012 or 2022 redistricting),
 #' Zip-Code Tabulation Area (ZCTA), Census tract, or block.
 #'
+#' @import sf
+#' @import dplyr
+#' @import ggplot2
+#' @import ggpattern
+#' @import eRTG3D
+#' @import tidyr
+#' @import ggspatial
+#' @import ggsflabel
+#' 
 #' @details
 #' Attribute data in `d` (see below) should be organized by ward, ZIP-code tabulation area (ZCTA), census tract, or block. 
+#' The following DC geographies can be plotted using this function.
+#' 
+#' | Geography      | `geo` call      | Accepted formats in `id` |
+#' | :--------------| :--------------:| :------------------------|
+#' | 2022 Wards     | "ward 2022"     | i. "Ward 1"..."Ward 8"<br>ii. "ward 1"..."ward 8"<br>iii. "One"..."Eight"<br>iv. "one"..."eight"  |
+#' 
 #' @param d A data frame or tibble with the attribute data used to fill the shapes.
 #' @param geo One of "ward 2022", "ward 2012", "zcta", "tract', or "block". The geography that is desired.
 #' @param id Column name in `d` that contains the ward, census block, or ZCTA identifier.
@@ -28,6 +44,7 @@
 #' @param colorbar.w Colorbar width Default is 10.
 #' @param colorbar.direction  Colorbar direction. Default is "horizontal".
 #' @param colorbar.position  Colorbar label position Default is "bottom".
+#' @param colorbar.name A string. Name to show beside the colorbar. Default is NULL (i.e., no name displayed).
 #' @param text.color Text color. Default is "black".
 #' @param alt.text.color An alternate text color, for when fill color and text color are too similar. Default is "grey".
 #' @param font.family A string with the font desired for text on the map. Default is "Calibri Light".
@@ -36,32 +53,22 @@
 #' @param include.scale A logical. Include reference scale rose on map? Default is TRUE.
 #' @param size.scale.title A numeric. Scaling parameter for title sizing on map.
 #' @param size.scale.labels A numeric. Scaling parameter for label sizing on map.
-#' @param legend.top.margin Passed to `ggplot2::theme()`. Numeric for sizing top margin of legend.
 #' @param missing.pattern A theme from `ggpattern` for polygons with missing data. Default is "stripe". See [ggpattern](https://coolbutuseless.github.io/package/ggpattern/).
+#' @param suppressed.pattern A theme from `ggpattern` for polygons with suppressed data. Default is "weave". See [ggpattern](https://coolbutuseless.github.io/package/ggpattern/).
+#' @param pattern.spacing A numeric. Passed to `pattern_spacing` argument of`ggpattern::geom_pattern()`. 
 #' 
-# rate.supp
-# count.supp
-#' 
-#' @import sf
-#' @import dplyr
-#' @import ggplot2
-#' @import ggpattern
-#' @import eRTG3D
-#' @import tidyr
-#' @import ggspatial
-#' @import ggsflabel
 #' @export
 
 dc_mapr <- function( d, geo, var, id, bypass = FALSE,
                      metric = "percent", pop.var = NULL, percentages.rel = "geo",
-                     per = 1000, colorbar.bins = 5, colorbar.round = 1,
-                     colorbar.high = "#7a1315", colorbar.low = "#f4e2d9",
+                     per = 1000, count.supp = NULL, rate.supp = NULL, colorbar.bins = 5, 
+                     colorbar.round = 1, colorbar.high = "#7a1315", colorbar.low = "#f4e2d9",
                      colorbar.h = 0.6, colorbar.w = 10, colorbar.position = "bottom", 
-                     colorbar.direction = "horizontal", text.color = "black", 
-                     alt.text.color = "grey", font.family = "Calibri Light", 
+                     colorbar.direction = "horizontal", colorbar.name = NULL, text.color = "black", 
+                     alt.text.color = "grey", font.family = "Calibri Light", color.thres = 0.4,
                      include.compass = TRUE, include.scale = TRUE, size.scale.title = 2,
-                     size.scale.labels = 0.7, legend.top.margin = -15,
-                     missing.pattern = "stripe"  ){
+                     size.scale.labels = 0.7, missing.pattern = "stripe", 
+                     suppressed.pattern = "crosshatch", pattern.spacing = 0.02 ){
   
   ## checks ##
   if( eRTG3D::is.sf.3d( d ) ) d <- data.frame( d ) # if `sf` object, keep only attributes table
@@ -305,11 +312,46 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
   
   ## final merge ##
   d.map <- left_join( d.geo, d.aggr,
-                      by = c( "NAMELSAD" = id ) )
+                      by = c( "NAMELSAD" = id ) ) %>% 
+    # add column for missing data (to be able to add pattern to this polygon)
+    mutate( missing_suppressed = ifelse( is.na( out_metric ),
+                                         "Missing data", NA ) )
   
   message( "...Attribute and shapefile merging...DONE" )
   
   
+  ## count or rate suppression, if desired ##
+  
+  # first, count suppression
+  if( !is.null( count.supp ) ){
+    if( metric %in% c( "count" )  & !is.null( count.supp ) ){
+      
+      if( count.supp < 0 ) stop( "count.supp must be >= 0" )
+      
+      d.map <- d.map %>% 
+        mutate( out_metric = ifelse( out_metric <= count.supp, NA, out_metric ),
+                missing_suppressed = ifelse( is.na( out_metric ) &
+                                               is.na( missing_suppressed ),
+                                             "Suppressed", missing_suppressed ) )
+      
+    }
+  }
+  
+  # second, rate suppression
+  if( !is.null( rate.supp ) ){
+    if( metric %in% c( "rate" ) ){
+      
+      if( rate.supp < 0 ) stop( "rate.supp must be >= 0" )
+      
+      d.map <- d.map %>% 
+        mutate( out_metric = ifelse( out_metric <= rate.supp, NA, out_metric ),
+                missing_suppressed = ifelse( is.na( out_metric ) &
+                                               is.na( missing_suppressed ),
+                                             "Suppressed", missing_suppressed ) )
+      
+    }
+  }
+    
   ### (3.0) Assemble map ###
   
   message( "Step 3: Assembling final map..." )
@@ -332,9 +374,9 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
   # first pass the fill aesthetic so we can get exact colors mapped
  p.1 <- ggplot( data = d.map ) +
     geom_sf( aes( fill = out_metric ) ) + 
-    scale_fill_gradient( low = colorbar.low, high = colorbar.high, guide = "colorbar",
-                         breaks = brks.nr, labels = pretty.num( brks.nr,
-                                                                round.to = 1 ) ) 
+    scale_fill_gradient( name = colorbar.name, low = colorbar.low, high = colorbar.high, 
+                         guide = "colorbar", breaks = brks.nr, 
+                         labels = pretty.num( brks.nr, round.to = 1 ) ) 
   
   # extract colors assigned to each level and compute distance metrics on text vs fill colors
   d.fill <- bind_cols( p.1$data,
@@ -348,16 +390,18 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
     select( NAMELSAD, color_dist, fill, color_text )
   
   # continue adding other final layers
-  p.out <- suppressWarnings( p.1 ) + 
+  p.out <- p.1 + 
     # missing values
     geom_sf_pattern( data = d.map %>%
-                       filter( is.na( out_metric )) %>%
-                       mutate( no.pop = "Missing data" ),
-                     
-                     aes( pattern = no.pop ),
-                     pattern_spacing = 0.008 ) +
+                       filter( !is.na( missing_suppressed ) ),
+                     aes( pattern = missing_suppressed ),
+                     pattern_spacing = pattern.spacing ) +
     # bounding box coordinates
-    ggpattern::scale_pattern_manual( values = missing.pattern ) +
+    ggpattern::scale_pattern_manual( values = c( missing.pattern, 
+                                                 suppressed.pattern ),
+                                     breaks = c( "Missing data",
+                                                 "Suppressed" ),
+                                     guide = guide_legend( title = NULL )) +
     geom_sf( data = dc.surr.counties,
                           fill = "antiquewhite",
                           color = "gray67") +
@@ -367,20 +411,18 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
     geom_sf( data = area.water.dc.md.va %>% 
                filter( STATE == "11" ), fill = "aliceblue", 
              color = "transparent" ) + # DC water file (transparent border around water shapes)
-    geom_sf( data = dc.st, fill = "transparent") + # later the DC boundary with transparent fill
-    geom_sf( data = d.map, fill = "transparent") + # relayer the ZCTA boundaries with transparent fill
-    coord_sf( xlim = c( bbox1[["xmin"]], bbox1[["xmax"]] ), # min & max of x values
+    geom_sf( data = dc.st, fill = "transparent") + # layer the DC boundary with transparent fill
+    geom_sf( data = d.map, fill = "transparent") + # relayer the `geo` boundaries with transparent fill
+    coord_sf( xlim = c( bbox1[["xmin"]], bbox1[["xmax"]] ), # sets bounding box
               ylim = c( bbox1[["ymin"]], bbox1[["ymax"]] ) ) +
-    
     xlab("") +
     ylab("") +
     theme( text = element_text( family = font.family ),
-           legend.title = element_blank(),
            axis.text = element_blank(),
            legend.position = colorbar.position,
            axis.ticks = element_blank(),
            plot.subtitle = element_text( face = "italic", size = (9 + size.scale.title) ) ) +
-    { if( colorbar.position == "bottom" ) theme( legend.margin = margin( t = legend.top.margin ) ) } +
+    { if( colorbar.position == "bottom" ) theme( legend.margin = margin( t = -15 ) ) } +
     guides( fill = guide_colorbar( ticks.colour = NA,
                                    frame.colour =  "black",
                                    barwidth = colorbar.w,
@@ -437,6 +479,26 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
       seed = 34, family = font.family ) 
   
   message( "...Mapping DONE" )
+  
+  
+  ##  messages if rates or counts were suppressed ##
+  if( !is.null( count.supp ) ){
+    if( metric %in% c( "count" )  & !is.null( count.supp ) ){
+      
+      message( paste0( "NOTE: suppresion of counts <= ",
+                       count.supp, " was requested in the function call. ",
+                       " Final map contains suppressed values for at least one polygon." ) )
+    }
+  }
+  
+  if( !is.null( rate.supp ) ){
+    if( metric %in% c( "rate" )  & !is.null( rate.supp ) ){
+      
+      message( paste0( "NOTE: suppresion of rates with counts <= ",
+                       rate.supp, " was requested in the function call. ",
+                       " Final map contains suppressed values for at least one polygon." ) )
+    }
+  }
   
   return( suppressWarnings( print( p.out ) ) )
   
