@@ -505,15 +505,30 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
       seed = 34, family = font.family ) +
     ## `geo` polygon labeling ##
     # DC Ward labels #
-    geom_sf_text_repel( 
+    { if( str_detect( geo, "ward" ) ){
+      geom_sf_text_repel( 
       mapping = aes( label = NAMELSAD ),
       force = 0, # minimized force of repulsion between labels
       size = ( 3.1 + size.scale.labels ),
-      nudge_x = d.geo$labelward.nudge.x,
-      nudge_y = d.geo$labelward.nudge.y,
+      nudge_x = d.map$labelward.nudge.x,
+      nudge_y = d.map$labelward.nudge.y,
       segment.color = "transparent",
       colour = d.fill$color_text,
       seed = 34, family = font.family ) 
+    }} +
+    # ZCTA labels #
+    { if( str_detect( geo, "zcta" ) ){
+      geom_sf_text_repel( 
+        mapping = aes( label = labelzip ),
+        segment.color = d.map$labelzip.segcolor,
+        colour = d.map$labelzip.txtcol,
+        force = 0, # minimized force of repulsion between labels
+        size = d.map$labelzip.txtsize,
+        # manual location of ward labels (x and y)
+        nudge_y = d.map$labelzip.nudge.y,
+        nudge_x = d.map$labelzip.nudge.x,
+        seed = 34, family = "Calibri Light" )
+    }} 
   
   message( "...Mapping DONE" )
   
