@@ -568,7 +568,7 @@ if( !file.exists( "./R/sysdata.rda" ) ){
 }
 
 
-## (2.8.0) Dataset for Examples and Tests ##
+## (2.8.0) Ward Dataset for Examples and Tests ##
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # obs
@@ -715,5 +715,150 @@ d.ward %>%
 # --------------------------------------------------------------------------------------------------------------------------------------------------------
 
 usethis::use_data( d.ward, overwrite = TRUE )
+
+# --------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+## (2.10.0) Ward Dataset for Examples and Tests ##
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# obs
+nd <- 500
+d.zcta <- data.frame( id = 1:nd )
+
+# possible ZCTAs
+dc.zcta
+# add zcta variable (equal probability for each zcta)
+d.zcta$zcta <- sample( paste0( "zcta ", 1:8 ), size = nd, replace = TRUE )
+
+table( d.zcta$zcta ) # check distribution
+
+# add continuous variable (simulate age)
+d.zcta$age <- { 
+  
+  vapply( d.zcta$zcta, FUN = function(x){
+    
+    mn.ag <- switch( x, # assign mean ages for each zcta
+                     "zcta 1" = 48,
+                     "zcta 2" = 42,
+                     "zcta 3" = 43,
+                     "zcta 4" = 40,
+                     "zcta 5" = 41,
+                     "zcta 6" = 38,
+                     "zcta 7" = 34,
+                     "zcta 8" = 32 )
+    
+    ag <- truncnorm::rtruncnorm( n = 1, a = 2, b = 120, mean = mn.ag, sd = 15 )
+    
+    return( ag)
+    
+  }, FUN.VALUE = c(1), 
+  USE.NAMES = FALSE ) 
+  
+}
+
+# add categorical variable
+d.zcta$cat <- { 
+  
+  vapply( d.zcta$zcta, FUN = function(x){
+    
+    pr.ag <- switch( x, # assign mean ages for each zcta
+                     "zcta 1" = c( 0.54, 0.32, 0.21 ),
+                     "zcta 2" = c( 0.21, 0.59, 0.18 ),
+                     "zcta 3" = c( 0.33, 0.32, 0.33 ),
+                     "zcta 4" = c( 0.65, 0.17, 0.17 ),
+                     "zcta 5" = c( 0.15, 0.27, 0.67 ),
+                     "zcta 6" = c( 0.85, 0.1, 0.05 ),
+                     "zcta 7" = c( 0.75, 0.2, 0.05 ),
+                     "zcta 8" = c( 0.75, 0.2, 0.05 ) )
+    
+    ag.cat <- sample( x = c( "Cat 1", "Cat 2", "Cat 3" ), size = 1,
+                      replace = TRUE,
+                      prob = pr.ag )
+    
+    return( ag.cat )
+    
+  }, FUN.VALUE = "Char", 
+  USE.NAMES = FALSE ) 
+  
+}
+
+# add binary character variable
+d.zcta$bin <- { 
+  
+  vapply( d.zcta$zcta, FUN = function(x){
+    
+    pr.bin <- switch( x, # assign mean ages for each zcta
+                      "zcta 1" = c( 0.54, 0.46 ),
+                      "zcta 2" = c( 0.21, 0.78 ),
+                      "zcta 3" = c( 0.31, 0.69 ),
+                      "zcta 4" = c( 0.65, 0.35 ),
+                      "zcta 5" = c( 0.15, 0.85 ),
+                      "zcta 6" = c( 0.85, 0.15 ),
+                      "zcta 7" = c( 0.80, 0.2 ),
+                      "zcta 8" = c( 0.82, 0.18 ) )
+    
+    ag.bin <- sample( x = c( "Binary 1", "Binary 2" ), size = 1,
+                      replace = TRUE,
+                      prob = pr.bin )
+    
+    return( ag.bin )
+    
+  }, FUN.VALUE = "Char", 
+  USE.NAMES = FALSE ) 
+  
+}
+
+# add binary 1/0 variable
+d.zcta$bin_other <- { 
+  
+  vapply( d.zcta$zcta, FUN = function(x){
+    
+    pr.bin <- switch( x, # assign mean ages for each zcta
+                      "zcta 1" = c( 0.44, 0.56 ),
+                      "zcta 2" = c( 0.31, 0.68 ),
+                      "zcta 3" = c( 0.21, 0.79 ),
+                      "zcta 4" = c( 0.45, 0.55 ),
+                      "zcta 5" = c( 0.05, 0.95 ),
+                      "zcta 6" = c( 0.55, 0.45 ),
+                      "zcta 7" = c( 0.60, 0.4 ),
+                      "zcta 8" = c( 0.82, 0.18 ) )
+    
+    ag.bin <- sample( x = c( 1, 0 ), size = 1,
+                      replace = TRUE,
+                      prob = pr.bin )
+    
+    return( ag.bin )
+    
+  }, FUN.VALUE = c(1), 
+  USE.NAMES = FALSE ) 
+  
+}
+
+# add population variable (distinct to levels of `zcta`)
+d.zcta$zcta_pop <- { 
+  
+  vapply( d.zcta$zcta, FUN = function(x){
+    
+    pr.pop <- switch( x, # assign mean ages for each zcta
+                      "zcta 1" = 84000,
+                      "zcta 2" = 78000,
+                      "zcta 3" = 85000,
+                      "zcta 4" = 86000,
+                      "zcta 5" = 87000,
+                      "zcta 6" = 91000,
+                      "zcta 7" = 80000,
+                      "zcta 8" = 86000 )
+    
+    return( pr.pop )
+    
+  }, FUN.VALUE = c(1), 
+  USE.NAMES = FALSE ) 
+  
+}
+
+# ensure population variable is distinct
+d.zcta %>% 
+  distinct( zcta, zcta_pop )
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------

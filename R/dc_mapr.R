@@ -236,12 +236,14 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
   
   ## call shapefile based on `geo` specification ##
   d.geo <- if( geo == "ward 2022" ){ 
-    message( "...Ward (2022 redistricting) shapfiles loaded..." )
+    message( "...Ward (2022 redistricting) shapfile loaded..." )
     dc.ward22
     
   } else if( geo == "ward 2012" ){
-    message( "...Ward (2012 redistricting) shapfiles loaded..." )
+    message( "...Ward (2012 redistricting) shapfile loaded..." )
     dc.ward12
+  } else if( geo == "zcta" ){
+    message( "...ZCTA (2024) shapfile loaded..." )
   }
   
   ## merge shapes with attributes data in `d.aggr` ##
