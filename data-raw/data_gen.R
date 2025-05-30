@@ -198,7 +198,8 @@ if( !file.exists( "./R/sysdata.rda" ) ){
     st_as_sf() %>% 
     st_transform( crs = crs.projec )
   
-  
+  unlink( paste0( "./data/", "/data-public/linear-hydrology-shapefiles/" ),
+          recursive = TRUE )
   
   # ---------------------------------------------------------------------------------------------------------------------------------------------------------
   
@@ -266,6 +267,8 @@ if( !file.exists( "./R/sysdata.rda" ) ){
                            "51059", # Fairfax County, VA
                            "51510" ) ) # Alexandria City
   
+  unlink( paste0( "./data/", "/data-public/area-hydrology-shapefiles/" ),
+          recursive = TRUE )
   
   # ---------------------------------------------------------------------------------------------------------------------------------------------------------
   
@@ -303,6 +306,9 @@ if( !file.exists( "./R/sysdata.rda" ) ){
     filter( STATEFP == "11" ) %>% 
     st_as_sf() %>% 
     st_transform( crs = crs.projec )
+  
+  unlink( paste0( "./data/", "/data-public/dc-boundary-shapefiles/" ),
+          recursive = TRUE )
   
   # ---------------------------------------------------------------------------------------------------------------------------------------------------------
   
@@ -368,6 +374,9 @@ if( !file.exists( "./R/sysdata.rda" ) ){
                                                   0.01,
                                                   0 ) ) ) )%>%
     mutate( label.cty = add_new_lines( dat = .$label.cty, n = 2 ) )
+  
+  unlink( paste0( "./data/", "/data-public/surrounding-counties-shapefiles/" ),
+          recursive = TRUE )
   
   # ---------------------------------------------------------------------------------------------------------------------------------------------------------
   
@@ -487,10 +496,58 @@ if( !file.exists( "./R/sysdata.rda" ) ){
             labelward.segcolor = ifelse( NAMELSAD %in% c( paste0( "Ward ", 1:8 ) ), "transparent",
                                          "navyblue" ) )
   
+  unlink( paste0( "./data/", "/data-public/dc-ward-shapefiles/" ),
+          recursive = TRUE )
+  
+  # ---------------------------------------------------------------------------------------------------------------------------------------------------------
+  
+  ## (2.7.0) Get 2024 ZCTA Shapefiles (ZCTA TIGER File) ##
+  # ---------------------------------------------------------------------------------------------------------------------------------------------------------
+  
+  options( timeout = 400 ) # increasing timeout to 400s since the ZCTA file is very large
+  
+  yr <- 2024
+  
+  url.zcta <- paste0( "https://www2.census.gov/geo/tiger/TIGER", yr,
+                      "/ZCTA520/tl_", yr, "_us_zcta520.zip" ) # 11 is DC State FIPS code
+  
+  # download file into repository
+  file.nm.zip <- paste0( "tl_", yr, "_us_zcta.zip" )
+  file.nm.out <- paste0( "tl_", yr, "_us_zcta" )
+  file.nm.shp <- paste0( "tl_", yr, "_us_zcta/",
+                         paste0( "tl_", yr, "_us_zcta520.shp" ) )
+  
+  dir.create( paste0( "./data/", "/data-public/dc-zcta-shapefiles/" ) )
+  
+  download.file( url.zcta, destfile = paste0( "./data/", "/data-public/dc-zcta-shapefiles/",
+                                              file.nm.zip ) )
+  
+  # unzip file in repository
+  unzip( paste0( "./data/", "/data-public/dc-zcta-shapefiles/", file.nm.zip ), 
+         exdir = paste0( "./data/", "/data-public/dc-zcta-shapefiles/",
+                         file.nm.out ) )
+  
+  # remove compressed file from download
+  file.remove( paste0( "./data/", "/data-public/dc-zcta-shapefiles/",
+                       file.nm.zip ) )
+  
+  # read in shapefile
+  dc.zcta <- sf::st_read( paste0( "./data/", "/data-public/dc-zcta-shapefiles/",
+                                    file.nm.shp ) ) %>% 
+    st_as_sf() %>% 
+    st_transform( crs = crs.projec ) %>% 
+    # now spatially intersect with DC boundary to get only ZCTAs needed for map
+    st_intersection( dc.st, dc.zcta %>% 
+                       filter( str_sub( GEOID20, start = 1, end = 2 )
+                               %in% c( "20", "56" ) ) )
+  
+  unlink( paste0( "./data/", "/data-public/dc-zcta-shapefiles/" ),
+          recursive = TRUE )
+  
   # ---------------------------------------------------------------------------------------------------------------------------------------------------------
   
   
-  ## (2.7.0) Save Shapefiles Data for Internal Use ##
+  ## (2.8.0) Save Shapefiles Data for Internal Use ##
   # ---------------------------------------------------------------------------------------------------------------------------------------------------------
   
   usethis::use_data( linear.water.dc.md.va, # liner water shapefiles
@@ -499,11 +556,13 @@ if( !file.exists( "./R/sysdata.rda" ) ){
                      dc.surr.counties, # surrounding counties shapefile
                      dc.ward12, # 2012 ward boundaries shapefile
                      dc.ward22, # 2022 ward boundaries shapefile
+                     dc.zcta,
                      internal = TRUE,
                      overwrite = TRUE )
   
   # remove folder with raw data since it won't be needed
-  unlink( paste0( getwd(), "/data/data-public/" ), force = TRUE )
+  unlink( paste0( "./data/", "/data-public/" ),
+          recursive = TRUE )
   
   # ---------------------------------------------------------------------------------------------------------------------------------------------------------
 }

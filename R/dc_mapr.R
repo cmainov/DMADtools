@@ -8,6 +8,11 @@
 #' @description Create a "nice" publication-level map of Washington, D.C. by ward (2012 or 2022 redistricting),
 #' Zip-Code Tabulation Area (ZCTA), Census tract, or block.
 #'
+#' # Citation for Shapefiles
+#' U.S. Census Bureau, “2024 TIGER/Line Shapefiles”, 2024,
+#' <https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html>, 
+#' accessed on May 29, 2025.
+#' 
 #' @import sf
 #' @import dplyr
 #' @import ggplot2

@@ -33,9 +33,9 @@ dc_mapr(
   include.scale = TRUE,
   size.scale.title = 2,
   size.scale.labels = 0.7,
-  legend.top.margin = -15,
   missing.pattern = "stripe",
-  suppressed.pattern = "weave"
+  suppressed.pattern = "crosshatch",
+  pattern.spacing = 0.02
 )
 }
 \arguments{
@@ -95,13 +95,11 @@ dc_mapr(
 
 \item{size.scale.labels}{A numeric. Scaling parameter for label sizing on map.}
 
-\item{legend.top.margin}{Passed to \code{ggplot2::theme()}. Numeric for sizing top margin of legend.}
-
 \item{missing.pattern}{A theme from \code{ggpattern} for polygons with missing data. Default is "stripe". See \href{https://coolbutuseless.github.io/package/ggpattern/}{ggpattern}.}
 
-\item{suppressed.pattern}{A theme from \code{ggpattern} for polygons with suppressed data. Default is "weave". See \href{https://coolbutuseless.github.io/package/ggpattern/}{ggpattern}.\if{html}{\out{
-</s2>
-}}}
+\item{suppressed.pattern}{A theme from \code{ggpattern} for polygons with suppressed data. Default is "weave". See \href{https://coolbutuseless.github.io/package/ggpattern/}{ggpattern}.}
+
+\item{pattern.spacing}{A numeric. Passed to \code{pattern_spacing} argument of\code{ggpattern::geom_pattern()}.}
 }
 \description{
 Create a "nice" publication-level map of Washington, D.C. by ward (2012 or 2022 redistricting),
@@ -113,20 +111,10 @@ The following DC geographies can be plotted using this function.\tabular{lcl}{
    Geography \tab \code{geo} call \tab Accepted formats in \code{id} \cr
    2022 Wards \tab "ward 2022" \tab i. "Ward 1"..."Ward 8"\if{html}{\out{<br>}}ii. "ward 1"..."ward 8"\if{html}{\out{<br>}}iii. "One"..."Eight"\if{html}{\out{<br>}}iv. "one"..."eight" \cr
 }
-\if{html}{\out{
-<table>
-  <thead>
-  <tr>
-  <th class="usr-line-bottom usr-line-top usr-line-left usr-line-right">content</th>
-    <th class="usr-double-line-bottom usr-double-line-top usr-line-left usr-line-right">content</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr>
-      <td class="usr-line-left usr-line-right">content</td>
-        <td class="usr-line-bottom usr-line-left usr-line-right">content</td>
-          </tr>
-          </tbody>
-          </table>
-}}
 }
+\section{Citation for Shapefiles}{
+U.S. Census Bureau, “2024 TIGER/Line Shapefiles” 2024,
+\url{https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.html},
+accessed on May 29, 2025.
+}
+
