@@ -61,6 +61,7 @@
 #' @param missing.pattern A theme from `ggpattern` for polygons with missing data. Default is "stripe". See [ggpattern](https://coolbutuseless.github.io/package/ggpattern/).
 #' @param suppressed.pattern A theme from `ggpattern` for polygons with suppressed data. Default is "weave". See [ggpattern](https://coolbutuseless.github.io/package/ggpattern/).
 #' @param pattern.spacing A numeric. Passed to `pattern_spacing` argument of`ggpattern::geom_pattern()`. 
+#' @param force A logical. Bypass for mismatching in `geo`, where applicable. Default is FALSE.
 #' 
 #' @export
 
@@ -73,7 +74,8 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
                      alt.text.color = "grey", font.family = "Calibri Light", color.thres = 0.4,
                      include.compass = TRUE, include.scale = TRUE, size.scale.title = 2,
                      size.scale.labels = 0.7, missing.pattern = "stripe", 
-                     suppressed.pattern = "crosshatch", pattern.spacing = 0.02 ){
+                     suppressed.pattern = "crosshatch", pattern.spacing = 0.02,
+                     force = FALSE ){
   
   ## checks ##
   if( eRTG3D::is.sf.3d( d ) ) d <- data.frame( d ) # if `sf` object, keep only attributes table
@@ -218,8 +220,9 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
       
     } else stop( "If `metric` is 'percent', 'count', or 'rate' then `var` must be a binary (or dummy) of class character, factor, or a 1/0 integer." )
     
-    if( sum( is.na( d.agg$denom ) > 0 ) ){ warning( paste0( "NAs detected for denominator in at least one level of `", 
-                                                            id, "`" ) )
+    if( "denom" %in% colnames( d.agg ) ){
+      if( sum( is.na( d.agg$denom ) > 0 ) ){ warning( paste0( "NAs detected for denominator in at least one level of `",                                                       id, "`" ) )
+      }
     }
     
     message( "...Data aggregation DONE" )
@@ -237,18 +240,22 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
   ## call shapefile based on `geo` specification ##
   d.geo <- if( geo == "ward 2022" ){ 
     message( "...Ward (2022 redistricting) shapfile loaded..." )
+    join.col <- "NAMELSAD" # join column
     dc.ward22
     
   } else if( geo == "ward 2012" ){
     message( "...Ward (2012 redistricting) shapfile loaded..." )
+    join.col <- "NAMELSAD" # join column
     dc.ward12
   } else if( geo == "zcta" ){
     message( "...ZCTA (2024) shapfile loaded..." )
+    join.col <- "GEOID20" # join column
+    dc.zcta
   }
   
   ## merge shapes with attributes data in `d.aggr` ##
   
-  # first if wards are desired
+  # wards
   if( geo %in% c( "ward 2022", "ward 2012" ) ){
     
     # first possible pattern
@@ -311,15 +318,37 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
       
     }
     
-    message( "...Merging attributes (i.e., `var`) to shapefile for ward..." )
+    message( "...Merging attributes (i.e., `var`) to shapefile for DC wards..." )
     
+  }
+  
+  # ZCTAs
+  if( geo %in% c( "zcta" ) ){
     
+    # convert to character
+    if( !inherits( d.aggr[[ id ]], "character" ) ){
+        d.aggr[[ id ]] <- as.character( d.aggr[[ id ]] )
+  
+    }
+  
+    # check for missing ZCTA values
+    zctas.miss <- sum( !dc.zcta$GEOID20 %in% d.aggr[[ id ]] )
+    zctas.miss.perc <- 100 * zctas.miss / length( dc.zcta$GEOID20 )
+    
+    if( !force ){
+      if( zctas.miss.perc > 50 ) stop( paste( "Over 50% of DC ZCTAs were not detected in the `",
+                                              id, "` variable. Ensure that ZCTAs are formatted correctly",
+                                              " (e.g., 20009). Use `force = TRUE` to bypass this error." ) )
+    }
+    
+    message( "...Merging attributes (i.e., `var`) to shapefile for DC  ZCTAs..." )
     
   }
   
   ## final merge ##
+  
   d.map <- left_join( d.geo, d.aggr,
-                      by = c( "NAMELSAD" = id ) ) %>% 
+                      by = setNames( object = id, nm = join.col  ) ) %>% 
     # add column for missing data (to be able to add pattern to this polygon)
     mutate( missing_suppressed = ifelse( is.na( out_metric ),
                                          "Missing data", NA ) )
@@ -394,7 +423,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
     ungroup() %>%
     mutate( color_text = ifelse( color_dist > color.thres, text.color,
                                  alt.text.color ) ) %>%
-    select( NAMELSAD, color_dist, fill, color_text )
+    select( !!sym( join.col ), color_dist, fill, color_text )
   
   # continue adding other final layers
   p.out <- p.1 + 
@@ -474,6 +503,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
       nudge_y = dc.surr.counties$label.cty.nudge.y,
       nudge_x = dc.surr.counties$label.cty.nudge.x,
       seed = 34, family = font.family ) +
+    ## `geo` polygon labeling ##
     # DC Ward labels #
     geom_sf_text_repel( 
       mapping = aes( label = NAMELSAD ),

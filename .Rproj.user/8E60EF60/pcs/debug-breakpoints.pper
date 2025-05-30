@@ -2,19 +2,19 @@
     "debugBreakpointsState": {
         "breakpoints": [
             {
-                "id": 1,
-                "path": "~/GitHub/DMADtools/data-raw/data_gen.R",
-                "line_number": 400,
+                "id": 2,
+                "path": "~/GitHub/DMADtools/R/dc_mapr.R",
+                "line_number": 252,
                 "function_steps": "",
-                "function_name": "toplevel",
-                "state": 1,
-                "editor_state": 1,
-                "editor_line_number": 400,
+                "function_name": "dc_mapr",
+                "state": 2,
+                "editor_state": 2,
+                "editor_line_number": 252,
                 "is_pending_debug_completion": false,
                 "needs_updated_steps": true,
-                "type": 1,
-                "is_package_breakpoint": false,
-                "package_name": ""
+                "type": 0,
+                "is_package_breakpoint": true,
+                "package_name": "DMADtools"
             }
         ]
     }
