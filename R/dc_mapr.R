@@ -46,9 +46,9 @@
 #' @param colorbar.high A Hex color code for the fill gradient. The value used for the "high" end of the scale. Default is "#7a1315".
 #' @param colorbar.low A Hex color code for the fill gradient. The value used for the "low" end of the scale. Default is "#f4e2d9".
 #' @param colorbar.h Colorbar height. Default is 0.6.
-#' @param colorbar.w Colorbar width Default is 10.
+#' @param colorbar.w Colorbar width. Default is 10.
 #' @param colorbar.direction  Colorbar direction. Default is "horizontal".
-#' @param colorbar.position  Colorbar label position Default is "bottom".
+#' @param colorbar.position  Colorbar label position. Default is "bottom".
 #' @param colorbar.name A string. Name to show beside the colorbar. Default is NULL (i.e., no name displayed).
 #' @param text.color Text color. Default is "black".
 #' @param alt.text.color An alternate text color, for when fill color and text color are too similar. Default is "grey".
