@@ -2,49 +2,19 @@
     "debugBreakpointsState": {
         "breakpoints": [
             {
-                "id": 0,
-                "path": "~/GitHub/DMADtools/R/data_gen.R",
-                "line_number": 84,
-                "function_steps": "",
-                "function_name": "toplevel",
-                "state": 1,
-                "editor_state": 1,
-                "editor_line_number": 84,
-                "is_pending_debug_completion": false,
-                "needs_updated_steps": true,
-                "type": 1,
-                "is_package_breakpoint": false,
-                "package_name": ""
-            },
-            {
-                "id": 1,
-                "path": "~/GitHub/DMADtools/R/data_gen.R",
-                "line_number": 105,
-                "function_steps": "",
-                "function_name": "toplevel",
-                "state": 1,
-                "editor_state": 1,
-                "editor_line_number": 105,
-                "is_pending_debug_completion": false,
-                "needs_updated_steps": true,
-                "type": 1,
-                "is_package_breakpoint": false,
-                "package_name": ""
-            },
-            {
                 "id": 2,
-                "path": "~/GitHub/DMADtools/R/data_gen.R",
-                "line_number": 118,
-                "function_steps": "",
-                "function_name": "toplevel",
+                "path": "~/GitHub/DMADtools/R/dc_mapr.R",
+                "line_number": 252,
+                "function_steps": "14,3,4,4,3,3",
+                "function_name": "dc_mapr",
                 "state": 1,
                 "editor_state": 1,
-                "editor_line_number": 118,
+                "editor_line_number": 252,
                 "is_pending_debug_completion": false,
-                "needs_updated_steps": true,
-                "type": 1,
-                "is_package_breakpoint": false,
-                "package_name": ""
+                "needs_updated_steps": false,
+                "type": 0,
+                "is_package_breakpoint": true,
+                "package_name": "DMADtools"
             }
         ]
     }

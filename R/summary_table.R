@@ -31,7 +31,7 @@
 #' @param d A data frame or tibble. Data must be the exact subset of data that needs to analyzed for the table generation.
 #' @param var1 A string. Name of first variable to stratify on (as it appears in the input data, `d`). Cannot be  `NULL`.
 #' @param var2 A string. Name of second variable to stratify on (as it appears in the input data, `d`). Can be `NULL` if only one variable is required and there is no cross-tabulation or if `table.grouping` and `var1` are specified for a cross-tabulation instead.
-#' @param metric A vector of string(s). One or two of: "percent", "rate", "count". Can dplyr::select up to two options to plot at maximum.
+#' @param metric A vector of string(s). One or two of: "percent", "rate", "count". Can select up to two options to plot at maximum.
 #' @param table.grouping A string or `NULL` (if no grouping in table is desired). Name of variable to create grouped output table with (creates grouping rows in the table). Can be 1 variable at maximum.
 #' @param pop.var A string or `NULL`. Variable in `d` with population count data for computing rates if "rate" is selected in `metric`. This is normally an aggregate variable.
 #' @param add.summary.col A logical. Add a row with unaggregated results (based on `var2`). Note that this argument is inconsequential if `var2 == NULL`.
@@ -53,7 +53,7 @@
 #' @param rate.supp An integer or  `NULL` if suppression of rates where the count the rate is based off is less than some threshold. Any cells with rates based on counts less than or equal to `rate.supp` will be suppressed. default is `NULL`.
 #' @param count.supp.symbol A string. The character to display in the table where the count is suppressed.
 #' @param rate.supp.symbol A string. The character to display in the table where the rate is suppressed.
-#' @param per A numeric. The denominator "per" value to use for computing rates. Default is per `1000` (e.g., 25 births per 1,000 individuals).
+#' @param per A numeric. The numerator "per" value to use for computing rates. Default is per `1000` (e.g., 25 births per 1,000 individuals).
 #' @param NAs.footnote A logical. Include footnotes detailing number of missing values in the dataset based on `var1` and `var2`?
 #' @param percentages.rel A string. One of "var1" or "var2" or "table.grouping". Is the variables with which percentages should be calculated with respect to. `table.grouping` can only be specified if only `var1` is specified and `var2 == NULL`.
 #' @param include.percent.sign A logical. Include percent (\%) sign in computed percent columns? 

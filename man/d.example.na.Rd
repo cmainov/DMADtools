@@ -3,7 +3,7 @@
 \docType{data}
 \name{d.example.na}
 \alias{d.example.na}
-\title{Test data for examples in the summary_table function.}
+\title{Test data for examples in the `summary_table` function.}
 \format{
 `d.example.na`
 \describe{
@@ -20,6 +20,6 @@ A data frame with 45 rows and 19 columns:
 d.example.na
 }
 \description{
-Test data for examples in the summary_table function.
+Test data for examples in the `summary_table` function.
 }
 \keyword{datasets}
