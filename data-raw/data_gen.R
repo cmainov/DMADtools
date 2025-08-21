@@ -6,6 +6,9 @@ library( tidyverse )
 library( sf )
 library( truncnorm )
 
+#' importFrom("stats", "rnorm")
+#' importFrom("utils", "tail")
+
 ## NOTE: use `usethis::use_data_raw()` to create the data-raw folder and write to .Rbuildignore
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------

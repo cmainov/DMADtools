@@ -86,7 +86,7 @@ dc_mapr(
 
 \item{font.family}{A string with the font desired for text on the map. Default is "Calibri Light".}
 
-\item{color.thres}{A numeric. A threshold value (in \link{0,1}) for judging similarity of fill color and text color. Default is 0.4}
+\item{color.thres}{A numeric. A threshold value (in (0,1)) for judging similarity of fill color and text color. Default is 0.4}
 
 \item{include.compass}{A logical. Include reference compass rose on map? Default is TRUE.}
 

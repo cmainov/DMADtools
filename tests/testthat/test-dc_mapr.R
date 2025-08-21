@@ -1,6 +1,6 @@
 
 test_that( "basic no errors call", {
-  extrafont::loadfonts(device = "win")
+  
   
   expect_no_error( dc_mapr(
     d = d.ward,
@@ -16,7 +16,7 @@ test_that( "basic no errors call", {
 } )
 
 test_that( "create a missing value for ward 8", {
-  extrafont::loadfonts(device = "win")
+  
   
   expect_no_error( dc_mapr(
     d = d.ward %>% 
@@ -33,7 +33,7 @@ test_that( "create a missing value for ward 8", {
 } )
 
 test_that( "count map", {
-  extrafont::loadfonts(device = "win")
+  
   
   expect_no_error( dc_mapr(
     d = d.ward,
@@ -50,7 +50,7 @@ test_that( "count map", {
 
 
 test_that( "suppression and missing values", {
-  extrafont::loadfonts(device = "win")
+  
   
   
 d.new <- d.ward %>% 

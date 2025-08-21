@@ -55,7 +55,7 @@
 #' @param text.color Text color. Default is "black".
 #' @param alt.text.color An alternate text color, for when fill color and text color are too similar. Default is "grey".
 #' @param font.family A string with the font desired for text on the map. Default is "Calibri Light".
-#' @param color.thres A numeric. A threshold value (in [0,1]) for judging similarity of fill color and text color. Default is 0.4
+#' @param color.thres A numeric. A threshold value (in (0,1)) for judging similarity of fill color and text color. Default is 0.4
 #' @param include.compass A logical. Include reference compass rose on map? Default is TRUE.
 #' @param include.scale A logical. Include reference scale rose on map? Default is TRUE.
 #' @param size.scale.title A numeric. Scaling parameter for title sizing on map.
