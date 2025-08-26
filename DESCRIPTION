@@ -16,5 +16,5 @@ Depends:
     R (>= 3.5),
     plyr
 Imports: dplyr, eRTG3D, magrittr, stringr, flextable, officer, tidyr, tibble, rlang, purrr,
-    sf, ggplot2, ggpattern, ggspatial, ggsflabel, english, ggpubr
+    sf, ggplot2, ggpattern, ggspatial, ggsflabel, english, ggpubr, tidymar, conflicted
 LazyData: true
