@@ -1,17 +1,29 @@
 
-tmp_geojson <- tempfile(fileext = ".geojson")
-download.file(
-  "https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Location_WebMercator/FeatureServer/0/query?outFields=*&where=1%3D1&f=geojson",
-  tmp_geojson
-)
 
-# Let's read the downloaded geoJson file with the sf library:
-library(sf)
-my_sf <- read_sf(tmp_geojson)
+###---------------------------------------------------------------
+###  `validate_address_dc`: Validate a vector of DC Addresses
+###---------------------------------------------------------------
 
+#' @md
+#' @title Validate a vector of Washington, D.C. Addresses
+#'
+#' @description A vectorized function to validate dc addresses (a wrapper for 
+#' `tidymar::find_location()` ).
+#'
+#' # Citation for tidymar::find_location():
+#' Gupta, H. (n.d.). tidymar: An R interface to DC’s Master Address Repository [R package]. GitHub. Retrieved from https://github.com/hersh-gupta/tidymar. Accessed on August 26, 2025.
+#' 
+#' @import purrr
+#' 
+#' @details
+#' This wrapper function uses the `tidymar::find_location()` to validate whether an address exists in the District of Columbia’s Master Address Repository (MAR). Please note that the District of Columbia address should contain the quadrant (e.g., NW, SW, etc.). Otherwise, the address will return as invalid.
+#'  
+#' @param address A string vector of addresses. 
+#' 
+#' @returns An integer vector is returned. If the address was detected in the District of Columbia’s MAR, then a `1` is returned. If the address was not detected, a `0` is returned.
+#' 
+#' @export
 
-# a vectorized function to validate dc addresses (a wrapper for 
-# tidymar::find_location() )
 validate_address_dc <- function( address ){
   
   purrr::map_int( .x = address,
@@ -31,9 +43,29 @@ validate_address_dc <- function( address ){
 }
 
 
+###---------------------------------------------------------------
+###  `mar2_find`: Validate a vector of DC Addresses
+###---------------------------------------------------------------
 
-validate_address_dc( address = my_sf$ADDRESS[1:24] )
-
+#' @md
+#' @title Validate a vector of Washington, D.C. Addresses
+#'
+#' @description A vectorized function to validate dc addresses (a wrapper for 
+#' `tidymar::find_location()` ).
+#'
+#' # Citation for tidymar::find_location():
+#' Gupta, H. (n.d.). tidymar: An R interface to DC’s Master Address Repository [R package]. GitHub. Retrieved from https://github.com/hersh-gupta/tidymar. Accessed on August 26, 2025.
+#' 
+#' @import purrr
+#' 
+#' @details
+#' This wrapper function uses the `tidymar::find_location()` to validate whether an address exists in the District of Columbia’s Master Address Repository (MAR). Please note that the District of Columbia address should contain the quadrant (e.g., NW, SW, etc.). Otherwise, the address will return as invalid.
+#'  
+#' @param address A string vector of addresses. 
+#' 
+#' @returns An integer vector is returned. If the address was detected in the District of Columbia’s MAR, then a `1` is returned. If the address was not detected, a `0` is returned.
+#' 
+#' @export
 
 mar2_find <- function( address, field = "WARD" ){
 
