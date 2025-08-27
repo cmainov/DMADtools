@@ -3,24 +3,24 @@
 \docType{data}
 \name{d.zcta}
 \alias{d.zcta}
-\title{ZCTA Test data for examples in the `dc_mapr` function.}
+\title{ZCTA Test data for examples in the \code{dc_mapr} function.}
 \format{
-`d.zcta`
+\code{d.zcta}
 \describe{
 A data frame with 5000 rows and 7 columns:
-  \item{id}{An integer. The unique id}.
-  \item{zcta}{A character variable. The DC ZIP code tabulation area code.}
-  \item{age}{A numeric variable. The age of the observation.}
-  \item{cat}{A character variable. Three levels (Cat 1:3)}
-  \item{bin}{A character variable. Two levels ("Binary 1" "Binary 2")}
-  \item{bin_other}{An integer variable. Two levels (1, 0)}
-  \item{zcta_pop}{An integer variable. The ZCTA population count.}
+\item{id}{An integer. The unique id}.
+\item{zcta}{A character variable. The DC ZIP code tabulation area code.}
+\item{age}{A numeric variable. The age of the observation.}
+\item{cat}{A character variable. Three levels (Cat 1:3)}
+\item{bin}{A character variable. Two levels ("Binary 1" "Binary 2")}
+\item{bin_other}{An integer variable. Two levels (1, 0)}
+\item{zcta_pop}{An integer variable. The ZCTA population count.}
 }
 }
 \usage{
 d.zcta
 }
 \description{
-ZCTA Test data for examples in the `dc_mapr` function.
+ZCTA Test data for examples in the \code{dc_mapr} function.
 }
 \keyword{datasets}

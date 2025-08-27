@@ -2,7 +2,7 @@
 % Please edit documentation in R/summary_table.R
 \name{summary_table}
 \alias{summary_table}
-\title{Generate "Nice" `flextable` From Input Data}
+\title{Generate "Nice" \code{flextable} From Input Data}
 \usage{
 summary_table( d, var1, var2 = NULL, table.grouping = NULL, pop.var = NULL,
 add.summary.row = TRUE, summary.row.name = NULL, add.summary.col = TRUE, font.family = "Calibri Light",
@@ -15,19 +15,19 @@ row.variable.labels = "default", col.variable.labels = "default", row.variable.c
 \arguments{
 \item{d}{A data frame or tibble. Data must be the exact subset of data that needs to analyzed for the table generation.}
 
-\item{var1}{A string. Name of first variable to stratify on (as it appears in the input data, `d`). Cannot be  `NULL`.}
+\item{var1}{A string. Name of first variable to stratify on (as it appears in the input data, \code{d}). Cannot be  \code{NULL}.}
 
-\item{var2}{A string. Name of second variable to stratify on (as it appears in the input data, `d`). Can be `NULL` if only one variable is required and there is no cross-tabulation or if `table.grouping` and `var1` are specified for a cross-tabulation instead.}
+\item{var2}{A string. Name of second variable to stratify on (as it appears in the input data, \code{d}). Can be \code{NULL} if only one variable is required and there is no cross-tabulation or if \code{table.grouping} and \code{var1} are specified for a cross-tabulation instead.}
 
-\item{table.grouping}{A string or `NULL` (if no grouping in table is desired). Name of variable to create grouped output table with (creates grouping rows in the table). Can be 1 variable at maximum.}
+\item{table.grouping}{A string or \code{NULL} (if no grouping in table is desired). Name of variable to create grouped output table with (creates grouping rows in the table). Can be 1 variable at maximum.}
 
-\item{pop.var}{A string or `NULL`. Variable in `d` with population count data for computing rates if "rate" is selected in `metric`. This is normally an aggregate variable.}
+\item{pop.var}{A string or \code{NULL}. Variable in \code{d} with population count data for computing rates if "rate" is selected in \code{metric}. This is normally an aggregate variable.}
 
-\item{add.summary.row}{A logical. Add a row with unaggregated results (based on `var1`). `TRUE` is default and the name given to the row is "Summary Row". If another name is desired, it can be specified with `summary.row.name` and its order/position can be specified with the `order.rows` argument.}
+\item{add.summary.row}{A logical. Add a row with unaggregated results (based on \code{var1}). \code{TRUE} is default and the name given to the row is "Summary Row". If another name is desired, it can be specified with \code{summary.row.name} and its order/position can be specified with the \code{order.rows} argument.}
 
-\item{summary.row.name}{A string. Name to appear for summary row label. Default is "Summary Row". This option is only relevant if `add.summary.row == TRUE`.}
+\item{summary.row.name}{A string. Name to appear for summary row label. Default is "Summary Row". This option is only relevant if \code{add.summary.row == TRUE}.}
 
-\item{add.summary.col}{A logical. Add a row with unaggregated results (based on `var2`). Note that this argument is inconsequential if `var2 == NULL`.}
+\item{add.summary.col}{A logical. Add a row with unaggregated results (based on \code{var2}). Note that this argument is inconsequential if \code{var2 == NULL}.}
 
 \item{font.family}{A string with the font desired, to be applied to all sections of the table.}
 
@@ -35,64 +35,64 @@ row.variable.labels = "default", col.variable.labels = "default", row.variable.c
 
 \item{digs.rate}{An integer. Digits to round rates to.}
 
-\item{summary.col.name}{A string. Name to appear for summary column header. Default is "All". This option is only relevant if `add.summary.col == TRUE`.}
+\item{summary.col.name}{A string. Name to appear for summary column header. Default is "All". This option is only relevant if \code{add.summary.col == TRUE}.}
 
-\item{summary.col.pos}{One of "front", "end", or an integer >= 0 and < the number of all levels of the categories in `var2` + 1.  Only a relevant argument if `length( var2 ) > 1` & `add.summary.col` is `TRUE`.}
+\item{summary.col.pos}{One of "front", "end", or an integer >= 0 and < the number of all levels of the categories in \code{var2} + 1.  Only a relevant argument if \code{length( var2 ) > 1} & \code{add.summary.col} is \code{TRUE}.}
 
-\item{order.rows}{A vector with the levels in custom order of the stratifying variable in the rows(typically `var1` but can also be `table.grouping` depending on how the function is specified). Entries must match levels of stratifying variable exactly. If there are any levels of the row variable missing, they are omitted from the final table. Note that any rows removed from the final table do not remove that level from the data itself. If desired, that must be done outside the function with a data step. If multiple variables are listed in `var1`, then a named list with the variables specified in `var1` as the entry names and a character string with the desired order of each of those variable levels should be specified.}
+\item{order.rows}{A vector with the levels in custom order of the stratifying variable in the rows(typically \code{var1} but can also be \code{table.grouping} depending on how the function is specified). Entries must match levels of stratifying variable exactly. If there are any levels of the row variable missing, they are omitted from the final table. Note that any rows removed from the final table do not remove that level from the data itself. If desired, that must be done outside the function with a data step. If multiple variables are listed in \code{var1}, then a named list with the variables specified in \code{var1} as the entry names and a character string with the desired order of each of those variable levels should be specified.}
 
-\item{order.cols}{A vector with the levels in custom order of the stratifying variable in the columns (typically `var2` but can also be `table.grouping` depending on how the function is specified). Must match the columns in the final table including the summary column name if `add.summary.col == TRUE` and `summary.col.name` is specified. If there are any levels of the column variable missing, they are omitted from the final table.}
+\item{order.cols}{A vector with the levels in custom order of the stratifying variable in the columns (typically \code{var2} but can also be \code{table.grouping} depending on how the function is specified). Must match the columns in the final table including the summary column name if \code{add.summary.col == TRUE} and \code{summary.col.name} is specified. If there are any levels of the column variable missing, they are omitted from the final table.}
 
-\item{order.groups}{A vector with the levels in custom order of the grouping variable in the columns. Must match the grouping variable (`table.grouping`) names in the final table. if there are any levels of the grouping variable missing, they are omitted from the final table. the orders of the rows within the group are preserved as indicated in `order.rows`. this argument is only valid if `!is.null( var2 ) & !is.null( table.grouping )`.}
+\item{order.groups}{A vector with the levels in custom order of the grouping variable in the columns. Must match the grouping variable (\code{table.grouping}) names in the final table. if there are any levels of the grouping variable missing, they are omitted from the final table. the orders of the rows within the group are preserved as indicated in \code{order.rows}. this argument is only valid if \code{!is.null( var2 ) & !is.null( table.grouping )}.}
 
 \item{foot.lines}{A vector with entries (strings) corresponding to each footline to be added to the table.}
 
-\item{table.title}{A string. Name of table to display as the title. `NULL` is default for no title in the table.}
+\item{table.title}{A string. Name of table to display as the title. \code{NULL} is default for no title in the table.}
 
 \item{metric}{A vector of string(s). One or two of: "percent", "rate", "count". Can select up to two options to plot at maximum.}
 
-\item{nm.var1}{A string. Name of `var1` that you would like to appear in the table. `NULL` is default, which prompts the column name as it is written in the input dataset, `d`.}
+\item{nm.var1}{A string. Name of \code{var1} that you would like to appear in the table. \code{NULL} is default, which prompts the column name as it is written in the input dataset, \code{d}.}
 
-\item{count.supp}{an integer or  `NULL` if suppression of counts below a certain threshold is desired, specify the integer value. Any cells with counts less than or equal to `count.supp` will be suppressed. default is `NULL`.}
+\item{count.supp}{an integer or  \code{NULL} if suppression of counts below a certain threshold is desired, specify the integer value. Any cells with counts less than or equal to \code{count.supp} will be suppressed. default is \code{NULL}.}
 
-\item{remove.cols}{A string. The string is fed to `dplyr::select( -contains( remove.cols` ) )` to remove undesired columns from the final table. Should be based off of columns seen in final generated table.}
+\item{remove.cols}{A string. The string is fed to \verb{dplyr::select( -contains( remove.cols} ) )` to remove undesired columns from the final table. Should be based off of columns seen in final generated table.}
 
-\item{rate.supp}{An integer or  `NULL` if suppression of rates where the count the rate is based off is less than some threshold. Any cells with rates based on counts less than or equal to `rate.supp` will be suppressed. default is `NULL`.}
+\item{rate.supp}{An integer or  \code{NULL} if suppression of rates where the count the rate is based off is less than some threshold. Any cells with rates based on counts less than or equal to \code{rate.supp} will be suppressed. default is \code{NULL}.}
 
 \item{count.supp.symbol}{A string. The character to display in the table where the count is suppressed.}
 
 \item{rate.supp.symbol}{A string. The character to display in the table where the rate is suppressed.}
 
-\item{per}{A numeric. The numerator "per" value to use for computing rates. Default is per `1000` (e.g., 25 births per 1,000 individuals).}
+\item{per}{A numeric. The numerator "per" value to use for computing rates. Default is per \code{1000} (e.g., 25 births per 1,000 individuals).}
 
-\item{NAs.footnote}{A logical. Include footnotes detailing number of missing values in the dataset based on `var1` and `var2`?}
+\item{NAs.footnote}{A logical. Include footnotes detailing number of missing values in the dataset based on \code{var1} and \code{var2}?}
 
-\item{percentages.rel}{A string. One of "var1" or "var2" or "table.grouping". Is the variables with which percentages should be calculated with respect to. `table.grouping` can only be specified if only `var1` is specified and `var2 == NULL`.}
+\item{percentages.rel}{A string. One of "var1" or "var2" or "table.grouping". Is the variables with which percentages should be calculated with respect to. \code{table.grouping} can only be specified if only \code{var1} is specified and \code{var2 == NULL}.}
 
-\item{include.percent.sign}{A logical. Include percent (\%) sign in computed percent columns?}
+\item{include.percent.sign}{A logical. Include percent (\\%) sign in computed percent columns?}
 
-\item{row.variable.labels}{"default", "none" or a named list with the variables specified in `var1` as the entry names and a character string with the desired label for that variable in the rows.  If "default", the default variable names (i.e., those listed in `var1` are printed). If "none", no labels are printed. Default is "default".}
+\item{row.variable.labels}{"default", "none" or a named list with the variables specified in \code{var1} as the entry names and a character string with the desired label for that variable in the rows.  If "default", the default variable names (i.e., those listed in \code{var1} are printed). If "none", no labels are printed. Default is "default".}
 
-\item{col.variable.labels}{"default", "none" or a named list with the variables specified in `var2` as the entry names and a character string with the desired label for that variable in the columns  If "default", the default variable names (i.e., those listed in `var2` are printed). If "none", no labels are printed. Default is "default".}
+\item{col.variable.labels}{"default", "none" or a named list with the variables specified in \code{var2} as the entry names and a character string with the desired label for that variable in the columns  If "default", the default variable names (i.e., those listed in \code{var2} are printed). If "none", no labels are printed. Default is "default".}
 
-\item{row.variable.col}{A string Hex code or color code for the background in the label row or "none". This argument is only relevant if `length( var1 ) > 1` (i.e., multiple variables are desired in the rows of the table). Default is "#eed8a4". If "none" the default `flextable::theme_zebra` theme is used for that row.}
+\item{row.variable.col}{A string Hex code or color code for the background in the label row or "none". This argument is only relevant if \code{length( var1 ) > 1} (i.e., multiple variables are desired in the rows of the table). Default is "#eed8a4". If "none" the default \code{flextable::theme_zebra} theme is used for that row.}
 }
 \value{
 Object of class \code{list} containing the following elements:
 
-`flextable`: An object of class `flextable` that produces the "nice" flextable.
+\code{flextable}: An object of class \code{flextable} that produces the "nice" flextable.
 
-`frame`: An object of class `data.frame` that contains the dataset fed to `flextable` for final tabulation.
+\code{frame}: An object of class \code{data.frame} that contains the dataset fed to \code{flextable} for final tabulation.
 
-NOTE: In the final output table (`flextable`), levels of `var1` appear in the rows and levels of `var2` appear in the columns if only `var1` and `var2` are specified. If `var1` and `table.grouping`
-are only specified, then levels of `var1` appear in the columns and levels of `table.grouping` appear in the rows. If `var1`, `var2`, and `table.grouping` are specified, then levels of `var1` 
-appear in the rows, levels of `var2` appear in the columns, and levels of `table.grouping` appear as nested rows that group the table.
+NOTE: In the final output table (\code{flextable}), levels of \code{var1} appear in the rows and levels of \code{var2} appear in the columns if only \code{var1} and \code{var2} are specified. If \code{var1} and \code{table.grouping}
+are only specified, then levels of \code{var1} appear in the columns and levels of \code{table.grouping} appear in the rows. If \code{var1}, \code{var2}, and \code{table.grouping} are specified, then levels of \code{var1}
+appear in the rows, levels of \code{var2} appear in the columns, and levels of \code{table.grouping} appear as nested rows that group the table.
 }
 \description{
 Create a "nice" publication-level table by cross-tabulating up to three variables at once.
 }
 \details{
-Employs `flextable` to generate a "nice" publication-level table that can be easily exported or included in R Rmarkdown (.RMD) files.
+Employs \code{flextable} to generate a "nice" publication-level table that can be easily exported or included in R Rmarkdown (.RMD) files.
 }
 \examples{
 

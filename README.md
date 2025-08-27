@@ -3,7 +3,7 @@
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/cmainov/DMADtools/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/cmainov/DMADtools/actions/workflows/R-CMD-check.yaml)
 [![Codecov test coverage](https://codecov.io/gh/cmainov/DMADtools/graph/badge.svg)](https://app.codecov.io/gh/cmainov/DMADtools)
-`r lifecycle::badge('experimental')`
+#' `r lifecycle::badge('experimental')`
 <!-- badges: end -->
   
 Functions and data analysis tools.
