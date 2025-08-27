@@ -69,7 +69,7 @@ row.variable.labels = "default", col.variable.labels = "default", row.variable.c
 
 \item{percentages.rel}{A string. One of "var1" or "var2" or "table.grouping". Is the variables with which percentages should be calculated with respect to. \code{table.grouping} can only be specified if only \code{var1} is specified and \code{var2 == NULL}.}
 
-\item{include.percent.sign}{A logical. Include percent (\\%) sign in computed percent columns?}
+\item{include.percent.sign}{A logical. Include percent (\%) sign in computed percent columns?}
 
 \item{row.variable.labels}{"default", "none" or a named list with the variables specified in \code{var1} as the entry names and a character string with the desired label for that variable in the rows.  If "default", the default variable names (i.e., those listed in \code{var1} are printed). If "none", no labels are printed. Default is "default".}
 

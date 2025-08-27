@@ -56,7 +56,7 @@
 #' @param per A numeric. The numerator "per" value to use for computing rates. Default is per `1000` (e.g., 25 births per 1,000 individuals).
 #' @param NAs.footnote A logical. Include footnotes detailing number of missing values in the dataset based on `var1` and `var2`?
 #' @param percentages.rel A string. One of "var1" or "var2" or "table.grouping". Is the variables with which percentages should be calculated with respect to. `table.grouping` can only be specified if only `var1` is specified and `var2 == NULL`.
-#' @param include.percent.sign A logical. Include percent (\%) sign in computed percent columns? 
+#' @param include.percent.sign A logical. Include percent (%) sign in computed percent columns? 
 #' @param row.variable.labels "default", "none" or a named list with the variables specified in `var1` as the entry names and a character string with the desired label for that variable in the rows.  If "default", the default variable names (i.e., those listed in `var1` are printed). If "none", no labels are printed. Default is "default".
 #' @param col.variable.labels "default", "none" or a named list with the variables specified in `var2` as the entry names and a character string with the desired label for that variable in the columns  If "default", the default variable names (i.e., those listed in `var2` are printed). If "none", no labels are printed. Default is "default".
 #' @param row.variable.col A string Hex code or color code for the background in the label row or "none". This argument is only relevant if `length( var1 ) > 1` (i.e., multiple variables are desired in the rows of the table). Default is "#eed8a4". If "none" the default `flextable::theme_zebra` theme is used for that row.

@@ -1,7 +1,7 @@
 Package: DMADtools
 Type: Package
 Title: Functions and tools for health data analysis
-Version: 0.1
+Version: 3.0.2
 Date: 2025-03-21
 Author: Christian Maino Vieytes (DMAD/CPPE DC Health)
 Maintainer: Christian Maino Vieytes <christian.maino-vieytes@dc.gov>
@@ -33,8 +33,7 @@ Imports:
     english,
     ggpubr,
     tidymar,
-    plyr,
-    lifecycle
+    plyr
 Remotes: yutannihilation/ggsflabel,
     hersh-gupta/tidymar
 LazyData: true
