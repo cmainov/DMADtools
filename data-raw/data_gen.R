@@ -630,6 +630,7 @@ if( !file.exists( "./R/sysdata.rda" ) ){
                      dc.ward12, # 2012 ward boundaries shapefile
                      dc.ward22, # 2022 ward boundaries shapefile
                      dc.zcta,
+                     compress = "xz",
                      internal = TRUE,
                      overwrite = TRUE,
                      version = 3 )
