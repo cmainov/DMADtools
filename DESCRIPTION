@@ -14,8 +14,28 @@ Suggests:
 Config/testthat/edition: 3
 Depends: 
     R (>= 3.5)
-Imports: dplyr, eRTG3D, magrittr, stringr, flextable, officer, tidyr, tibble, rlang, purrr,
-    sf, ggplot2, ggpattern, ggspatial, ggsflabel, english, ggpubr, tidymar, plyr
+Imports: 
+    dplyr,
+    eRTG3D,
+    magrittr,
+    stringr,
+    flextable,
+    officer,
+    tidyr,
+    tibble,
+    rlang,
+    purrr,
+    sf,
+    ggplot2,
+    ggpattern,
+    ggspatial,
+    ggsflabel,
+    english,
+    ggpubr,
+    tidymar,
+    plyr,
+    lifecycle
 Remotes: yutannihilation/ggsflabel,
     hersh-gupta/tidymar
 LazyData: true
+Roxygen: list(markdown = TRUE)
