@@ -13,8 +13,9 @@ Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Depends: 
-    R (>= 3.5),
-    plyr
+    R (>= 3.5)
 Imports: dplyr, eRTG3D, magrittr, stringr, flextable, officer, tidyr, tibble, rlang, purrr,
-    sf, ggplot2, ggpattern, ggspatial, ggsflabel, english, ggpubr, tidymar, conflicted
+    sf, ggplot2, ggpattern, ggspatial, ggsflabel, english, ggpubr, tidymar, plyr
+Remotes: yutannihilation/ggsflabel,
+    hersh-gupta/tidymar
 LazyData: true

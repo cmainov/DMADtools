@@ -22,7 +22,6 @@
 #' @import ggspatial
 #' @importFrom ggsflabel geom_sf_text_repel
 #' @import english
-#' @import conflicted
 #' @importFrom plyr round_any 
 #' 
 #' @details
