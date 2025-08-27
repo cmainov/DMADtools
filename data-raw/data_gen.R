@@ -439,7 +439,7 @@ if( !file.exists( "./R/sysdata.rda" ) ){
                                                                                 ifelse( NAMELSAD == "Ward 7", 0.01, 
                                                                                         ifelse( NAMELSAD == "Ward 8", 0.019, 
                                                                                                 0 )))))))),
-            labelward.segcolor = ifelse( mar_ward %in% c( paste0( "Ward ", 1:8 ) ), "transparent",
+            labelward.segcolor = ifelse( NAMELSAD %in% c( paste0( "Ward ", 1:8 ) ), "transparent",
                                          "navyblue" ) ) 
   
   # ---------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -536,15 +536,16 @@ if( !file.exists( "./R/sysdata.rda" ) ){
                        file.nm.zip ) )
   
   # read in shapefile
-  dc.zcta <- sf::st_read( paste0( "./data/", "/data-public/dc-zcta-shapefiles/",
+  dc.zcta.load <- sf::st_read( paste0( "./data/", "/data-public/dc-zcta-shapefiles/",
                                     file.nm.shp ) ) %>% 
     st_as_sf() %>% 
-    st_transform( crs = crs.projec ) %>% 
-    # now spatially intersect with DC boundary to get only ZCTAs needed for map
-    st_intersection( dc.st, dc.zcta %>% 
-                       filter( str_sub( GEOID20, start = 1, end = 2 )
-                               %in% c( "20", "56" ) ) ) %>% 
-  # nudging 
+    st_transform( crs = crs.projec )
+    
+  # now spatially intersect with DC boundary to get only ZCTAs needed for map
+  dc.zcta <- st_intersection( dc.st, dc.zcta.load %>% 
+                                filter( str_sub( GEOID20, start = 1, end = 2 )
+                                        %in% c( "20", "56" ) ) ) %>% 
+    # nudging 
     mutate( 
             labelzip = ifelse(  ALAND20 >= 4474404 |
                                   ( GEOID20 == "20057" ) |
@@ -631,7 +632,7 @@ if( !file.exists( "./R/sysdata.rda" ) ){
                      dc.zcta,
                      internal = TRUE,
                      overwrite = TRUE,
-                     version = 2 )
+                     version = 3 )
   
   # remove folder with raw data since it won't be needed
   unlink( paste0( "./data/", "/data-public/" ),
