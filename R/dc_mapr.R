@@ -20,8 +20,9 @@
 #' @import eRTG3D
 #' @import tidyr
 #' @import ggspatial
-#' @import ggsflabel
+#' @importFrom ggsflabel geom_sf_text_repel
 #' @import english
+#' @import conflicted
 #' @importFrom plyr round_any 
 #' 
 #' @details
@@ -78,6 +79,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
                      size.scale.labels = 0.7, missing.pattern = "stripe", 
                      suppressed.pattern = "crosshatch", pattern.spacing = 0.02,
                      force = FALSE ){
+
   
   ## checks ##
   if( eRTG3D::is.sf.3d( d ) ) d <- data.frame( d ) # if `sf` object, keep only attributes table
@@ -481,7 +483,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
                                                         unit_category = "imperial",
                                                         location = "br" ) } } +
     # Potomac and Anacostia River labels #
-     geom_sf_text_repel( 
+     ggsflabel::geom_sf_text_repel( 
       data = area.water.dc.md.va,
       mapping = aes( label = LABEL_WATER ),
       segment.color = "transparent",
@@ -494,7 +496,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
       angle = area.water.dc.md.va$label.water.angle,
       seed = 34, family = font.family ) +
     # Surrounding County Labels #
-    geom_sf_text_repel( 
+    ggsflabel::geom_sf_text_repel( 
       data = dc.surr.counties,
       mapping = aes( label = LABEL_CTY ),
       segment.color = "transparent",
@@ -508,7 +510,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
     ## `geo` polygon labeling ##
     # DC Ward labels #
     { if( str_detect( geo, "ward" ) ){
-      geom_sf_text_repel( 
+      ggsflabel::geom_sf_text_repel( 
       mapping = aes( label = NAMELSAD ),
       force = 0, # minimized force of repulsion between labels
       size = ( 3.1 + size.scale.labels ),
@@ -520,7 +522,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
     }} +
     # ZCTA labels #
     { if( str_detect( geo, "zcta" ) ){
-      geom_sf_text_repel( 
+      ggsflabel::geom_sf_text_repel( 
         mapping = aes( label = labelzip ),
         segment.color = d.map$labelzip.segcolor,
         colour = d.map$labelzip.txtcol,
