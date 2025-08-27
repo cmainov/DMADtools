@@ -630,7 +630,8 @@ if( !file.exists( "./R/sysdata.rda" ) ){
                      dc.ward22, # 2022 ward boundaries shapefile
                      dc.zcta,
                      internal = TRUE,
-                     overwrite = TRUE )
+                     overwrite = TRUE,
+                     version = 2 )
   
   # remove folder with raw data since it won't be needed
   unlink( paste0( "./data/", "/data-public/" ),
