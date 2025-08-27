@@ -1,4 +1,4 @@
-# DMADtools
+# DMADtools <img src="man/figures/dmadtoolslogo.png" align="right" width="20%" height="20%" />
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/cmainov/DMADtools/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/cmainov/DMADtools/actions/workflows/R-CMD-check.yaml)
