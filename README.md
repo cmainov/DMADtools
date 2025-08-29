@@ -17,6 +17,7 @@ The functions in this package can be used to facilitate data analysis in a publi
 * `dc_mapr`: *Create a "nice" publication-level map of Washington, D.C. by ward (2012 or 2022 redistricting), Zip-Code Tabulation Area (ZCTA), Census tract, or block.*
 
 * Geocoding tools, `validate_address_dc` and `mar2_find`: *wrapper functions for `tidymar::find_location()` that queries the DC’s Master Address Repository (MAR).*
+
 ### Install
 ___
 
