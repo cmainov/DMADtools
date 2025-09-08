@@ -12,7 +12,7 @@ ___
 
 The functions in this package can be used to facilitate data analysis in a public health context.
 
-* `summary_table`: *Generate a "Nice" `flextable`, cross-tabulating up to three variables.*
+* `summary_table`: *Generate a "nice" `flextable`, cross-tabulating up to three variables.*
 
 * `dc_mapr`: *Create a "nice" publication-level map of Washington, D.C. by ward (2012 or 2022 redistricting), Zip-Code Tabulation Area (ZCTA), Census tract, or block.*
 
