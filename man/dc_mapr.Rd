@@ -4,40 +4,17 @@
 \alias{dc_mapr}
 \title{Generate a plain or choropleth map of Washington, D.C.}
 \usage{
-dc_mapr(
-  d,
-  geo,
-  var,
-  id,
-  bypass = FALSE,
-  metric = "percent",
-  pop.var = NULL,
-  percentages.rel = "geo",
-  per = 1000,
-  count.supp = NULL,
-  rate.supp = NULL,
-  colorbar.bins = 5,
-  colorbar.round = 1,
-  colorbar.high = "#7a1315",
-  colorbar.low = "#f4e2d9",
-  colorbar.h = 0.6,
-  colorbar.w = 10,
-  colorbar.position = "bottom",
-  colorbar.direction = "horizontal",
-  colorbar.name = NULL,
-  text.color = "black",
-  alt.text.color = "grey",
-  font.family = "sans",
-  color.thres = 0.4,
-  include.compass = TRUE,
-  include.scale = TRUE,
-  size.scale.title = 2,
-  size.scale.labels = 0.7,
-  missing.pattern = "stripe",
-  suppressed.pattern = "crosshatch",
-  pattern.spacing = 0.02,
-  force = FALSE
-)
+dc_mapr( d, geo, var, id, bypass = FALSE,
+                     metric = "percent", pop.var = NULL, percentages.rel = "geo",
+                     per = 1000, count.supp = NULL, rate.supp = NULL, colorbar.bins = 5, 
+                     colorbar.round = 1, colorbar.high = "#7a1315", colorbar.low = "#f4e2d9",
+                     colorbar.h = 0.6, colorbar.w = 10, colorbar.position = "bottom", color.surr = "antiquewhite",
+                     colorbar.direction = "horizontal", colorbar.name = NULL, text.color = "black", 
+                     alt.text.color = "grey", font.family = "sans", color.thres = 0.4,
+                     include.compass = TRUE, include.scale = TRUE, size.scale.title = 2,
+                     size_scale_labels = 0.7, missing.pattern = "stripe", 
+                     suppressed.pattern = "crosshatch", pattern.spacing = 0.02,
+                    force = FALSE )
 }
 \arguments{
 \item{d}{A data frame or tibble with the attribute data used to fill the shapes.}
@@ -76,6 +53,8 @@ dc_mapr(
 
 \item{colorbar.position}{Colorbar label position. Default is "bottom".}
 
+\item{color.surr}{Surrounding counties and cities fill color. Default is "antiquewhite".}
+
 \item{colorbar.direction}{Colorbar direction. Default is "horizontal".}
 
 \item{colorbar.name}{A string. Name to show beside the colorbar. Default is NULL (i.e., no name displayed).}
@@ -94,7 +73,7 @@ dc_mapr(
 
 \item{size.scale.title}{A numeric. Scaling parameter for title sizing on map.}
 
-\item{size.scale.labels}{A numeric. Scaling parameter for label sizing on map.}
+\item{size_scale_labels}{A numeric. Scaling parameter for label sizing on map.}
 
 \item{missing.pattern}{A theme from \code{ggpattern} for polygons with missing data. Default is "stripe". See \href{https://coolbutuseless.github.io/package/ggpattern/}{ggpattern}.}
 
@@ -121,3 +100,20 @@ U.S. Census Bureau, “2024 TIGER/Line Shapefiles”, 2024,
 accessed on May 29, 2025.
 }
 
+\examples{
+
+library( DMADtools )
+
+dc_mapr(
+    d = d_ward,
+    var = "bin_other",
+    id = "ward",
+    geo = "ward 2022",
+    bypass = FALSE,
+    metric = "percent", pop.var = NULL, 
+    per = 1000, colorbar.bins = 5, colorbar.round = 1,
+    colorbar.high = "#7a1315"
+  )
+
+
+}

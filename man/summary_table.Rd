@@ -98,7 +98,7 @@ Employs \code{flextable} to generate a "nice" publication-level table that can b
 
 library( DMADtools )
 
-summary_table( d = d.example,
+summary_table( d = d_example,
                metric = c( "count", "percent" ),
                var1 = "v1",
                add.summary.row = TRUE,
@@ -108,7 +108,7 @@ summary_table( d = d.example,
 
 
 # alternate percentages.rel argument
-summary_table( d = d.example,
+summary_table( d = d_example,
                metric = c( "count", "percent" ),
                var1 = "v1",
                add.summary.row = TRUE,
@@ -118,7 +118,7 @@ summary_table( d = d.example,
 
 # specify var1 and table.grouping instead of var1 and var2, 
 # note, the change in percentages.rel            
-summary_table( d = d.example,
+summary_table( d = d_example,
                metric = c( "count", "percent" ),
                var1 = "v1",
                table.grouping = "v2",
@@ -127,7 +127,7 @@ summary_table( d = d.example,
                percentages.rel = "table.grouping" )
 
 # rename summary row and column and shuffle column and row orders
-summary_table( d = d.example,
+summary_table( d = d_example,
                metric = c( "count", "percent" ),
                var1 = "v1",
                table.grouping = "v2",
@@ -143,7 +143,7 @@ summary_table( d = d.example,
 
 # same call as previous, but use order.cols and order.rows to remove some 
 # rows and columns from final table
-summary_table( d = d.example,
+summary_table( d = d_example,
                metric = c( "count", "percent" ),
                var1 = "v1",
                table.grouping = "v2",
@@ -158,7 +158,7 @@ summary_table( d = d.example,
                percentages.rel = "table.grouping" )
 
 # use remove.cols instead of order.cols argument for removing an undesired column from final table
-summary_table( d = d.example,
+summary_table( d = d_example,
                metric = c( "count", "rate" ),
                var1 = "v1",
                var2 = "v2",
@@ -169,7 +169,7 @@ summary_table( d = d.example,
                pop.var = "v_pop" )
 
 # rename var1 column header
-summary_table( d = d.example,
+summary_table( d = d_example,
                metric = c( "count", "percent" ),
                var1 = "v1",
                nm.var1 = "Variable 1", # for relabeling the header
@@ -185,7 +185,7 @@ summary_table( d = d.example,
                percentages.rel = "table.grouping" )
 
 # do a 3-way tabulation
-summary_table( d = d.example,
+summary_table( d = d_example,
                metric = c( "count", "percent" ),
                var1 = "v1",
                var2 = "v3",
@@ -195,7 +195,7 @@ summary_table( d = d.example,
                percentages.rel = "var2" )
 
 # use order.groups argument to remove some grouping categories
-summary_table( d = d.example,
+summary_table( d = d_example,
                metric = c( "count", "percent" ),
                var1 = "v1",
                var2 = "v3",
@@ -206,7 +206,7 @@ summary_table( d = d.example,
                percentages.rel = "var2" )
 
 # example with rate computation and add.summary.row and add.summary.col are TRUE
-summary_table( d = d.example,
+summary_table( d = d_example,
                metric = c( "count", "rate" ),
                var1 = "v1",
                var2 = "v2",
@@ -217,7 +217,7 @@ summary_table( d = d.example,
 
 # foot.lines argument and NAs.footnote
 
-summary_table( d = d.example.na,
+summary_table( d = d_example_na,
                metric = c( "count", "percent" ),
                var1 = "v1",
                var2 = "v2",
@@ -232,7 +232,7 @@ summary_table( d = d.example.na,
                pop.var = "v_pop" ) 
 
 # add rate suppression rule
-summary_table( d = d.example.na,
+summary_table( d = d_example_na,
                metric = c( "count", "rate" ),
                var1 = "v1",
                var2 = "v2",
@@ -249,7 +249,7 @@ summary_table( d = d.example.na,
                pop.var = "v_pop" ) 
 
 # give it a title
-summary_table( d = d.example.na,
+summary_table( d = d_example_na,
                metric = c( "count", "rate" ),
                var1 = "v1",
                var2 = "v2",
@@ -267,7 +267,7 @@ summary_table( d = d.example.na,
                table.title = "This is Table 1" ) # title
                
 # when providing more than 1 variable for the rows
-summary_table( d = d.example,
+summary_table( d = d_example,
                metric = c( "count", "percent" ),
                var1 = c( "v1", "v3" ),
                order.rows = list( v1 = c( "Geo 2", "Geo 3", "Geo 1" ),
@@ -281,7 +281,7 @@ summary_table( d = d.example,
                pop.var = "v_pop" )
         
 # use of  `row.variable.labels`     
-summary_table( d = d.example,
+summary_table( d = d_example,
                metric = c( "count", "percent" ),
                var1 = c( "v1", "v3" ),
                order.rows = list( v1 = c( "Geo 2", "Geo 3", "Geo 1" ),

@@ -92,7 +92,7 @@ mar2_find <- function( address, field = "WARD" ){
 }
 
 #' @export
-#' @method validate_address_dc character
+#' @method mar2_find character
 
 mar2_find.character <- function( address, field = "WARD" ){
 

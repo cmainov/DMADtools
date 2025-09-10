@@ -24,6 +24,17 @@
 #' @import english
 #' @importFrom plyr round_any 
 #' 
+#' @usage dc_mapr( d, geo, var, id, bypass = FALSE,
+#'                      metric = "percent", pop.var = NULL, percentages.rel = "geo",
+#'                      per = 1000, count.supp = NULL, rate.supp = NULL, colorbar.bins = 5, 
+#'                      colorbar.round = 1, colorbar.high = "#7a1315", colorbar.low = "#f4e2d9",
+#'                      colorbar.h = 0.6, colorbar.w = 10, colorbar.position = "bottom", color.surr = "antiquewhite",
+#'                      colorbar.direction = "horizontal", colorbar.name = NULL, text.color = "black", 
+#'                      alt.text.color = "grey", font.family = "sans", color.thres = 0.4,
+#'                      include.compass = TRUE, include.scale = TRUE, size.scale.title = 2,
+#'                      size_scale_labels = 0.7, missing.pattern = "stripe", 
+#'                      suppressed.pattern = "crosshatch", pattern.spacing = 0.02,
+#'                     force = FALSE )
 #' @details
 #' Attribute data in `d` (see below) should be organized by ward, ZIP-code tabulation area (ZCTA), census tract, or block. 
 #' The following DC geographies can be plotted using this function.
@@ -51,6 +62,7 @@
 #' @param colorbar.w Colorbar width. Default is 10.
 #' @param colorbar.direction  Colorbar direction. Default is "horizontal".
 #' @param colorbar.position  Colorbar label position. Default is "bottom".
+#' @param color.surr Surrounding counties and cities fill color. Default is "antiquewhite".
 #' @param colorbar.name A string. Name to show beside the colorbar. Default is NULL (i.e., no name displayed).
 #' @param text.color Text color. Default is "black".
 #' @param alt.text.color An alternate text color, for when fill color and text color are too similar. Default is "grey".
@@ -65,13 +77,29 @@
 #' @param pattern.spacing A numeric. Passed to `pattern_spacing` argument of`ggpattern::geom_pattern()`. 
 #' @param force A logical. Bypass for mismatching in `geo`, where applicable. Default is FALSE.
 #' 
+#' @examples
+#' 
+#' library( DMADtools )
+#' 
+#' dc_mapr(
+#'     d = d_ward,
+#'     var = "bin_other",
+#'     id = "ward",
+#'     geo = "ward 2022",
+#'     bypass = FALSE,
+#'     metric = "percent", pop.var = NULL, 
+#'     per = 1000, colorbar.bins = 5, colorbar.round = 1,
+#'     colorbar.high = "#7a1315"
+#'   )
+#' 
+#'
 #' @export
 
 dc_mapr <- function( d, geo, var, id, bypass = FALSE,
                      metric = "percent", pop.var = NULL, percentages.rel = "geo",
                      per = 1000, count.supp = NULL, rate.supp = NULL, colorbar.bins = 5, 
                      colorbar.round = 1, colorbar.high = "#7a1315", colorbar.low = "#f4e2d9",
-                     colorbar.h = 0.6, colorbar.w = 10, colorbar.position = "bottom", 
+                     colorbar.h = 0.6, colorbar.w = 10, colorbar.position = "bottom", color.surr = "antiquewhite",
                      colorbar.direction = "horizontal", colorbar.name = NULL, text.color = "black", 
                      alt.text.color = "grey", font.family = "sans", color.thres = 0.4,
                      include.compass = TRUE, include.scale = TRUE, size.scale.title = 2,
@@ -415,7 +443,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
     geom_sf( aes( fill = out_metric ) ) + 
     scale_fill_gradient( name = colorbar.name, low = colorbar.low, high = colorbar.high, 
                          guide = "colorbar", breaks = brks_nr, 
-                         labels = pretty.num( brks_nr, round.to = 1 ) ) 
+                         labels = pretty_num( brks_nr, round.to = 1 ) ) 
   
   # extract colors assigned to each level and compute distance metrics on text vs fill colors
   d_fill <- bind_cols( p_1$data,
@@ -442,7 +470,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
                                                  "Suppressed" ),
                                      guide = guide_legend( title = NULL )) +
     geom_sf( data = dc_surr_counties,
-                          fill = "antiquewhite",
+                          fill = color.surr,
                           color = "gray67") +
     geom_sf( data = area_water_dc_md_va %>% 
                filter( STATE != "11" ), fill = "aliceblue", 

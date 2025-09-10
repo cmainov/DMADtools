@@ -15,7 +15,7 @@
 
 #' Test data for examples in the `summary_table` function.
 #'
-#' @format `d_example.na`
+#' @format `d_example_na`
 #' \describe{
 #' A data frame with 45 rows and 19 columns:
 #'   \item{v1}{A character variable. Three levels (Geo 1, Geo 2, Geo 3)}
@@ -26,7 +26,7 @@
 #'   \item{v_pop}{An integer variable. The example population count.}
 #' }
 #'
-"d_example.na"
+"d_example_na"
 
 #'  Ward Test data for examples in the `dc_mapr` function.
 #'

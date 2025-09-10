@@ -7,16 +7,16 @@
 ## Function for pretty numbers (comma at thousands place) ##
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------
 
-pretty.num <- function(x, round.to = NULL ){
+pretty_num <- function(x, round.to = NULL ){
   # dependencies: stringr
   
-  if( !is.null( round.to ) ) x.rounded <- sprintf( "%0.1f", round( x, digits = round.to ) ) else x.rounded <- x
+  if( !is.null( round.to ) ) x_rounded <- sprintf( "%0.1f", round( x, digits = round.to ) ) else x_rounded <- x
   
-  p <- prettyNum( x.rounded, big.mark = ",", scientific = FALSE )
+  p <- prettyNum( x_rounded, big.mark = ",", scientific = FALSE )
   
-  p.out <- str_remove( p, "\\s+" ) # remove all lingering white space
+  p_out <- str_remove( p, "\\s+" ) # remove all lingering white space
   
-  return( p.out )
+  return( p_out )
   
 }
 
