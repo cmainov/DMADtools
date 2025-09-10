@@ -12,7 +12,10 @@
 #' Gupta, H. (n.d.). tidymar: An R interface to DC’s Master Address Repository (R package). GitHub. Retrieved from https://github.com/hersh-gupta/tidymar. Accessed on August 26, 2025.
 #' 
 #' @usage validate_address_dc( address )
-#' @importFrom purrr map_int
+#' @importFrom furrr future_map_int
+#' @importFrom parallelly availableCores
+#' @importFrom future plan
+#' @importFrom future multisession
 #' 
 #' @details
 #' This wrapper function uses the `tidymar::find_location()` to validate whether an address exists in the District of Columbia’s Master Address Repository (MAR). Please note that the District of Columbia address should contain the quadrant (e.g., NW, SW, etc.). Otherwise, the address will return as invalid.
@@ -36,7 +39,12 @@ validate_address_dc <- function( address ){
 #' @method validate_address_dc character
 
 validate_address_dc.character <- function( address ){
-  purrr::map_int( .x = address,
+
+# set up multi-core processing
+old_plan <- future::plan()
+future::plan( future::multisession, workers = parallelly::availableCores() )
+  
+  y <- furrr::future_map_int( .x = address,
                   .f = function( address ){ 
                     tryCatch(
                       {
@@ -50,6 +58,11 @@ validate_address_dc.character <- function( address ){
                   },
                   
                   .progress = TRUE )
+  
+  on.exit( future::plan( old_plan ), add = TRUE)
+
+  # reset future plan to system default
+  return( y )
 }
 
 
@@ -67,7 +80,10 @@ validate_address_dc.character <- function( address ){
 #' 
 #' @usage mar2_find( address, field = "WARD" )
 #' 
-#' @importFrom purrr map_chr
+#' @importFrom furrr future_map_int
+#' @importFrom parallelly availableCores
+#' @importFrom future plan
+#' @importFrom future multisession
 #' 
 #' @details
 #' This wrapper function uses the `tidymar::find_location()` to extract a field from the `tibble` returned after querying the District of Columbia’s Master Address Repository (MAR) via the `tidymar::find_location()` interface.
@@ -96,8 +112,11 @@ mar2_find <- function( address, field = "WARD" ){
 
 mar2_find.character <- function( address, field = "WARD" ){
 
-  
-  purrr::map_chr( .x = address,
+  # set up multi-core processing
+old_plan <- future::plan()
+future::plan( future::multisession, workers = parallelly::availableCores() )
+ 
+  y <- furrr::future_map_chr( .x = address,
                   .f = function( address ){ 
                     tryCatch(
                       {
@@ -115,6 +134,12 @@ mar2_find.character <- function( address, field = "WARD" ){
                   
                   .progress = TRUE )
   
+    on.exit( future::plan( old_plan ), add = TRUE)
+
+  # reset future plan to system default
+  return( y )
 }
+  
+
 
 
