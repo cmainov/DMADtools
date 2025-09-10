@@ -27,10 +27,17 @@
 #' 
 #' @export
 
+
 validate_address_dc <- function( address ){
-  
+  UseMethod( "validate_address_dc")
+}
+
+#' @export
+#' @method validate_address_dc character
+
+validate_address_dc.character <- function( address ){
   purrr::map_int( .x = address,
-                  .f = function( address){ 
+                  .f = function( address ){ 
                     tryCatch(
                       {
                         if( !is.na( tidymar::find_location( address )$MARID ) ) 1
@@ -81,10 +88,17 @@ validate_address_dc <- function( address ){
 #' @export
 
 mar2_find <- function( address, field = "WARD" ){
+  UseMethod( "mar2_find" )
+}
+
+#' @export
+#' @method validate_address_dc character
+
+mar2_find.character <- function( address, field = "WARD" ){
 
   
   purrr::map_chr( .x = address,
-                  .f = function( address){ 
+                  .f = function( address ){ 
                     tryCatch(
                       {
                         

@@ -24,13 +24,13 @@ source( "R/utils.R" )
 ## (1.0.0) Function: `summary_table`   ##
 ##-------------------------------------##
 
-if( !file.exists( "./data/d.example.rda" ) ){
+if( !file.exists( "./data/d_example.rda" ) ){
   ## (1.1.0) Generate Conditional Categorical Data ##
   # --------------------------------------------------------------------------------------------------------------------------------------------------------
   
   set.seed( 425 ) # set seed for reproducibility given stochastic nature of sampling
   
-  d.example <- data.frame()
+  d_example <- data.frame()
   
   for( i in 1:500 ){
     
@@ -39,7 +39,7 @@ if( !file.exists( "./data/d.example.rda" ) ){
                   replace = TRUE,
                   prob = c( 0.33, 0.5, 0.17 ) )
     
-    v1.label <- c( "Geo 1", "Geo 2", "Geo 3" )[ v1 ]
+    v1_label <- c( "Geo 1", "Geo 2", "Geo 3" )[ v1 ]
     
     # variable 2
     v2 <- sample( x = c( 1:4 ), size = 1,
@@ -49,14 +49,14 @@ if( !file.exists( "./data/d.example.rda" ) ){
                     else if( v1 == 2 ) c( 0.3, 0.4, 0.2, 0.1 ) 
                     else if( v1 == 3 ) c( 0.5, 0.2, 0.2, 0.1 ) } )
     
-    v2.label <- c( "Char 1", "Char 2", "Char 3", "Char 3" )[ v2 ]
+    v2_label <- c( "Char 1", "Char 2", "Char 3", "Char 3" )[ v2 ]
     
     # variable 3
     v3 <- sample( x = c( 1:3 ), size = 1,
                   replace = TRUE,
                   prob = c( 0.52, 0.24, 0.24 ) )
     
-    v3.label <- c( "Other Char 1", "Other Char 2", "Other Char 3" )[ v3 ]
+    v3_label <- c( "Other Char 1", "Other Char 2", "Other Char 3" )[ v3 ]
     
     # variable 4
     
@@ -66,7 +66,7 @@ if( !file.exists( "./data/d.example.rda" ) ){
                     else if( v1 == 2 ) c( 0.3, 0.4 ) 
                     else if( v1 == 3 ) c( 0.5, 0.5 ) } )
     
-    v4.label <- c( "Y", "N" )[ v4 ]
+    v4_label <- c( "Y", "N" )[ v4 ]
     
     # variable 4
     
@@ -76,15 +76,15 @@ if( !file.exists( "./data/d.example.rda" ) ){
                     else if( v1 == 2 ) c( 0.7, 0.3 ) 
                     else if( v1 == 3 ) c( 0.6, 0.4 ) } )
     
-    v5.label <- c( "Y", "N" )[ v5 ]
+    v5_label <- c( "Y", "N" )[ v5 ]
     
     # assign to `data.frame` and bind
-    d.example <- rbind( d.example,
-                        data.frame( v1 = v1.label,
-                                    v2 = v2.label,
-                                    v3 = v3.label,
-                                    v4 = v4.label,
-                                    v5 = v5.label) )
+    d_example <- rbind( d_example,
+                        data.frame( v1 = v1_label,
+                                    v2 = v2_label,
+                                    v3 = v3_label,
+                                    v4 = v4_label,
+                                    v5 = v5_label) )
     
     
   }
@@ -101,13 +101,13 @@ if( !file.exists( "./data/d.example.rda" ) ){
   # assign population data for computing rates (aggregate variable)
   set.seed( 5789 )
   
-  pop.1 <- sample( 50000:60000, size = 1 )
-  pop.2 <- sample( 350000:360000, size = 1 )
-  pop.3 <- sample( 70000:860000, size = 1 )
+  pop_1 <- sample( 50000:60000, size = 1 )
+  pop_2 <- sample( 350000:360000, size = 1 )
+  pop_3 <- sample( 70000:860000, size = 1 )
   
-  d.example$v_pop <- ifelse( d.example$v1 == "Geo 1", pop.1,
-                             ifelse( d.example$v1 == "Geo 2", pop.2,
-                                     ifelse( d.example$v1 == "Geo 3", pop.3,
+  d_example$v_pop <- ifelse( d_example$v1 == "Geo 1", pop_1,
+                             ifelse( d_example$v1 == "Geo 2", pop_2,
+                                     ifelse( d_example$v1 == "Geo 3", pop_3,
                                              NA ) ) )
   
   # --------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -119,9 +119,9 @@ if( !file.exists( "./data/d.example.rda" ) ){
   # to test `NAs.footnote` in `summary_table`
   
   # generate a separate dataset with missing data
-  d.example.na <- d.example
+  d_example_na <- d_example
   
-  d.example.na[ sample( 1:nrow( d.example.na ), size = 9 ), "v2" ] <- NA # introduce 9 NAs randomly 
+  d_example_na[ sample( 1:nrow( d_example_na ), size = 9 ), "v2" ] <- NA # introduce 9 NAs randomly 
   
   # --------------------------------------------------------------------------------------------------------------------------------------------------------
   
@@ -129,7 +129,7 @@ if( !file.exists( "./data/d.example.rda" ) ){
   ## (1.4.0) Save example data for export ##
   # --------------------------------------------------------------------------------------------------------------------------------------------------------
   
-  usethis::use_data( d.example, d.example.na, version = 2,
+  usethis::use_data( d_example, d_example_na, version = 2,
                      overwrite = TRUE ) # this creates the `/data` folder and stores the individual datasets in that directory
   
   # --------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -141,7 +141,7 @@ if( !file.exists( "./data/d.example.rda" ) ){
 ## (2.0.0) Function: `dc_mapr`         ##
 ##-------------------------------------##
 
-crs.projec <- 4326 # the CRS we use for maps; we will use WGS84 as the default for all maps
+crs_projec <- 4326 # the CRS we use for maps; we will use WGS84 as the default for all maps
 
 if( !file.exists( "./R/sysdata.rda" ) ){
   
@@ -150,7 +150,7 @@ if( !file.exists( "./R/sysdata.rda" ) ){
   
   yr <- 2024 # year of data to download
   
-  fips.to.use <- c( "11001", # Washington, DC
+  fips_to_use <- c( "11001", # Washington, DC
                     "24031", # Montgomery County, MD
                     "24033", # Prince George's County, MD
                     "51013", # Arlington County, VA
@@ -160,47 +160,47 @@ if( !file.exists( "./R/sysdata.rda" ) ){
   dir.create( "./data/data-public" )
   
   # this query is by county FIPS code and so we loop with `Map`
-  linear.water.download <- Map( function( yr, fips ){
+  linear_water_download <- Map( function( yr, fips ){
     
     # download file into repository
-    file.nm.zip <- paste0( "tl_", yr, "_", fips, "_linearwater.zip" )
-    file.nm.out <- paste0( "tl_", yr, "_", fips, "_linearwater" )
-    file.nm.shp <- paste0( "tl_", yr, "_", fips, "_linearwater/",
+    file_nm_zip <- paste0( "tl_", yr, "_", fips, "_linearwater.zip" )
+    file_nm_out <- paste0( "tl_", yr, "_", fips, "_linearwater" )
+    file_nm_shp <- paste0( "tl_", yr, "_", fips, "_linearwater/",
                            paste0( "tl_", yr, "_", fips, "_linearwater.shp" ) )
     
     ## hydrology files
-    url.1 <- paste0( "https://www2.census.gov/geo/tiger/TIGER", yr,
+    url_1 <- paste0( "https://www2.census.gov/geo/tiger/TIGER", yr,
                      "/LINEARWATER/tl_", yr, "_", fips, "_linearwater.zip" )
     
     
-    download.file( url.1, destfile = paste0( "./data/", "/data-public/linear-hydrology-shapefiles/",
-                                             file.nm.zip ) )
+    download.file( url_1, destfile = paste0( "./data/", "/data-public/linear-hydrology-shapefiles/",
+                                             file_nm_zip ) )
     
     # unzip file in repository
-    unzip( paste0( "./data/", "/data-public/linear-hydrology-shapefiles/", file.nm.zip ), 
+    unzip( paste0( "./data/", "/data-public/linear-hydrology-shapefiles/", file_nm_zip ), 
            exdir = paste0( "./data/", "/data-public/linear-hydrology-shapefiles/",
-                           file.nm.out ) )
+                           file_nm_out ) )
     
     # remove compressed file from download
     file.remove( paste0( "./data/", "/data-public/linear-hydrology-shapefiles/",
-                         file.nm.zip ) )
+                         file_nm_zip ) )
     
     # read in shapefile
     sf::st_read( paste0( "./data/", "/data-public/linear-hydrology-shapefiles/",
-                         file.nm.shp ) ) %>%
+                         file_nm_shp ) ) %>%
       mutate( GEOID = fips )
     
-  }, yr = yr, fips = fips.to.use
+  }, yr = yr, fips = fips_to_use
   ) 
   
-  linear.water.dc.md.va <- linear.water.download %>% 
+  linear_water_dc_md_va <- linear_water_download %>% 
     do.call( "rbind", . ) %>% 
     mutate( LABEL_WATER = ifelse( GEOID == "11001" & str_detect( FULLNAME, "Potomac R" ),
                                   "Potomac River",
                                   ifelse( GEOID == "11001" & str_detect( FULLNAME, "Anacostia R" ),
                                           "Anacostia River", NA ) ) ) %>% 
     st_as_sf() %>% 
-    st_transform( crs = crs.projec )
+    st_transform( crs = crs_projec )
   
   unlink( paste0( "./data/", "/data-public/linear-hydrology-shapefiles/" ),
           recursive = TRUE )
@@ -212,59 +212,59 @@ if( !file.exists( "./R/sysdata.rda" ) ){
   # ---------------------------------------------------------------------------------------------------------------------------------------------------------
   
   # this query is by county FIPS code and so we loop with `Map`
-  area.water.download <- Map( function( yr, fips ){
+  area_water_download <- Map( function( yr, fips ){
     
     # download file into repository
-    file.nm.zip <- paste0( "tl_", yr, "_", fips, "_areawater.zip" )
-    file.nm.out <- paste0( "tl_", yr, "_", fips, "_areawater" )
-    file.nm.shp <- paste0( "tl_", yr, "_", fips, "_areawater/",
+    file_nm_zip <- paste0( "tl_", yr, "_", fips, "_areawater.zip" )
+    file_nm_out <- paste0( "tl_", yr, "_", fips, "_areawater" )
+    file_nm_shp <- paste0( "tl_", yr, "_", fips, "_areawater/",
                            paste0( "tl_", yr, "_", fips, "_areawater.shp" ) )
     
     ## hydrology files
-    url.1 <- paste0( "https://www2.census.gov/geo/tiger/TIGER", yr,
+    url_1 <- paste0( "https://www2.census.gov/geo/tiger/TIGER", yr,
                      "/AREAWATER/tl_", yr, "_", fips, "_areawater.zip" )
     
     
-    download.file( url.1, destfile = paste0( "./data/", "/data-public/area-hydrology-shapefiles/",
-                                             file.nm.zip ) )
+    download.file( url_1, destfile = paste0( "./data/", "/data-public/area-hydrology-shapefiles/",
+                                             file_nm_zip ) )
     
     # unzip file in repository
-    unzip( paste0( "./data/", "/data-public/area-hydrology-shapefiles/", file.nm.zip ), 
+    unzip( paste0( "./data/", "/data-public/area-hydrology-shapefiles/", file_nm_zip ), 
            exdir = paste0( "./data/", "/data-public/area-hydrology-shapefiles/",
-                           file.nm.out ) )
+                           file_nm_out ) )
     
     # remove compressed file from download
     file.remove( paste0( "./data/", "/data-public/area-hydrology-shapefiles/",
-                         file.nm.zip ) )
+                         file_nm_zip ) )
     
     # read in shapefile
     sf::st_read( paste0( "./data/", "/data-public/area-hydrology-shapefiles/",
-                         file.nm.shp ) ) %>%
+                         file_nm_shp ) ) %>%
       mutate( GEOID = fips,
               STATE = str_sub( fips, start = 1, end = 2 ) )
     
-  }, yr = yr, fips = fips.to.use
+  }, yr = yr, fips = fips_to_use
   ) 
   
-  area.water.dc.md.va <- area.water.download %>%
+  area_water_dc_md_va <- area_water_download %>%
     do.call( "rbind", . ) %>% 
     mutate( LABEL_WATER = ifelse( GEOID == "11001" & str_detect( FULLNAME, "Potomac R" ),
                                   "Potomac River",
                                   ifelse( GEOID == "11001" & str_detect( FULLNAME, "Anacostia R" ),
                                           "Anacostia River", NA ) ) ) %>% 
     st_as_sf() %>% 
-    st_transform( crs = crs.projec ) %>% 
+    st_transform( crs = crs_projec ) %>% 
     # nudging
     filter( MTFCC == "H3010" ) %>% # only rivers and creeks
-    mutate( label.water.txtsize = ifelse( LABEL_WATER == "Potomac River", 2.9,
+    mutate( label_water_txtsize = ifelse( LABEL_WATER == "Potomac River", 2.9,
                                           ifelse( LABEL_WATER == "Anacostia River", 1.8, NA ) ),
-            label.water.txtcol= ifelse( LABEL_WATER == "Potomac River", "gray50",
+            label_water_txtcol= ifelse( LABEL_WATER == "Potomac River", "gray50",
                                         ifelse( LABEL_WATER == "Anacostia River", "gray40", NA ) ),
-            label.water.nudge.y = ifelse( LABEL_WATER == "Potomac River", -0.03,
+            label_water_nudge_y = ifelse( LABEL_WATER == "Potomac River", -0.03,
                                           ifelse( LABEL_WATER == "Anacostia River", -0.0108, NA ) ),
-            label.water.nudge.x = ifelse( LABEL_WATER == "Potomac River", 0.0029,
+            label_water_nudge_x = ifelse( LABEL_WATER == "Potomac River", 0.0029,
                                           ifelse( LABEL_WATER == "Anacostia River", -0.018, NA ) ),
-            label.water.angle = ifelse( LABEL_WATER == "Potomac River", 78,
+            label_water_angle = ifelse( LABEL_WATER == "Potomac River", 78,
                                         ifelse( LABEL_WATER == "Anacostia River", 31.4, NA ) ) ) %>%
     # remove some waterways from following counties to make map less messy
     filter( !GEOID %in% c( "51013", # Arlington County, VA
@@ -281,35 +281,35 @@ if( !file.exists( "./R/sysdata.rda" ) ){
   # ---------------------------------------------------------------------------------------------------------------------------------------------------------
   
   
-  url.state <- paste0( "https://www2.census.gov/geo/tiger/TIGER", yr,
+  url_state <- paste0( "https://www2.census.gov/geo/tiger/TIGER", yr,
                        "/STATE/tl_", yr, "_us_state.zip" )
   
   # download file into repository
-  file.nm.zip <- paste0( "tl_", yr, "_us_state.zip" )
-  file.nm.out <- paste0( "tl_", yr, "_us_state" )
-  file.nm.shp <- paste0( "tl_", yr, "_us_state/",
+  file_nm_zip <- paste0( "tl_", yr, "_us_state.zip" )
+  file_nm_out <- paste0( "tl_", yr, "_us_state" )
+  file_nm_shp <- paste0( "tl_", yr, "_us_state/",
                          paste0( "tl_", yr, "_us_state.shp" ) )
   
   dir.create( paste0( "./data/", "/data-public/dc-boundary-shapefiles/" ) )
   
-  download.file( url.state, destfile = paste0( "./data/", "/data-public/dc-boundary-shapefiles/",
-                                               file.nm.zip ) )
+  download.file( url_state, destfile = paste0( "./data/", "/data-public/dc-boundary-shapefiles/",
+                                               file_nm_zip ) )
   
   # unzip file in repository
-  unzip( paste0( "./data/", "/data-public/dc-boundary-shapefiles/", file.nm.zip ), 
+  unzip( paste0( "./data/", "/data-public/dc-boundary-shapefiles/", file_nm_zip ), 
          exdir = paste0( "./data/", "/data-public/dc-boundary-shapefiles/",
-                         file.nm.out ) )
+                         file_nm_out ) )
   
   # remove compressed file from download
   file.remove( paste0( "./data/", "/data-public/dc-boundary-shapefiles/",
-                       file.nm.zip ) )
+                       file_nm_zip ) )
   
   # read in shapefile
-  dc.st <- sf::st_read( paste0( "./data/", "/data-public/dc-boundary-shapefiles/",
-                                file.nm.shp ) ) %>%
+  dc_st <- sf::st_read( paste0( "./data/", "/data-public/dc-boundary-shapefiles/",
+                                file_nm_shp ) ) %>%
     filter( STATEFP == "11" ) %>% 
     st_as_sf() %>% 
-    st_transform( crs = crs.projec )
+    st_transform( crs = crs_projec )
   
   unlink( paste0( "./data/", "/data-public/dc-boundary-shapefiles/" ),
           recursive = TRUE )
@@ -321,32 +321,32 @@ if( !file.exists( "./R/sysdata.rda" ) ){
   # ---------------------------------------------------------------------------------------------------------------------------------------------------------
   
   
-  url.county <- paste0( "https://www2.census.gov/geo/tiger/TIGER", yr,
+  url_county <- paste0( "https://www2.census.gov/geo/tiger/TIGER", yr,
                         "/COUNTY/tl_", yr, "_us_county.zip" )
   
   # download file into repository
-  file.nm.zip <- paste0( "tl_", yr, "_us_county.zip" )
-  file.nm.out <- paste0( "tl_", yr, "_us_county" )
-  file.nm.shp <- paste0( "tl_", yr, "_us_county/",
+  file_nm_zip <- paste0( "tl_", yr, "_us_county.zip" )
+  file_nm_out <- paste0( "tl_", yr, "_us_county" )
+  file_nm_shp <- paste0( "tl_", yr, "_us_county/",
                          paste0( "tl_", yr, "_us_county.shp" ) )
   
   dir.create( paste0( "./data/", "/data-public/surrounding-counties-shapefiles/" ) )
   
-  download.file( url.county, destfile = paste0( "./data/", "/data-public/surrounding-counties-shapefiles/",
-                                                file.nm.zip ) )
+  download.file( url_county, destfile = paste0( "./data/", "/data-public/surrounding-counties-shapefiles/",
+                                                file_nm_zip ) )
   
   # unzip file in repository
-  unzip( paste0( "./data/", "/data-public/surrounding-counties-shapefiles/", file.nm.zip ), 
+  unzip( paste0( "./data/", "/data-public/surrounding-counties-shapefiles/", file_nm_zip ), 
          exdir = paste0( "./data/", "/data-public/surrounding-counties-shapefiles/",
-                         file.nm.out ) )
+                         file_nm_out ) )
   
   # remove compressed file from download
   file.remove( paste0( "./data/", "/data-public/surrounding-counties-shapefiles/",
-                       file.nm.zip ) )
+                       file_nm_zip ) )
   
   # read in shapefile
-  dc.surr.counties <- sf::st_read( paste0( "./data/", "/data-public/surrounding-counties-shapefiles/",
-                                           file.nm.shp ) ) %>%
+  dc_surr_counties <- sf::st_read( paste0( "./data/", "/data-public/surrounding-counties-shapefiles/",
+                                           file_nm_shp ) ) %>%
     filter( GEOID %in% c( "24031", # Montgomery County, MD
                           "24033", # Prince George's County, MD
                           "24033", # Prince George's County, MD
@@ -359,25 +359,25 @@ if( !file.exists( "./R/sysdata.rda" ) ){
             LABEL_CTY = paste0( NAMELSAD, " (", STATE, ")" ) ) %>%
     mutate( LABEL_CTY = add_new_lines( dat = .$LABEL_CTY, n = 2 ) ) %>% 
     st_as_sf() %>% 
-    st_transform( crs = crs.projec ) %>%
+    st_transform( crs = crs_projec ) %>%
     # nudging of labels
     mutate( 
-      label.cty = paste0( NAMELSAD, " (", STATE, ")" ),
-      label.cty.nudge.y = ifelse( str_detect( NAMELSAD, "Arlington" ),
+      label_cty = paste0( NAMELSAD, " (", STATE, ")" ),
+      label_cty_nudge_y = ifelse( str_detect( NAMELSAD, "Arlington" ),
                                   -0.015, 
                                   ifelse( str_detect( NAMELSAD, "Montgomery" ),
                                           -0.162, 
                                           ifelse( str_detect( NAMELSAD, "Prince George" ),
                                                   -0.01,
                                                   0 ) ) ),
-      label.cty.nudge.x = ifelse( str_detect( NAMELSAD, "Montgomery" ),
+      label_cty_nudge_x = ifelse( str_detect( NAMELSAD, "Montgomery" ),
                                   0.147,
                                   ifelse( str_detect( NAMELSAD, "Prince George" ),
                                           -0.1, 
                                           ifelse( str_detect( NAMELSAD, "Arlington" ),
                                                   0.01,
-                                                  0 ) ) ) )%>%
-    mutate( label.cty = add_new_lines( dat = .$label.cty, n = 2 ) )
+                                                  0 ) ) ) ) %>%
+    mutate( label_cty = add_new_lines( dat = .$label_cty, n = 2 ) )
   
   unlink( paste0( "./data/", "/data-public/surrounding-counties-shapefiles/" ),
           recursive = TRUE )
@@ -392,36 +392,36 @@ if( !file.exists( "./R/sysdata.rda" ) ){
   
   yr <- 2022
   
-  url.sldu <- paste0( "https://www2.census.gov/geo/tiger/TIGER", yr,
+  url_sldu <- paste0( "https://www2.census.gov/geo/tiger/TIGER", yr,
                       "/SLDU/tl_", yr, "_11_sldu.zip" ) # 11 is DC State FIPS code
   
   # download file into repository
-  file.nm.zip <- paste0( "tl_", yr, "_11_sldu.zip" )
-  file.nm.out <- paste0( "tl_", yr, "_11_sldu" )
-  file.nm.shp <- paste0( "tl_", yr, "_11_sldu/",
+  file_nm_zip <- paste0( "tl_", yr, "_11_sldu.zip" )
+  file_nm_out <- paste0( "tl_", yr, "_11_sldu" )
+  file_nm_shp <- paste0( "tl_", yr, "_11_sldu/",
                          paste0( "tl_", yr, "_11_sldu.shp" ) )
   
   dir.create( paste0( "./data/", "/data-public/dc-ward-shapefiles/" ) )
   
-  download.file( url.sldu, destfile = paste0( "./data/", "/data-public/dc-ward-shapefiles/",
-                                              file.nm.zip ) )
+  download.file( url_sldu, destfile = paste0( "./data/", "/data-public/dc-ward-shapefiles/",
+                                              file_nm_zip ) )
   
   # unzip file in repository
-  unzip( paste0( "./data/", "/data-public/dc-ward-shapefiles/", file.nm.zip ), 
+  unzip( paste0( "./data/", "/data-public/dc-ward-shapefiles/", file_nm_zip ), 
          exdir = paste0( "./data/", "/data-public/dc-ward-shapefiles/",
-                         file.nm.out ) )
+                         file_nm_out ) )
   
   # remove compressed file from download
   file.remove( paste0( "./data/", "/data-public/dc-ward-shapefiles/",
-                       file.nm.zip ) )
+                       file_nm_zip ) )
   
   # read in shapefile
-  dc.ward22 <- sf::st_read( paste0( "./data/", "/data-public/dc-ward-shapefiles/",
-                                    file.nm.shp ) ) %>% 
+  dc_ward22 <- sf::st_read( paste0( "./data/", "/data-public/dc-ward-shapefiles/",
+                                    file_nm_shp ) ) %>% 
     st_as_sf() %>% 
-    st_transform( crs = crs.projec ) %>% 
+    st_transform( crs = crs_projec ) %>% 
     # nudging
-    mutate( ., labelward.nudge.y = ifelse( NAMELSAD == "Ward 1", -0.001,
+    mutate( ., labelward_nudge_y = ifelse( NAMELSAD == "Ward 1", -0.001,
                                            ifelse( NAMELSAD == "Ward 2", 0.01,
                                                    ifelse( NAMELSAD == "Ward 3", 0,
                                                            ifelse( NAMELSAD == "Ward 4", 0,
@@ -430,7 +430,7 @@ if( !file.exists( "./R/sysdata.rda" ) ){
                                                                                    ifelse( NAMELSAD == "Ward 7", 0, 
                                                                                            ifelse( NAMELSAD == "Ward 8", 0.015, 
                                                                                                    0 )))))))),
-            labelward.nudge.x = ifelse( NAMELSAD == "Ward 1", -0.001,
+            labelward_nudge_x = ifelse( NAMELSAD == "Ward 1", -0.001,
                                         ifelse( NAMELSAD == "Ward 2", 0.005,
                                                 ifelse( NAMELSAD == "Ward 3", 0,
                                                         ifelse( NAMELSAD == "Ward 4", 0.01,
@@ -439,7 +439,7 @@ if( !file.exists( "./R/sysdata.rda" ) ){
                                                                                 ifelse( NAMELSAD == "Ward 7", 0.01, 
                                                                                         ifelse( NAMELSAD == "Ward 8", 0.019, 
                                                                                                 0 )))))))),
-            labelward.segcolor = ifelse( NAMELSAD %in% c( paste0( "Ward ", 1:8 ) ), "transparent",
+            labelward_segcolor = ifelse( NAMELSAD %in% c( paste0( "Ward ", 1:8 ) ), "transparent",
                                          "navyblue" ) ) 
   
   # ---------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -452,34 +452,34 @@ if( !file.exists( "./R/sysdata.rda" ) ){
   
   yr <- 2012
   
-  url.sldu <- paste0( "https://www2.census.gov/geo/tiger/TIGER", yr,
+  url_sldu <- paste0( "https://www2.census.gov/geo/tiger/TIGER", yr,
                       "/SLDU/tl_", yr, "_11_sldu.zip" ) # 11 is DC State FIPS code
   
   # download file into repository
-  file.nm.zip <- paste0( "tl_", yr, "_11_sldu.zip" )
-  file.nm.out <- paste0( "tl_", yr, "_11_sldu" )
-  file.nm.shp <- paste0( "tl_", yr, "_11_sldu/",
+  file_nm_zip <- paste0( "tl_", yr, "_11_sldu.zip" )
+  file_nm_out <- paste0( "tl_", yr, "_11_sldu" )
+  file_nm_shp <- paste0( "tl_", yr, "_11_sldu/",
                          paste0( "tl_", yr, "_11_sldu.shp" ) )
   
-  download.file( url.sldu, destfile = paste0( "./data/", "/data-public/dc-ward-shapefiles/",
-                                              file.nm.zip ) )
+  download.file( url_sldu, destfile = paste0( "./data/", "/data-public/dc-ward-shapefiles/",
+                                              file_nm_zip ) )
   
   # unzip file in repository
-  unzip( paste0( "./data/", "/data-public/dc-ward-shapefiles/", file.nm.zip ), 
+  unzip( paste0( "./data/", "/data-public/dc-ward-shapefiles/", file_nm_zip ), 
          exdir = paste0( "./data/", "/data-public/dc-ward-shapefiles/",
-                         file.nm.out ) )
+                         file_nm_out ) )
   
   # remove compressed file from download
   file.remove( paste0( "./data/", "/data-public/dc-ward-shapefiles/",
-                       file.nm.zip ) )
+                       file_nm_zip ) )
   
   # read in shapefile
-  dc.ward12 <- sf::st_read( paste0( "./data/", "/data-public/dc-ward-shapefiles/",
-                                    file.nm.shp ) ) %>% 
+  dc_ward12 <- sf::st_read( paste0( "./data/", "/data-public/dc-ward-shapefiles/",
+                                    file_nm_shp ) ) %>% 
     st_as_sf() %>% 
-    st_transform( crs = crs.projec ) %>% 
+    st_transform( crs = crs_projec ) %>% 
     # nudging
-    mutate( ., labelward.nudge.y = ifelse( NAMELSAD == "Ward 1", -0.002,
+    mutate( ., labelward_nudge_y = ifelse( NAMELSAD == "Ward 1", -0.002,
                                            ifelse( NAMELSAD == "Ward 2", 0.01,
                                                    ifelse( NAMELSAD == "Ward 3", 0,
                                                            ifelse( NAMELSAD == "Ward 4", 0,
@@ -488,7 +488,7 @@ if( !file.exists( "./R/sysdata.rda" ) ){
                                                                                    ifelse( NAMELSAD == "Ward 7", 0, 
                                                                                            ifelse( NAMELSAD == "Ward 8", 0.015, 
                                                                                                    0 )))))))),
-            labelward.nudge.x = ifelse( NAMELSAD == "Ward 1", 0.001,
+            labelward_nudge_x = ifelse( NAMELSAD == "Ward 1", 0.001,
                                         ifelse( NAMELSAD == "Ward 2", 0,
                                                 ifelse( NAMELSAD == "Ward 3", 0,
                                                         ifelse( NAMELSAD == "Ward 4", 0.01,
@@ -497,7 +497,7 @@ if( !file.exists( "./R/sysdata.rda" ) ){
                                                                                 ifelse( NAMELSAD == "Ward 7", 0, 
                                                                                         ifelse( NAMELSAD == "Ward 8", 0.015, 
                                                                                                 0 )))))))),
-            labelward.segcolor = ifelse( NAMELSAD %in% c( paste0( "Ward ", 1:8 ) ), "transparent",
+            labelward_segcolor = ifelse( NAMELSAD %in% c( paste0( "Ward ", 1:8 ) ), "transparent",
                                          "navyblue" ) )
   
   unlink( paste0( "./data/", "/data-public/dc-ward-shapefiles/" ),
@@ -512,106 +512,106 @@ if( !file.exists( "./R/sysdata.rda" ) ){
   
   yr <- 2024
   
-  url.zcta <- paste0( "https://www2.census.gov/geo/tiger/TIGER", yr,
+  url_zcta <- paste0( "https://www2.census.gov/geo/tiger/TIGER", yr,
                       "/ZCTA520/tl_", yr, "_us_zcta520.zip" ) # 11 is DC State FIPS code
   
   # download file into repository
-  file.nm.zip <- paste0( "tl_", yr, "_us_zcta.zip" )
-  file.nm.out <- paste0( "tl_", yr, "_us_zcta" )
-  file.nm.shp <- paste0( "tl_", yr, "_us_zcta/",
+  file_nm_zip <- paste0( "tl_", yr, "_us_zcta.zip" )
+  file_nm_out <- paste0( "tl_", yr, "_us_zcta" )
+  file_nm_shp <- paste0( "tl_", yr, "_us_zcta/",
                          paste0( "tl_", yr, "_us_zcta520.shp" ) )
   
   dir.create( paste0( "./data/", "/data-public/dc-zcta-shapefiles/" ) )
   
-  download.file( url.zcta, destfile = paste0( "./data/", "/data-public/dc-zcta-shapefiles/",
-                                              file.nm.zip ) )
+  download.file( url_zcta, destfile = paste0( "./data/", "/data-public/dc-zcta-shapefiles/",
+                                              file_nm_zip ) )
   
   # unzip file in repository
-  unzip( paste0( "./data/", "/data-public/dc-zcta-shapefiles/", file.nm.zip ), 
+  unzip( paste0( "./data/", "/data-public/dc-zcta-shapefiles/", file_nm_zip ), 
          exdir = paste0( "./data/", "/data-public/dc-zcta-shapefiles/",
-                         file.nm.out ) )
+                         file_nm_out ) )
   
   # remove compressed file from download
   file.remove( paste0( "./data/", "/data-public/dc-zcta-shapefiles/",
-                       file.nm.zip ) )
+                       file_nm_zip ) )
   
   # read in shapefile
-  dc.zcta.load <- sf::st_read( paste0( "./data/", "/data-public/dc-zcta-shapefiles/",
-                                    file.nm.shp ) ) %>% 
+  dc_zcta_load <- sf::st_read( paste0( "./data/", "/data-public/dc-zcta-shapefiles/",
+                                       file_nm_shp ) ) %>% 
     st_as_sf() %>% 
-    st_transform( crs = crs.projec )
-    
+    st_transform( crs = crs_projec )
+  
   # now spatially intersect with DC boundary to get only ZCTAs needed for map
-  dc.zcta <- st_intersection( dc.st, dc.zcta.load %>% 
+  dc_zcta <- st_intersection( dc_st, dc_zcta_load %>% 
                                 filter( str_sub( GEOID20, start = 1, end = 2 )
                                         %in% c( "20", "56" ) ) ) %>% 
     # nudging 
     mutate( 
-            labelzip = ifelse(  ALAND20 >= 4474404 |
-                                  ( GEOID20 == "20057" ) |
-                                  GEOID20 %in% c( "20036", "20037", "20010",
-                                                  "20005", "20006",
-                                                  "20373",
-                                                  "20052",
-                                                  "20064",
-                                                  "20059" ), GEOID20, NA ),
-            labelzip.nudge.y = ifelse( GEOID20 == "20012", -0.006,
-                                       ifelse( GEOID20 == "20017", 0.006,
-                                               ifelse( GEOID20 == "20036", -0.024,
-                                                       ifelse( GEOID20 == "20005", -0.035,
-                                                               ifelse( GEOID20 == "20057", -0.009,
-                                                                       ifelse( GEOID20 == "20008", 0.012, 
-                                                                               ifelse( GEOID20 == "20003", 0.007, 
-                                                                                       ifelse( GEOID20 == "20032", 0.007, 
-                                                                                               ifelse( GEOID20 == "20019", -0.00002, 
-                                                                                                       ifelse( GEOID20 == "20007", 0.01,
-                                                                                                               ifelse( GEOID20 == "20004", -0.03,
-                                                                                                                       ifelse( GEOID20 == "20024", -0.015,
-                                                                                                                               ifelse( GEOID20 == "20015", -0.006,
-                                                                                                                                       ifelse( GEOID20 == "20001", 0.00005,
-                                                                                                                                               ifelse( GEOID20 == "20009", -0.001,
-                                                                                                                                                       ifelse( GEOID20 == "20037", -0.006,
-                                                                                                                                                               ifelse( GEOID20 == "20006", -0.021,
-                                                                                                                                                                       ifelse( GEOID20 == "20373", -0.03,
-                                                                                                                                                                               ifelse( GEOID20 == "20052", -0.0089,
-                                                                                                                                                                                       ifelse( GEOID20 == "20064", 0.008,
-                                                                                                                                                                                               ifelse( GEOID20 == "20059", 0.015,
-                                                                                                                                                                                                       0 ))))))))))))))))))))),
-            labelzip.nudge.x = ifelse( GEOID20 == "20012", 0.003,
-                                       ifelse( GEOID20 == "20036", -0.04,
-                                               ifelse( GEOID20 == "20057", -0.03,
-                                                       ifelse( GEOID20 == "20037", -0.032,
-                                                               ifelse( GEOID20 == "20015", -0.003,
-                                                                       ifelse( GEOID20 == "20001", -0.0001,
-                                                                               ifelse( GEOID20 == "20057", -0.01,
-                                                                                       ifelse( GEOID20 == "20004", -0.04,
-                                                                                               ifelse( GEOID20 == "20024", -0.023,
-                                                                                                       ifelse( GEOID20 == "20016", 0.005,
-                                                                                                               ifelse( GEOID20 == "20019", 0.0008,
-                                                                                                                       ifelse( GEOID20 == "20007", -0.02,
-                                                                                                                               ifelse( GEOID20 == "20032", -0.000002,
-                                                                                                                                       ifelse( GEOID20 == "20009", 0.00005,
-                                                                                                                                               ifelse( GEOID20 == "20005", -0.04,
-                                                                                                                                                       ifelse( GEOID20 == "20008", -0.001, 
-                                                                                                                                                               ifelse( GEOID20 == "20006", -0.039,
-                                                                                                                                                                       ifelse( GEOID20 == "20373", 0.044,
-                                                                                                                                                                               ifelse( GEOID20 == "20052", -0.04,
-                                                                                                                                                                                       ifelse( GEOID20 == "20064", 0.04,
-                                                                                                                                                                                               ifelse( GEOID20 == "20059", 0.068,
-                                                                                                                                                                                                       0 ))))))))))))))))))))),
-            labelzip.segcolor = ifelse( GEOID20 %in% c( "20008",
-                                                        "20007",
-                                                        "20015",
-                                                        "20017",
-                                                        "20012",
-                                                        "20032",
-                                                        "20003" ), "transparent", 
-                                        "navyblue" ),
-            labelzip.txtsize = ifelse( GEOID20 %in% c( "20001", "20009", "20017",
-                                                       "20010" ), 3.1, 
-                                       3.4 ),
-            labelzip.txtcol = ifelse( GEOID20 %in% c( "20032", "20020" ), "gray67", 
-                                      "black" )
+      labelzip = ifelse(  ALAND20 >= 4474404 |
+                            ( GEOID20 == "20057" ) |
+                            GEOID20 %in% c( "20036", "20037", "20010",
+                                            "20005", "20006",
+                                            "20373",
+                                            "20052",
+                                            "20064",
+                                            "20059" ), GEOID20, NA ),
+      labelzip_nudge_y = ifelse( GEOID20 == "20012", -0.006,
+                                 ifelse( GEOID20 == "20017", 0.006,
+                                         ifelse( GEOID20 == "20036", -0.024,
+                                                 ifelse( GEOID20 == "20005", -0.035,
+                                                         ifelse( GEOID20 == "20057", -0.009,
+                                                                 ifelse( GEOID20 == "20008", 0.012, 
+                                                                         ifelse( GEOID20 == "20003", 0.007, 
+                                                                                 ifelse( GEOID20 == "20032", 0.007, 
+                                                                                         ifelse( GEOID20 == "20019", -0.00002, 
+                                                                                                 ifelse( GEOID20 == "20007", 0.01,
+                                                                                                         ifelse( GEOID20 == "20004", -0.03,
+                                                                                                                 ifelse( GEOID20 == "20024", -0.015,
+                                                                                                                         ifelse( GEOID20 == "20015", -0.006,
+                                                                                                                                 ifelse( GEOID20 == "20001", 0.00005,
+                                                                                                                                         ifelse( GEOID20 == "20009", -0.001,
+                                                                                                                                                 ifelse( GEOID20 == "20037", -0.006,
+                                                                                                                                                         ifelse( GEOID20 == "20006", -0.021,
+                                                                                                                                                                 ifelse( GEOID20 == "20373", -0.03,
+                                                                                                                                                                         ifelse( GEOID20 == "20052", -0.0089,
+                                                                                                                                                                                 ifelse( GEOID20 == "20064", 0.008,
+                                                                                                                                                                                         ifelse( GEOID20 == "20059", 0.015,
+                                                                                                                                                                                                 0 ))))))))))))))))))))),
+      labelzip_nudge_x = ifelse( GEOID20 == "20012", 0.003,
+                                 ifelse( GEOID20 == "20036", -0.04,
+                                         ifelse( GEOID20 == "20057", -0.03,
+                                                 ifelse( GEOID20 == "20037", -0.032,
+                                                         ifelse( GEOID20 == "20015", -0.003,
+                                                                 ifelse( GEOID20 == "20001", -0.0001,
+                                                                         ifelse( GEOID20 == "20057", -0.01,
+                                                                                 ifelse( GEOID20 == "20004", -0.04,
+                                                                                         ifelse( GEOID20 == "20024", -0.023,
+                                                                                                 ifelse( GEOID20 == "20016", 0.005,
+                                                                                                         ifelse( GEOID20 == "20019", 0.0008,
+                                                                                                                 ifelse( GEOID20 == "20007", -0.02,
+                                                                                                                         ifelse( GEOID20 == "20032", -0.000002,
+                                                                                                                                 ifelse( GEOID20 == "20009", 0.00005,
+                                                                                                                                         ifelse( GEOID20 == "20005", -0.04,
+                                                                                                                                                 ifelse( GEOID20 == "20008", -0.001, 
+                                                                                                                                                         ifelse( GEOID20 == "20006", -0.039,
+                                                                                                                                                                 ifelse( GEOID20 == "20373", 0.044,
+                                                                                                                                                                         ifelse( GEOID20 == "20052", -0.04,
+                                                                                                                                                                                 ifelse( GEOID20 == "20064", 0.04,
+                                                                                                                                                                                         ifelse( GEOID20 == "20059", 0.068,
+                                                                                                                                                                                                 0 ))))))))))))))))))))),
+      labelzip_segcolor = ifelse( GEOID20 %in% c( "20008",
+                                                  "20007",
+                                                  "20015",
+                                                  "20017",
+                                                  "20012",
+                                                  "20032",
+                                                  "20003" ), "transparent", 
+                                  "navyblue" ),
+      labelzip_txtsize = ifelse( GEOID20 %in% c( "20001", "20009", "20017",
+                                                 "20010" ), 3.1, 
+                                 3.4 ),
+      labelzip_txtcol = ifelse( GEOID20 %in% c( "20032", "20020" ), "gray67", 
+                                "black" )
     )
   
   unlink( paste0( "./data/", "/data-public/dc-zcta-shapefiles/" ),
@@ -623,13 +623,13 @@ if( !file.exists( "./R/sysdata.rda" ) ){
   ## (2.8.0) Save Shapefiles Data for Internal Use ##
   # ---------------------------------------------------------------------------------------------------------------------------------------------------------
   
-  usethis::use_data( linear.water.dc.md.va, # liner water shapefiles
-                     area.water.dc.md.va, # area water shapefile
-                     dc.st, # dc boundary shapefile
-                     dc.surr.counties, # surrounding counties shapefile
-                     dc.ward12, # 2012 ward boundaries shapefile
-                     dc.ward22, # 2022 ward boundaries shapefile
-                     dc.zcta,
+  usethis::use_data( linear_water_dc_md_va, # liner water shapefiles
+                     area_water_dc_md_va, # area water shapefile
+                     dc_st, # dc boundary shapefile
+                     dc_surr_counties, # surrounding counties shapefile
+                     dc_ward12, # 2012 ward boundaries shapefile
+                     dc_ward22, # 2022 ward boundaries shapefile
+                     dc_zcta,
                      compress = "xz",
                      internal = TRUE,
                      overwrite = TRUE,
@@ -648,19 +648,19 @@ if( !file.exists( "./R/sysdata.rda" ) ){
 
 # obs
 nd <- 500
-d.ward <- data.frame( id = 1:nd )
+d_ward <- data.frame( id = 1:nd )
 
 # add ward variable (equal probability for each ward)
-d.ward$ward <- sample( paste0( "Ward ", 1:8 ), size = nd, replace = TRUE )
+d_ward$ward <- sample( paste0( "Ward ", 1:8 ), size = nd, replace = TRUE )
 
-table( d.ward$ward ) # check distribution
+table( d_ward$ward ) # check distribution
 
 # add continuous variable (simulate age)
-d.ward$age <- { 
+d_ward$age <- { 
   
-  vapply( d.ward$ward, FUN = function(x){
+  vapply( d_ward$ward, FUN = function(x){
     
-    mn.ag <- switch( x, # assign mean ages for each ward
+    mn_ag <- switch( x, # assign mean ages for each ward
                      "Ward 1" = 48,
                      "Ward 2" = 42,
                      "Ward 3" = 43,
@@ -670,7 +670,7 @@ d.ward$age <- {
                      "Ward 7" = 34,
                      "Ward 8" = 32 )
     
-    ag <- truncnorm::rtruncnorm( n = 1, a = 2, b = 120, mean = mn.ag, sd = 15 )
+    ag <- truncnorm::rtruncnorm( n = 1, a = 2, b = 120, mean = mn_ag, sd = 15 )
     
     return( ag)
     
@@ -680,11 +680,11 @@ d.ward$age <- {
 }
 
 # add categorical variable
-d.ward$cat <- { 
+d_ward$cat <- { 
   
-  vapply( d.ward$ward, FUN = function(x){
+  vapply( d_ward$ward, FUN = function(x){
     
-    pr.ag <- switch( x, # assign mean ages for each ward
+    pr_ag <- switch( x, # assign mean ages for each ward
                      "Ward 1" = c( 0.54, 0.32, 0.21 ),
                      "Ward 2" = c( 0.21, 0.59, 0.18 ),
                      "Ward 3" = c( 0.33, 0.32, 0.33 ),
@@ -694,11 +694,11 @@ d.ward$cat <- {
                      "Ward 7" = c( 0.75, 0.2, 0.05 ),
                      "Ward 8" = c( 0.75, 0.2, 0.05 ) )
     
-    ag.cat <- sample( x = c( "Cat 1", "Cat 2", "Cat 3" ), size = 1,
+    ag_cat <- sample( x = c( "Cat 1", "Cat 2", "Cat 3" ), size = 1,
                       replace = TRUE,
-                      prob = pr.ag )
+                      prob = pr_ag )
     
-    return( ag.cat )
+    return( ag_cat )
     
   }, FUN.VALUE = "Char", 
   USE.NAMES = FALSE ) 
@@ -706,11 +706,11 @@ d.ward$cat <- {
 }
 
 # add binary character variable
-d.ward$bin <- { 
+d_ward$bin <- { 
   
-  vapply( d.ward$ward, FUN = function(x){
+  vapply( d_ward$ward, FUN = function(x){
     
-    pr.bin <- switch( x, # assign mean ages for each ward
+    pr_bin <- switch( x, # assign mean ages for each ward
                       "Ward 1" = c( 0.54, 0.46 ),
                       "Ward 2" = c( 0.21, 0.78 ),
                       "Ward 3" = c( 0.31, 0.69 ),
@@ -720,11 +720,11 @@ d.ward$bin <- {
                       "Ward 7" = c( 0.80, 0.2 ),
                       "Ward 8" = c( 0.82, 0.18 ) )
     
-    ag.bin <- sample( x = c( "Binary 1", "Binary 2" ), size = 1,
+    ag_bin <- sample( x = c( "Binary 1", "Binary 2" ), size = 1,
                       replace = TRUE,
-                      prob = pr.bin )
+                      prob = pr_bin )
     
-    return( ag.bin )
+    return( ag_bin )
     
   }, FUN.VALUE = "Char", 
   USE.NAMES = FALSE ) 
@@ -732,11 +732,11 @@ d.ward$bin <- {
 }
 
 # add binary 1/0 variable
-d.ward$bin_other <- { 
+d_ward$bin_other <- { 
   
-  vapply( d.ward$ward, FUN = function(x){
+  vapply( d_ward$ward, FUN = function(x){
     
-    pr.bin <- switch( x, # assign mean ages for each ward
+    pr_bin <- switch( x, # assign mean ages for each ward
                       "Ward 1" = c( 0.44, 0.56 ),
                       "Ward 2" = c( 0.31, 0.68 ),
                       "Ward 3" = c( 0.21, 0.79 ),
@@ -746,11 +746,11 @@ d.ward$bin_other <- {
                       "Ward 7" = c( 0.60, 0.4 ),
                       "Ward 8" = c( 0.82, 0.18 ) )
     
-    ag.bin <- sample( x = c( 1, 0 ), size = 1,
+    ag_bin <- sample( x = c( 1, 0 ), size = 1,
                       replace = TRUE,
-                      prob = pr.bin )
+                      prob = pr_bin )
     
-    return( ag.bin )
+    return( ag_bin )
     
   }, FUN.VALUE = c(1), 
   USE.NAMES = FALSE ) 
@@ -758,11 +758,11 @@ d.ward$bin_other <- {
 }
 
 # add population variable (distinct to levels of `ward`)
-d.ward$ward_pop <- { 
+d_ward$ward_pop <- { 
   
-  vapply( d.ward$ward, FUN = function(x){
+  vapply( d_ward$ward, FUN = function(x){
     
-    pr.pop <- switch( x, # assign mean ages for each ward
+    pr_pop <- switch( x, # assign mean ages for each ward
                       "Ward 1" = 84000,
                       "Ward 2" = 78000,
                       "Ward 3" = 85000,
@@ -772,7 +772,7 @@ d.ward$ward_pop <- {
                       "Ward 7" = 80000,
                       "Ward 8" = 86000 )
     
-    return( pr.pop )
+    return( pr_pop )
     
   }, FUN.VALUE = c(1), 
   USE.NAMES = FALSE ) 
@@ -780,7 +780,7 @@ d.ward$ward_pop <- {
 }
 
 # ensure population variable is distinct
-d.ward %>% 
+d_ward %>% 
   distinct( ward, ward_pop )
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -789,7 +789,7 @@ d.ward %>%
 ## (2.9.0) Save example data for export ##
 # --------------------------------------------------------------------------------------------------------------------------------------------------------
 
-usethis::use_data( d.ward, overwrite = TRUE, version = 2 )
+usethis::use_data( d_ward, overwrite = TRUE, version = 2 )
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -799,49 +799,50 @@ usethis::use_data( d.ward, overwrite = TRUE, version = 2 )
 
 # obs
 nd <- 5000
-d.zcta <- data.frame( id = 1:nd )
+d_zcta <- data.frame( id = 1:nd )
 
 # possible ZCTAs
-poss.zctas <- unique( dc.zcta$GEOID20 )
+poss_zctas <- unique( dc_zcta$GEOID20 )
 
 # add zcta variable (equal probability for each zcta)
-d.zcta$zcta <- sample( poss.zctas, size = nd, replace = TRUE )
+d_zcta$zcta <- sample( poss_zctas, size = nd, replace = TRUE )
 
-table( d.zcta$zcta ) # check distribution
+table( d_zcta$zcta ) # check distribution
 
 # add continuous variable (simulate age)
-d.zcta$age <-  truncnorm::rtruncnorm( n = nrow( d.zcta ), a = 2, b = 120, mean = 37, sd = 15 )
+d_zcta$age <-  truncnorm::rtruncnorm( n = nrow( d_zcta ), a = 2, b = 120, mean = 37, sd = 15 )
 
 # add categorical variable
-d.zcta$cat <- sample( x = c( "Cat 1", "Cat 2", "Cat 3" ), size = nrow( d.zcta ),
+d_zcta$cat <- sample( x = c( "Cat 1", "Cat 2", "Cat 3" ), size = nrow( d_zcta ),
                       replace = TRUE,
                       prob = c( 0.42, 0.32, 0.2) )
-    
+
 # add binary character variable
-d.zcta$bin <- sample( x = c( "Binary 1", "Binary 2" ), size = nrow( d.zcta ),
+d_zcta$bin <- sample( x = c( "Binary 1", "Binary 2" ), size = nrow( d_zcta ),
                       replace = TRUE,
                       prob = c( 0.4, 0.6 ) )
 
 
 # add binary 1/0 variable
-d.zcta$bin_other <- sample( x = c( 1, 0 ), size = nrow( d.zcta ),
-                      replace = TRUE,
-                      prob = c( 0.44, 0.56 ) )
+d_zcta$bin_other <- sample( x = c( 1, 0 ), size = nrow( d_zcta ),
+                            replace = TRUE,
+                            prob = c( 0.44, 0.56 ) )
 
 # population variable
-d.zcta <- d.zcta %>% 
+d_zcta <- d_zcta %>% 
   group_by( zcta ) %>% 
   mutate( zcta_pop = sample( x = 500:7000, size = 1, replace = TRUE ) ) %>% 
   ungroup() 
 
 # ensure no duplicates in population for ZCTA
-d.zcta %>% 
+d_zcta %>% 
   distinct( zcta_pop, zcta )
 # --------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ## (2.9.0) Save example data for export ##
 # --------------------------------------------------------------------------------------------------------------------------------------------------------
 
-usethis::use_data( d.zcta, overwrite = TRUE, version = 2 )
+usethis::use_data( d_zcta, overwrite = TRUE, version = 2 )
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------
+

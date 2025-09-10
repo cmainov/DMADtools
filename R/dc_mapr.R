@@ -59,7 +59,7 @@
 #' @param include.compass A logical. Include reference compass rose on map? Default is TRUE.
 #' @param include.scale A logical. Include reference scale rose on map? Default is TRUE.
 #' @param size.scale.title A numeric. Scaling parameter for title sizing on map.
-#' @param size.scale.labels A numeric. Scaling parameter for label sizing on map.
+#' @param size_scale_labels A numeric. Scaling parameter for label sizing on map.
 #' @param missing.pattern A theme from `ggpattern` for polygons with missing data. Default is "stripe". See [ggpattern](https://coolbutuseless.github.io/package/ggpattern/).
 #' @param suppressed.pattern A theme from `ggpattern` for polygons with suppressed data. Default is "weave". See [ggpattern](https://coolbutuseless.github.io/package/ggpattern/).
 #' @param pattern.spacing A numeric. Passed to `pattern_spacing` argument of`ggpattern::geom_pattern()`. 
@@ -75,7 +75,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
                      colorbar.direction = "horizontal", colorbar.name = NULL, text.color = "black", 
                      alt.text.color = "grey", font.family = "sans", color.thres = 0.4,
                      include.compass = TRUE, include.scale = TRUE, size.scale.title = 2,
-                     size.scale.labels = 0.7, missing.pattern = "stripe", 
+                     size_scale_labels = 0.7, missing.pattern = "stripe", 
                      suppressed.pattern = "crosshatch", pattern.spacing = 0.02,
                      force = FALSE ){
 
@@ -179,7 +179,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
         # constant to multiply numerator of metric by (depends on metric type)
         numer <- if( metric == "percent" ) 100 else if( metric == "rate" ) per
         
-        d.aggr <- d.agg %>% 
+        d_aggr <- d.agg %>% 
           # denominator for when `metric` is "percent"
           { if( metric %in% c( "percent" ) ){
             if( percentages.rel == "dc" ){
@@ -232,7 +232,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
     
   } else if( bypass ){
     
-    d.aggr <- d # if data are already preaggregated, skip all steps above
+    d_aggr <- d # if data are already preaggregated, skip all steps above
   }
   
   
@@ -241,63 +241,63 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
   message( "Step 2: Calling shapefiles and merging attributes data..." )
   
   ## call shapefile based on `geo` specification ##
-  d.geo <- if( geo == "ward 2022" ){ 
+  d_geo <- if( geo == "ward 2022" ){ 
     message( "...Ward (2022 redistricting) shapfile loaded..." )
-    join.col <- "NAMELSAD" # join column
-    dc.ward22
+    join_col <- "NAMELSAD" # join column
+    dc_ward22
     
   } else if( geo == "ward 2012" ){
     message( "...Ward (2012 redistricting) shapfile loaded..." )
-    join.col <- "NAMELSAD" # join column
-    dc.ward12
+    join_col <- "NAMELSAD" # join column
+    dc_ward12
   } else if( geo == "zcta" ){
     message( "...ZCTA (2024) shapfile loaded..." )
-    join.col <- "GEOID20" # join column
-    dc.zcta
+    join_col <- "GEOID20" # join column
+    dc_zcta
   }
   
-  ## merge shapes with attributes data in `d.aggr` ##
+  ## merge shapes with attributes data in `d_aggr` ##
   
   # wards
   if( geo %in% c( "ward 2022", "ward 2012" ) ){
     
     # first possible pattern
-    ward.pattern1 <- str_detect( levels( as.factor( d.aggr[[ id ]] ) ), 
+    ward_pattern1 <- str_detect( levels( as.factor( d_aggr[[ id ]] ) ), 
                                  "^ward\\s\\d+$|^Ward\\s\\d+$" )
     
-    if( all( ward.pattern1 ) ){ 
+    if( all( ward_pattern1 ) ){ 
       message( paste0( "...'Ward \\d' naming pattern detected in `", 
                        id, "` variable..." ) )
       
-      d.aggr <- d.aggr %>% 
+      d_aggr <- d_aggr %>% 
         mutate( !!sym( id ) := firstup( !!sym( id ) ) ) # ensure upper case
     }
     
     # second possible pattern
-    ward.pattern2 <- str_detect( levels( as.factor( d.aggr[[ id ]] ) ), 
+    ward_pattern2 <- str_detect( levels( as.factor( d_aggr[[ id ]] ) ), 
                                  "^\\d+$" )
     
-    if( all( ward.pattern2 ) ){ 
+    if( all( ward_pattern2 ) ){ 
       message( paste0( "...'\\d' naming pattern detected in `", 
                        id, "` variable for ward..." ) )
       
-      d.aggr <- d.aggr %>% 
+      d_aggr <- d_aggr %>% 
         mutate( !!sym( id ) := str_remove_all( !!sym( id ), "\\s+" ),
                 !!sym( id ) := paste0( "Ward ", !!sym( id ) ) )
       
     }
     
     # third possible pattern (spelled out integers)
-    ward.pattern3 <- all( levels( as.factor( d.aggr[[ id ]] ) ) %in% 
+    ward_pattern3 <- all( levels( as.factor( d_aggr[[ id ]] ) ) %in% 
                             as.character( english::as.english( 1:8 ) ) |
-                            levels( as.factor( d.aggr[[ id ]] ) ) %in% 
+                            levels( as.factor( d_aggr[[ id ]] ) ) %in% 
                             firstup( as.character( english::as.english( 1:8 ) ) ) )
     
-    if( all( ward.pattern3 ) ){ 
+    if( all( ward_pattern3 ) ){ 
       message( paste0( "...'Spelled integers' naming pattern detected in `", 
                        id, "` variable for ward..." ) )
       
-      d.aggr$id <- vapply( d.aggr$id, FUN = function(x){
+      d_aggr$id <- vapply( d_aggr$id, FUN = function(x){
         
         switch( x, # assign mean ages for each ward
                 "One" = "Ward 1", "one" = "Ward 1",
@@ -314,9 +314,9 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
       
     }
     
-    if( all( !c( all( ward.pattern1 ), 
-                 all( ward.pattern2 ), 
-                 all( ward.pattern3 ) ) ) ){
+    if( all( !c( all( ward_pattern1 ), 
+                 all( ward_pattern2 ), 
+                 all( ward_pattern3 ) ) ) ){
       stop( "Levels of ward in `id` are in an unrecognizable format. Recommend using 'Ward \\d` naming." )
       
     }
@@ -329,29 +329,29 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
   if( geo %in% c( "zcta" ) ){
     
     # convert to character
-    if( !inherits( d.aggr[[ id ]], "character" ) ){
-        d.aggr[[ id ]] <- as.character( d.aggr[[ id ]] )
+    if( !inherits( d_aggr[[ id ]], "character" ) ){
+        d_aggr[[ id ]] <- as.character( d_aggr[[ id ]] )
   
     }
   
     # check for missing ZCTA values
-    zctas.miss <- sum( !dc.zcta$GEOID20 %in% d.aggr[[ id ]] )
-    zctas.miss.perc <- 100 * zctas.miss / length( dc.zcta$GEOID20 )
+    zctas_miss <- sum( !dc_zcta$GEOID20 %in% d_aggr[[ id ]] )
+    zctas_miss.perc <- 100 * zctas_miss / length( dc_zcta$GEOID20 )
     
     if( !force ){
-      if( zctas.miss.perc > 50 ) stop( paste( "Over 50% of DC ZCTAs were not detected in the `",
+      if( zctas_miss.perc > 50 ) stop( paste( "Over 50% of DC ZCTAs were not detected in the `",
                                               id, "` variable. Ensure that ZCTAs are formatted correctly",
                                               " (e.g., 20009). Use `force = TRUE` to bypass this error." ) )
     }
     
-    message( "...Merging attributes (i.e., `var`) to shapefile for DC  ZCTAs..." )
+    message( "...Merging attributes (i.e., `var`) to shapefile for DC  zctas_.." )
     
   }
   
   ## final merge ##
   
-  d.map <- left_join( d.geo, d.aggr,
-                      by = setNames( object = id, nm = join.col  ) ) %>% 
+  d_map <- left_join( d_geo, d_aggr,
+                      by = setNames( object = id, nm = join_col  ) ) %>% 
     # add column for missing data (to be able to add pattern to this polygon)
     mutate( missing_suppressed = ifelse( is.na( out_metric ),
                                          "Missing data", NA ) )
@@ -367,7 +367,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
       
       if( count.supp < 0 ) stop( "count.supp must be >= 0" )
       
-      d.map <- d.map %>% 
+      d_map <- d_map %>% 
         mutate( out_metric = ifelse( out_metric <= count.supp, NA, out_metric ),
                 missing_suppressed = ifelse( is.na( out_metric ) &
                                                is.na( missing_suppressed ),
@@ -382,7 +382,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
       
       if( rate.supp < 0 ) stop( "rate.supp must be >= 0" )
       
-      d.map <- d.map %>% 
+      d_map <- d_map %>% 
         mutate( out_metric = ifelse( out_metric <= rate.supp, NA, out_metric ),
                 missing_suppressed = ifelse( is.na( out_metric ) &
                                                is.na( missing_suppressed ),
@@ -396,42 +396,42 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
   message( "Step 3: Assembling final map..." )
   
   # plot tracts with `sf
-  bbox1 <- sf::st_bbox( dc.st ) # bounding box
+  bbox1 <- sf::st_bbox( dc_st ) # bounding box
   
   ## make the breaks for the color bar ##
-  no.brks <- round( colorbar.bins, 0 )
+  no_brks <- round( colorbar.bins, 0 )
   
-  brks.nr <- seq( min( d.map$out_metric, na.rm = TRUE ), max( d.map$out_metric, na.rm = TRUE ),
-                  length.out = no.brks ) 
+  brks_nr <- seq( min( d_map$out_metric, na.rm = TRUE ), max( d_map$out_metric, na.rm = TRUE ),
+                  length.out = no_brks ) 
   
   ## round the breaks not equal to the limits to the 1's place using `plyr::round_any`
-  brks.nr[ !brks.nr %in% c( min( d.map$out_metric ),
-                            max( d.map$out_metric ) ) ] <- plyr::round_any( brks.nr[ !brks.nr %in% c( min( d.map$out_metric ),
-                                                                                                      max( d.map$out_metric ) ) ], 
+  brks_nr[ !brks_nr %in% c( min( d_map$out_metric ),
+                            max( d_map$out_metric ) ) ] <- plyr::round_any( brks_nr[ !brks_nr %in% c( min( d_map$out_metric ),
+                                                                                                      max( d_map$out_metric ) ) ], 
                                                                             colorbar.round ) # round colorbar values to this order of magnitude
   
   # first pass the fill aesthetic so we can get exact colors mapped
- p.1 <- ggplot( data = d.map ) +
+ p_1 <- ggplot( data = d_map ) +
     geom_sf( aes( fill = out_metric ) ) + 
     scale_fill_gradient( name = colorbar.name, low = colorbar.low, high = colorbar.high, 
-                         guide = "colorbar", breaks = brks.nr, 
-                         labels = pretty.num( brks.nr, round.to = 1 ) ) 
+                         guide = "colorbar", breaks = brks_nr, 
+                         labels = pretty.num( brks_nr, round.to = 1 ) ) 
   
   # extract colors assigned to each level and compute distance metrics on text vs fill colors
-  d.fill <- bind_cols( p.1$data,
-                       ggplot_build( p.1 )$data[1][[1]][ "fill" ] ) %>%
+  d_fill <- bind_cols( p_1$data,
+                       ggplot_build( p_1 )$data[1][[1]][ "fill" ] ) %>%
     sf::st_drop_geometry() %>% 
     rowwise() %>%
     mutate( color_dist = colorDist( fill, text.color )$p.d ) %>% # compute distance between primary text color and assigned fill
     ungroup() %>%
     mutate( color_text = ifelse( color_dist > color.thres, text.color,
                                  alt.text.color ) ) %>%
-    select( !!sym( join.col ), color_dist, fill, color_text )
+    select( !!sym( join_col ), color_dist, fill, color_text )
   
   # continue adding other final layers
-  p.out <- p.1 + 
+  p_out <- p_1 + 
     # missing values
-    geom_sf_pattern( data = d.map %>%
+    geom_sf_pattern( data = d_map %>%
                        filter( !is.na( missing_suppressed ) ),
                      aes( pattern = missing_suppressed ),
                      pattern_spacing = pattern.spacing ) +
@@ -441,17 +441,17 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
                                      breaks = c( "Missing data",
                                                  "Suppressed" ),
                                      guide = guide_legend( title = NULL )) +
-    geom_sf( data = dc.surr.counties,
+    geom_sf( data = dc_surr_counties,
                           fill = "antiquewhite",
                           color = "gray67") +
-    geom_sf( data = area.water.dc.md.va %>% 
+    geom_sf( data = area_water_dc_md_va %>% 
                filter( STATE != "11" ), fill = "aliceblue", 
              color = "gray67" ) + # non-DC states water file (non-transparent border)
-    geom_sf( data = area.water.dc.md.va %>% 
+    geom_sf( data = area_water_dc_md_va %>% 
                filter( STATE == "11" ), fill = "aliceblue", 
              color = "transparent" ) + # DC water file (transparent border around water shapes)
-    geom_sf( data = dc.st, fill = "transparent") + # layer the DC boundary with transparent fill
-    geom_sf( data = d.map, fill = "transparent") + # relayer the `geo` boundaries with transparent fill
+    geom_sf( data = dc_st, fill = "transparent") + # layer the DC boundary with transparent fill
+    geom_sf( data = d_map, fill = "transparent") + # relayer the `geo` boundaries with transparent fill
     coord_sf( xlim = c( bbox1[["xmin"]], bbox1[["xmax"]] ), # sets bounding box
               ylim = c( bbox1[["ymin"]], bbox1[["ymax"]] ) ) +
     xlab("") +
@@ -483,28 +483,28 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
                                                         location = "br" ) } } +
     # Potomac and Anacostia River labels #
      ggsflabel::geom_sf_text_repel( 
-      data = area.water.dc.md.va,
+      data = area_water_dc_md_va,
       mapping = aes( label = LABEL_WATER ),
       segment.color = "transparent",
-      colour = area.water.dc.md.va$label.water.txtcol,
+      colour = area_water_dc_md_va$label_water_txtcol,
       force = 0, # minimized force of repulsion between labels
-      size = area.water.dc.md.va$label.water.txtsize,
+      size = area_water_dc_md_va$label_water_txtsize,
       # manual location of ward labels (x and y)
-      nudge_y = area.water.dc.md.va$label.water.nudge.y,
-      nudge_x = area.water.dc.md.va$label.water.nudge.x,
-      angle = area.water.dc.md.va$label.water.angle,
+      nudge_y = area_water_dc_md_va$label_water_nudge_y,
+      nudge_x = area_water_dc_md_va$label_water_nudge_x,
+      angle = area_water_dc_md_va$label_water_angle,
       seed = 34, family = font.family ) +
     # Surrounding County Labels #
     ggsflabel::geom_sf_text_repel( 
-      data = dc.surr.counties,
+      data = dc_surr_counties,
       mapping = aes( label = LABEL_CTY ),
       segment.color = "transparent",
       colour = "gray50",
       force = 0, # minimized force of repulsion between labels
-      size = ( 3.1 + size.scale.labels ),
+      size = ( 3.1 + size_scale_labels ),
       # manual location of ward labels (x and y)
-      nudge_y = dc.surr.counties$label.cty.nudge.y,
-      nudge_x = dc.surr.counties$label.cty.nudge.x,
+      nudge_y = dc_surr_counties$label_cty_nudge_y,
+      nudge_x = dc_surr_counties$label_cty_nudge_x,
       seed = 34, family = font.family ) +
     ## `geo` polygon labeling ##
     # DC Ward labels #
@@ -512,24 +512,24 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
       ggsflabel::geom_sf_text_repel( 
       mapping = aes( label = NAMELSAD ),
       force = 0, # minimized force of repulsion between labels
-      size = ( 3.1 + size.scale.labels ),
-      nudge_x = d.map$labelward.nudge.x,
-      nudge_y = d.map$labelward.nudge.y,
+      size = ( 3.1 + size_scale_labels ),
+      nudge_x = d_map$labelward_nudge_x,
+      nudge_y = d_map$labelward_nudge_y,
       segment.color = "transparent",
-      colour = d.fill$color_text,
+      colour = d_fill$color_text,
       seed = 34, family = font.family ) 
     }} +
     # ZCTA labels #
     { if( str_detect( geo, "zcta" ) ){
       ggsflabel::geom_sf_text_repel( 
         mapping = aes( label = labelzip ),
-        segment.color = d.map$labelzip.segcolor,
-        colour = d.map$labelzip.txtcol,
+        segment.color = d_map$labelzip_segcolor,
+        colour = d_map$labelzip_txtcol,
         force = 0, # minimized force of repulsion between labels
-        size = d.map$labelzip.txtsize,
+        size = d_map$labelzip_txtsize,
         # manual location of ward labels (x and y)
-        nudge_y = d.map$labelzip.nudge.y,
-        nudge_x = d.map$labelzip.nudge.x,
+        nudge_y = d_map$labelzip_nudge_y,
+        nudge_x = d_map$labelzip_nudge_x,
         seed = 34, family = "Calibri Light" )
     }} 
   
@@ -555,7 +555,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
     }
   }
   
-  return( suppressWarnings( print( p.out ) ) )
+  return( suppressWarnings( print( p_out ) ) )
   
 }
 

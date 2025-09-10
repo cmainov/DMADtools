@@ -1,6 +1,6 @@
 #' Test data for examples in the `summary_table` function.
 #'
-#' @format `d.example`
+#' @format `d_example`
 #' \describe{
 #' A data frame with 45 rows and 19 columns:
 #'   \item{v1}{A character variable. Three levels (Geo 1, Geo 2, Geo 3)}
@@ -11,11 +11,11 @@
 #'   \item{v_pop}{An integer variable. The example population count.}
 #' }
 #'
-"d.example"
+"d_example"
 
 #' Test data for examples in the `summary_table` function.
 #'
-#' @format `d.example.na`
+#' @format `d_example.na`
 #' \describe{
 #' A data frame with 45 rows and 19 columns:
 #'   \item{v1}{A character variable. Three levels (Geo 1, Geo 2, Geo 3)}
@@ -26,15 +26,15 @@
 #'   \item{v_pop}{An integer variable. The example population count.}
 #' }
 #'
-"d.example.na"
+"d_example.na"
 
 #'  Ward Test data for examples in the `dc_mapr` function.
 #'
-#' @format `d.ward`
+#' @format `d_ward`
 #' \describe{
 #' A data frame with 500 rows and 7 columns:
 #'   \item{id}{An integer. The unique id}.
-#'   \item{ward}{A character variable. The DC ward. Eight levels (Ward 1:8)}
+#'   \item{ward}{A character variable. The DC ward_ Eight levels (Ward 1:8)}
 #'   \item{age}{A numeric variable. The age of the observation.}
 #'   \item{cat}{A character variable. Three levels (Cat 1:3)}
 #'   \item{bin}{A character variable. Two levels ("Binary 1" "Binary 2")}
@@ -42,11 +42,11 @@
 #'   \item{ward_pop}{An integer variable. The ward population count.}
 #' }
 #'
-"d.ward"
+"d_ward"
 
 #'  ZCTA Test data for examples in the `dc_mapr` function.
 #'
-#' @format `d.zcta`
+#' @format `d_zcta`
 #' \describe{
 #' A data frame with 5000 rows and 7 columns:
 #'   \item{id}{An integer. The unique id}.
@@ -58,4 +58,4 @@
 #'   \item{zcta_pop}{An integer variable. The ZCTA population count.}
 #' }
 #'
-"d.zcta"
+"d_zcta"

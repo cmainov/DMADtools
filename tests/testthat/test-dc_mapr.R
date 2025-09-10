@@ -3,7 +3,7 @@ test_that( "basic no errors call", {
   
   
   expect_no_error( dc_mapr(
-    d = d.ward,
+    d = d_ward,
     var = "bin_other",
     id = "ward",
     geo = "ward 2022",
@@ -19,7 +19,7 @@ test_that( "create a missing value for ward 8", {
   
   
   expect_no_error( dc_mapr(
-    d = d.ward %>% 
+    d = d_ward %>% 
       filter( ward != "Ward 8" ),
     var = "bin_other",
     id = "ward",
@@ -36,7 +36,7 @@ test_that( "count map", {
   
   
   expect_no_error( dc_mapr(
-    d = d.ward,
+    d = d_ward,
     var = "bin_other",
     id = "ward",
     metric = "count",
@@ -45,7 +45,6 @@ test_that( "count map", {
   ) 
   )
   
-  
 } )
 
 
@@ -53,13 +52,13 @@ test_that( "suppression and missing values", {
   
   
   
-d.new <- d.ward %>% 
+d_new <- d_ward %>% 
   filter( ward != "Ward 8" ) %>% 
   mutate( bin_other = ifelse( ward == "Ward 5" & id != 1, 0,
                               ifelse( id == 1, 1, bin_other )))
 
 expect_no_error( dc_mapr(
-  d = d.new,
+  d = d_new,
   var = "bin_other",
   id = "ward",
   metric = "count",

@@ -37,18 +37,18 @@ add_new_lines <- function( n, dat ){
   # this function returns a vector of strings (same as `dat` in input) with the "\n" added after
   # each `n` words.
   
-  max.no <- max( str_count( dat, "\\b(\\s|$)" ) )
+  max_no <- max( str_count( dat, "\\b(\\s|$)" ) )
   
-  no.its <- ceiling( max.no / n )
+  no_its <- ceiling( max_no / n )
   
-  cuts.n <- vector()
+  cuts_n <- vector()
   
-  for( i in 1:no.its ){
+  for( i in 1:no_its ){
     
-    w.in <- n * i
+    w_in <- n * i
     dat <- str_replace_all( dat, 
                             paste0( "(", 
-                                    paste0( rep( "(\\w+|[:punct:])\\s", (w.in-1) ), collapse = "" ),
+                                    paste0( rep( "(\\w+|[:punct:])\\s", (w_in-1) ), collapse = "" ),
                                     "(\\w+|\\w+[:punct:]))\\s") , 
                             "\\1\n" ) 
     
