@@ -72,6 +72,27 @@ expect_no_error( dc_mapr(
 })
 
 
+test_that( "bypass option", {
+  
+  
+  d_agg1 <- d_ward %>% 
+    summarise( newvar = mean(age),
+               .by = ward )
+  
+  expect_no_error( dc_mapr(
+    d = d_agg1,
+    var = "newvar",
+    id = "ward",
+    metric = "count",
+    bypass = TRUE,
+    geo = "ward 2022",
+    colorbar.round = 1,
+    count.supp = 5,
+    font.family = "sans",
+    colorbar.name = "Mean",
+  ) )
+  
+})
 
 
 

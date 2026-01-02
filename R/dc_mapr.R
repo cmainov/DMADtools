@@ -260,7 +260,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
     
   } else if( bypass ){
     
-    d_aggr <- d # if data are already preaggregated, skip all steps above
+    d_aggr <- d %>% mutate( out_metric = !!sym(var) ) # if data are already preaggregated, skip all steps above
   }
   
   
