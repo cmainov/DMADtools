@@ -427,23 +427,24 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
   bbox1 <- sf::st_bbox( dc_st ) # bounding box
   
   ## make the breaks for the color bar ##
-  no_brks <- round( colorbar.bins, 0 )
+  no_brks <- round( colorbar.bins, 0 ) + 1
   
   brks_nr <- seq( min( d_map$out_metric, na.rm = TRUE ), max( d_map$out_metric, na.rm = TRUE ),
                   length.out = no_brks ) 
   
-  ## round the breaks not equal to the limits to the 1's place using `plyr::round_any`
-  brks_nr[ !brks_nr %in% c( min( d_map$out_metric ),
-                            max( d_map$out_metric ) ) ] <- plyr::round_any( brks_nr[ !brks_nr %in% c( min( d_map$out_metric ),
-                                                                                                      max( d_map$out_metric ) ) ], 
-                                                                            colorbar.round ) # round colorbar values to this order of magnitude
+  brks_nr <- unique( brks_nr )
   
   # first pass the fill aesthetic so we can get exact colors mapped
- p_1 <- ggplot( data = d_map ) +
-    geom_sf( aes( fill = out_metric ) ) + 
-    scale_fill_gradient( name = colorbar.name, low = colorbar.low, high = colorbar.high, 
-                         guide = "colorbar", breaks = brks_nr, 
-                         labels = pretty_num( brks_nr, round.to = 1 ) ) 
+  p_1 <- ggplot( data = d_map ) +
+    geom_sf( aes( fill = out_metric ) ) +
+    scale_fill_steps(
+      name = colorbar.name,
+      low = colorbar.low,
+      high = colorbar.high,
+      breaks = brks_nr,
+      n.breaks = length(brks_nr),
+      labels = sprintf( paste0( "%.", colorbar.round, "f" ), brks_nr ) 
+    )
   
   # extract colors assigned to each level and compute distance metrics on text vs fill colors
   d_fill <- bind_cols( p_1$data,
