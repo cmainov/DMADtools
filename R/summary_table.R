@@ -342,8 +342,8 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     }
   }
   
-  if( !is.null( var1 ) & !is.null( var2 ) & !percentages.rel %in% c( "var1", "var2" ) ){
-    stop( "`percentages.rel` should be one of 'var1 or 'var2'. " )
+  if( !is.null( var1 ) & !is.null( var2 ) & !percentages.rel %in% c( "var1", "var2", "table.grouping" ) ){
+    stop( "`percentages.rel` should be one of 'var1, 'var2', table.grouping. " )
   }
   
   if( !is.null( var1 ) & is.null( var2 ) & percentages.rel != "var1" & is.null( table.grouping ) ){
