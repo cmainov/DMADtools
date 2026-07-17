@@ -148,6 +148,45 @@ validate_address_dc.default <- function( address ){
     }
     
     
-    
-    
-    
+
+  ###---------------------------------------------------------------
+  ###  `mar2_safe`: A type-safe wrapper for tidymar::find_location() 
+  ###---------------------------------------------------------------
+  
+  #' @md
+  #' @title Query the DC MAR with MAR2 geocoder.
+  #'
+  #' @description A type-safe function to query the DC MAR (a wrapper for 
+  #' `tidymar::find_location()` ).
+  #'
+  #' # Citation for tidymar::find_location():
+  #' Gupta, H. (n.d.). tidymar: An R interface to DC’s Master Address Repository (R package). GitHub. Retrieved from https://github.com/hersh-gupta/tidymar. Accessed on August 26, 2025.
+  #' 
+  #' @usage mar2_safe( address )
+  #' 
+  #' @details
+  #' This wrapper function uses the `tidymar::find_location()` to validate whether an address exists in the District of Columbia’s Master Address Repository (MAR). Please note that the District of Columbia address should contain the quadrant (e.g., NW, SW, etc.). Otherwise, the address will return as invalid.
+  #'  
+  #' @param address A string vector of addresses. 
+  #' 
+  #' @returns A list of tibbles, with the returns from each queried address.
+  #' 
+  #' @examples
+  #' 
+  #' mar2_safe( address = "1600 Pennsylvania Ave NW" )
+  #' 
+  #' @export
+
+  mar2_safe  <- function( address ) {
+    tryCatch(
+      {
+        tidymar::find_location( address )
+      },
+      error = function(e) {
+        # return a safe fallback so the loop continues
+        return(
+          NULL
+        )
+      }
+    )
+  }
