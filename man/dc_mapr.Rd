@@ -12,7 +12,7 @@ dc_mapr( d, geo, var, id, bypass = FALSE,
                      colorbar.direction = "horizontal", colorbar.name = NULL, text.color = "black", 
                      alt.text.color = "grey", font.family = "sans", color.thres = 0.4,
                      include.compass = TRUE, include.scale = TRUE, size.scale.title = 2,
-                     size_scale_labels = 0.7, missing.pattern = "stripe", 
+                     size.scale.labels = 0.7, missing.pattern = "stripe", 
                      suppressed.pattern = "crosshatch", pattern.spacing = 0.02,
                     force = FALSE )
 }
@@ -73,7 +73,7 @@ dc_mapr( d, geo, var, id, bypass = FALSE,
 
 \item{size.scale.title}{A numeric. Scaling parameter for title sizing on map.}
 
-\item{size_scale_labels}{A numeric. Scaling parameter for label sizing on map.}
+\item{size.scale.labels}{A numeric. Scaling parameter for label sizing on map.}
 
 \item{missing.pattern}{A theme from \code{ggpattern} for polygons with missing data. Default is "stripe". See \href{https://coolbutuseless.github.io/package/ggpattern/}{ggpattern}.}
 

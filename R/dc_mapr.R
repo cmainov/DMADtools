@@ -32,7 +32,7 @@
 #'                      colorbar.direction = "horizontal", colorbar.name = NULL, text.color = "black", 
 #'                      alt.text.color = "grey", font.family = "sans", color.thres = 0.4,
 #'                      include.compass = TRUE, include.scale = TRUE, size.scale.title = 2,
-#'                      size_scale_labels = 0.7, missing.pattern = "stripe", 
+#'                      size.scale.labels = 0.7, missing.pattern = "stripe", 
 #'                      suppressed.pattern = "crosshatch", pattern.spacing = 0.02,
 #'                     force = FALSE )
 #' @details
@@ -71,7 +71,7 @@
 #' @param include.compass A logical. Include reference compass rose on map? Default is TRUE.
 #' @param include.scale A logical. Include reference scale rose on map? Default is TRUE.
 #' @param size.scale.title A numeric. Scaling parameter for title sizing on map.
-#' @param size_scale_labels A numeric. Scaling parameter for label sizing on map.
+#' @param size.scale.labels A numeric. Scaling parameter for label sizing on map.
 #' @param missing.pattern A theme from `ggpattern` for polygons with missing data. Default is "stripe". See [ggpattern](https://coolbutuseless.github.io/package/ggpattern/).
 #' @param suppressed.pattern A theme from `ggpattern` for polygons with suppressed data. Default is "weave". See [ggpattern](https://coolbutuseless.github.io/package/ggpattern/).
 #' @param pattern.spacing A numeric. Passed to `pattern_spacing` argument of`ggpattern::geom_pattern()`. 
@@ -103,7 +103,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
                      colorbar.direction = "horizontal", colorbar.name = NULL, text.color = "black", 
                      alt.text.color = "grey", font.family = "sans", color.thres = 0.4,
                      include.compass = TRUE, include.scale = TRUE, size.scale.title = 2,
-                     size_scale_labels = 0.7, missing.pattern = "stripe", 
+                     size.scale.labels = 0.7, missing.pattern = "stripe", 
                      suppressed.pattern = "crosshatch", pattern.spacing = 0.02,
                      force = FALSE ){
 
@@ -434,6 +434,10 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
   
   brks_nr <- unique( brks_nr )
   
+  # come up with custom vector of alignment positions for colobar labels
+  # when the horizontal option is indicated
+  hjust_vals <- c( 1, rep( 0.5, length( brks_nr ) ) , 0 )
+  
   # first pass the fill aesthetic so we can get exact colors mapped
   p_1 <- ggplot( data = d_map ) +
     geom_sf( aes( fill = out_metric ) ) +
@@ -496,7 +500,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
                                    barwidth = colorbar.w,
                                    barheight = colorbar.h,
                                    nbin = colorbar.bins,
-                                   label.hjust = 1, # left-align labels
+                                   label.hjust = hjust_vals,    # custom alignment to ensure boundary values are at maximum/minimum
                                    show.limits = TRUE,
                                    display = "rectangles",
                                    direction = colorbar.direction,
@@ -530,7 +534,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
       segment.color = "transparent",
       colour = "gray50",
       force = 0, # minimized force of repulsion between labels
-      size = ( 3.1 + size_scale_labels ),
+      size = ( 3.1 + size.scale.labels ),
       # manual location of ward labels (x and y)
       nudge_y = dc_surr_counties$label_cty_nudge_y,
       nudge_x = dc_surr_counties$label_cty_nudge_x,
@@ -541,7 +545,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
       ggsflabel::geom_sf_text_repel( 
       mapping = aes( label = NAMELSAD ),
       force = 0, # minimized force of repulsion between labels
-      size = ( 3.1 + size_scale_labels ),
+      size = ( 3.1 + size.scale.labels ),
       nudge_x = d_map$labelward_nudge_x,
       nudge_y = d_map$labelward_nudge_y,
       segment.color = "transparent",
