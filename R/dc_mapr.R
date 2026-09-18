@@ -464,7 +464,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
   # continue adding other final layers
   p_out <- p_1 + 
     # missing values
-    geom_sf_pattern( data = d_map %>%
+    ggpattern::geom_sf_pattern( data = d_map %>%
                        filter( !is.na( missing_suppressed ) ),
                      aes( pattern = missing_suppressed ),
                      pattern_spacing = pattern.spacing ) +
@@ -473,7 +473,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
                                                  suppressed.pattern ),
                                      breaks = c( "Missing data",
                                                  "Suppressed" ),
-                                     guide = guide_legend( title = NULL )) +
+                                     guide = guide_legend( title = NULL ) ) +
     geom_sf( data = dc_surr_counties,
                           fill = color.surr,
                           color = "gray67") +
