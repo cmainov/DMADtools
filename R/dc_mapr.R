@@ -34,7 +34,7 @@
 #'                      include.compass = TRUE, include.scale = TRUE, size.scale.title = 2,
 #'                      size.scale.labels = 0.7, missing.pattern = "stripe", 
 #'                      suppressed.pattern = "crosshatch", pattern.spacing = 0.02,
-#'                     force = FALSE )
+#'                     force = FALSE, ... )
 #' @details
 #' Attribute data in `d` (see below) should be organized by ward, ZIP-code tabulation area (ZCTA), census tract, or block. 
 #' The following DC geographies can be plotted using this function.
@@ -76,6 +76,7 @@
 #' @param suppressed.pattern A theme from `ggpattern` for polygons with suppressed data. Default is "weave". See [ggpattern](https://coolbutuseless.github.io/package/ggpattern/).
 #' @param pattern.spacing A numeric. Passed to `pattern_spacing` argument of`ggpattern::geom_pattern()`. 
 #' @param force A logical. Bypass for mismatching in `geo`, where applicable. Default is FALSE.
+#' @param ... Additional arguments to pass to `ggplot2::theme()`.
 #' 
 #' @examples
 #' 
@@ -105,7 +106,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
                      include.compass = TRUE, include.scale = TRUE, size.scale.title = 2,
                      size.scale.labels = 0.7, missing.pattern = "stripe", 
                      suppressed.pattern = "crosshatch", pattern.spacing = 0.02,
-                     force = FALSE ){
+                     force = FALSE, ... ){
 
   
   ## checks ##
@@ -498,7 +499,8 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
            axis.text = element_blank(),
            legend.position = colorbar.position,
            axis.ticks = element_blank(),
-           plot.subtitle = element_text( face = "italic", size = (9 + size.scale.title) ) ) +
+           plot.subtitle = element_text( face = "italic", size = (9 + size.scale.title) ),
+           ...) +
     { if( colorbar.position == "bottom" ) theme( legend.margin = margin( t = -15 ) ) } +
     guides( fill = guide_colorbar( ticks.colour = NA,
                                    frame.colour =  "black",

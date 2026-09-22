@@ -14,7 +14,7 @@ dc_mapr( d, geo, var, id, bypass = FALSE,
                      include.compass = TRUE, include.scale = TRUE, size.scale.title = 2,
                      size.scale.labels = 0.7, missing.pattern = "stripe", 
                      suppressed.pattern = "crosshatch", pattern.spacing = 0.02,
-                    force = FALSE )
+                    force = FALSE, ... )
 }
 \arguments{
 \item{d}{A data frame or tibble with the attribute data used to fill the shapes.}
@@ -82,6 +82,8 @@ dc_mapr( d, geo, var, id, bypass = FALSE,
 \item{pattern.spacing}{A numeric. Passed to \code{pattern_spacing} argument of\code{ggpattern::geom_pattern()}.}
 
 \item{force}{A logical. Bypass for mismatching in \code{geo}, where applicable. Default is FALSE.}
+
+\item{...}{Additional arguments to pass to \code{ggplot2::theme()}.}
 }
 \description{
 Create a "nice" publication-level map of Washington, D.C. by ward (2012 or 2022 redistricting),
