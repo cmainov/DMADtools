@@ -438,10 +438,10 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
   # come up with custom vector of alignment positions for colobar labels
   # when the horizontal option is indicated
   hjust_vals <- if( length( brks_nr ) >= 4 ){
-    c( 1, 1, rep( 0.5, ( length( brks_nr ) - 4 ) ), 0, 0 ) # interior placements should be center aligned, flanking outer 4 should be left and right aligned accordingly
+    c( 1.3, 1, rep( 0.5, ( length( brks_nr ) - 4 ) ), 0, -0.3 ) # interior placements should be center aligned, flanking outer 4 should be left and right aligned accordingly
   } else if( length( brks_nr ) == 3 ){
-    c( 1, 1, 0, 0 )
-    } else if( length( brks_nr ) == 2 ) c( 1, 0.5, 0 ) else if( length( brks_nr ) == 1 ) 0.5
+    c( 1.3, 1, 0, -0.3 )
+    } else if( length( brks_nr ) == 2 ) c( 1.3, 0.5, -0.3 ) else if( length( brks_nr ) == 1 ) 0.5
   
   
   # first pass the fill aesthetic so we can get exact colors mapped
