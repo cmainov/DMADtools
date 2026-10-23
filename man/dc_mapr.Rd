@@ -12,16 +12,16 @@ dc_mapr( d, geo, var, id, bypass = FALSE,
                      colorbar.direction = "horizontal", colorbar.name = NULL, text.color = "black", 
                      alt.text.color = "grey", font.family = "sans", color.thres = 0.4,
                      include.compass = TRUE, include.scale = TRUE, size.scale.title = 2,
-                     size.scale.labels = 0.7, missing.pattern = "stripe", 
+                     size.scale.labels.ward = 0.7, size.scale.labels.cty = 0.7, missing.pattern = "stripe", 
                      suppressed.pattern = "crosshatch", pattern.spacing = 0.02,
-                    force = FALSE, ... )
+                    force = FALSE, na.rm = TRUE... )
 }
 \arguments{
 \item{d}{A data frame or tibble with the attribute data used to fill the shapes.}
 
 \item{geo}{One of "ward 2022", "ward 2012", "zcta", "tract', or "block". The geography that is desired.}
 
-\item{var}{Column name in \code{d} that contains the variable to be plotted.}
+\item{var}{Column name in \code{d} that contains the variable to be plotted. If \code{var} is an integer, the function will aggregate by summing across values of \code{id} and \code{percentages.rel} is ignored.}
 
 \item{id}{Column name in \code{d} that contains the ward, census block, or ZCTA identifier.}
 
@@ -73,7 +73,9 @@ dc_mapr( d, geo, var, id, bypass = FALSE,
 
 \item{size.scale.title}{A numeric. Scaling parameter for title sizing on map.}
 
-\item{size.scale.labels}{A numeric. Scaling parameter for label sizing on map.}
+\item{size.scale.labels.ward}{A numeric. Scaling parameter for ward label sizing on map.}
+
+\item{size.scale.labels.cty}{A numeric. Scaling parameter for surrounding county label sizing on map.}
 
 \item{missing.pattern}{A theme from \code{ggpattern} for polygons with missing data. Default is "stripe". See \href{https://coolbutuseless.github.io/package/ggpattern/}{ggpattern}.}
 
@@ -82,6 +84,8 @@ dc_mapr( d, geo, var, id, bypass = FALSE,
 \item{pattern.spacing}{A numeric. Passed to \code{pattern_spacing} argument of\code{ggpattern::geom_pattern()}.}
 
 \item{force}{A logical. Bypass for mismatching in \code{geo}, where applicable. Default is FALSE.}
+
+\item{na.rm}{A logical. If \code{var} is a variable of class \code{integer}, this controls the \code{na.rm} parameter of the \code{sum} function in the aggregation step. Otherwise, it is ignored. Default is \code{TRUE}.}
 
 \item{...}{Additional arguments to pass to \code{ggplot2::theme()}.}
 }

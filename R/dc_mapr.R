@@ -32,9 +32,9 @@
 #'                      colorbar.direction = "horizontal", colorbar.name = NULL, text.color = "black", 
 #'                      alt.text.color = "grey", font.family = "sans", color.thres = 0.4,
 #'                      include.compass = TRUE, include.scale = TRUE, size.scale.title = 2,
-#'                      size.scale.labels = 0.7, missing.pattern = "stripe", 
+#'                      size.scale.labels.ward = 0.7, size.scale.labels.cty = 0.7, missing.pattern = "stripe", 
 #'                      suppressed.pattern = "crosshatch", pattern.spacing = 0.02,
-#'                     force = FALSE, ... )
+#'                     force = FALSE, na.rm = TRUE... )
 #' @details
 #' Attribute data in `d` (see below) should be organized by ward, ZIP-code tabulation area (ZCTA), census tract, or block. 
 #' The following DC geographies can be plotted using this function.
@@ -46,7 +46,7 @@
 #' @param d A data frame or tibble with the attribute data used to fill the shapes.
 #' @param geo One of "ward 2022", "ward 2012", "zcta", "tract', or "block". The geography that is desired.
 #' @param id Column name in `d` that contains the ward, census block, or ZCTA identifier.
-#' @param var Column name in `d` that contains the variable to be plotted.
+#' @param var Column name in `d` that contains the variable to be plotted. If `var` is an integer, the function will aggregate by summing across values of `id` and `percentages.rel` is ignored.
 #' @param bypass A logical. If data supplied in `d` is already in aggregate form ready for mapping, then the function will only map the values supplied. Default is FALSE.
 #' @param metric A vector of string(s). One of: "percent", "mean", "median", "rate", "count". Default if "percent"
 #' @param pop.var A string or `NULL`. Variable in `d` with population count data for computing rates if "rate" is selected in `metric`. This is normally an aggregate variable. Default is NULL.
@@ -71,11 +71,13 @@
 #' @param include.compass A logical. Include reference compass rose on map? Default is TRUE.
 #' @param include.scale A logical. Include reference scale rose on map? Default is TRUE.
 #' @param size.scale.title A numeric. Scaling parameter for title sizing on map.
-#' @param size.scale.labels A numeric. Scaling parameter for label sizing on map.
+#' @param size.scale.labels.ward A numeric. Scaling parameter for ward label sizing on map.
+#' @param size.scale.labels.cty A numeric. Scaling parameter for surrounding county label sizing on map.
 #' @param missing.pattern A theme from `ggpattern` for polygons with missing data. Default is "stripe". See [ggpattern](https://coolbutuseless.github.io/package/ggpattern/).
 #' @param suppressed.pattern A theme from `ggpattern` for polygons with suppressed data. Default is "weave". See [ggpattern](https://coolbutuseless.github.io/package/ggpattern/).
 #' @param pattern.spacing A numeric. Passed to `pattern_spacing` argument of`ggpattern::geom_pattern()`. 
 #' @param force A logical. Bypass for mismatching in `geo`, where applicable. Default is FALSE.
+#' @param na.rm A logical. If `var` is a variable of class `integer`, this controls the `na.rm` parameter of the `sum` function in the aggregation step. Otherwise, it is ignored. Default is `TRUE`.
 #' @param ... Additional arguments to pass to `ggplot2::theme()`.
 #' 
 #' @examples
@@ -104,9 +106,9 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
                      colorbar.direction = "horizontal", colorbar.name = NULL, text.color = "black", 
                      alt.text.color = "grey", font.family = "sans", color.thres = 0.4,
                      include.compass = TRUE, include.scale = TRUE, size.scale.title = 2,
-                     size.scale.labels = 0.7, missing.pattern = "stripe", 
+                     size.scale.labels.ward = 0.7, size.scale.labels.cty = 0.7, missing.pattern = "stripe", 
                      suppressed.pattern = "crosshatch", pattern.spacing = 0.02,
-                     force = FALSE, ... ){
+                     force = FALSE, na.rm = TRUE, ... ){
 
   
   ## checks ##
@@ -164,7 +166,10 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
     # percent, count (binary case)
     if( metric %in% c( "percent", "count", "rate" ) ){
       
-      message( "Step 1: Checking qualities of `var`..." )
+      message( "Step 1: Checking qualities of `", var, "`..." )
+      
+      # constant to multiply numerator of metric by (depends on metric type)
+      numer <- if( metric == "percent" ) 100 else if( metric == "rate" ) per
       
       if( inherits( d[[ var ]], "character" ) | # ok for character variable class
           inherits( d[[ var ]], "factor" ) | # ok for factor variable class
@@ -177,7 +182,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
         # case where length( var ) == 2 and is 1/0
         if( all( levs.binary %in% c( 1, 0 ) ) ){
           
-          message( "...1/0 format detected for `var`. Using level of 1 as the variable to count..." )
+          message( "...1/0 format detected for `", var, "`. Using level of 1 as the variable to count..." )
           
           # aggregate by `id` variable and specify denominator
           d.agg <- d %>% 
@@ -190,7 +195,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
           
           this.ref <- levs.binary[1] # automatically assign first level as `1` if not assigned
           
-          message( paste0( "...`var` is of class ",
+          message( paste0( "...`", var, "` is of class ",
                            class( d[[ var ]] ),
                            " and not 1/0. Using level of '",
                            this.ref, "' as the variable to count.",
@@ -205,8 +210,6 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
         
         ## final aggregation step (1. find denominator and 2. compute metric) ##
         
-        # constant to multiply numerator of metric by (depends on metric type)
-        numer <- if( metric == "percent" ) 100 else if( metric == "rate" ) per
         
         d_aggr <- d.agg %>% 
           # denominator for when `metric` is "percent"
@@ -218,7 +221,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
               mutate( ., denom = nrow( d ) ) } else 
                 if( percentages.rel == "geo" ){
                   
-                  message( '..."percent" metric selected, denominator selected is `id` level-specific...' )
+                  message( '..."percent" metric selected, denominator selected is `', id, '` level-specific...' )
                   
                   piped.in <- . # aggregate data coming down pipe
                   
@@ -230,8 +233,9 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
           { if( metric %in% c( "rate" ) ){
             
             piped.in <- .
+            
             # first check there are 
-            message( '..."rate" metric selected, denominator selected is `pop.var`...' )
+            message( '..."rate" metric selected, denominator selected is the unique `', var.pop, '` value by `', id, '`..' )
             
             pop.distinct <- d %>% 
               distinct( !!sym( id ), !!sym( var.pop ) ) %>% 
@@ -248,12 +252,44 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
             rename( ., out_metric = count )
           } else . }
         
-      } 
+      } else if( inherits( d[[ var ]], "integer" ) ){ # for count variables that need to be aggregated by ward (or can already be pre-aggregated)
+       message( '...`', var, '` is of class integer. Note that aggregation will be done as the sum of counts by `', id, '`...')
+         d_aggr <- d %>% 
+          summarise( count = sum( !!sym( var ), na.rm = na.rm ),
+                     .by = !!sym( id ) ) %>% 
+          # denominator for when `metric` is "percent"
+          { if( metric %in% c( "percent" ) ){
+              message( '..."percent" metric selected, denominator selected is `nrow(d)`. Note that because this is an integer variable, `percentages.rel` is ignored and the denominator used for percentages is the sum across all values of` ', id, '`...' )
+              
+              mutate( .,denom = sum( d[[var]] ) ) } else . } %>% 
+          # denominator for when `metric` is "rate"
+          { if( metric %in% c( "rate" ) ){
+            
+            piped.in <- .
+            
+            # first check there are 
+            message( '..."rate" metric selected, denominator selected is the unique `', var.pop, '` value by `', id, '`..' )
+            
+            pop.distinct <- d %>% 
+              distinct( !!sym( id ), !!sym( var.pop ) ) %>% 
+              rename( denom = !!sym( var.pop ) )
+            
+            left_join( piped.in, pop.distinct,
+                       by = id ) 
+            
+          } else . } %>% 
+          # compute final metric 
+          { if( metric %in% c( "rate", "percent" ) ){
+            mutate( ., out_metric = ( numer * count ) / denom ) 
+          } else if( metric == "count" ){
+            rename( ., out_metric = count )
+          } else . }
+      }
       
     } else stop( "If `metric` is 'percent', 'count', or 'rate' then `var` must be a binary (or dummy) of class character, factor, or a 1/0 integer." )
     
-    if( "denom" %in% colnames( d.agg ) ){
-      if( sum( is.na( d.agg$denom ) > 0 ) ){ warning( paste0( "NAs detected for denominator in at least one level of `",                                                       id, "`" ) )
+    if( "denom" %in% colnames( d_aggr ) ){
+      if( sum( is.na( d_aggr$denom ) > 0 ) ){ warning( paste0( "NAs detected for denominator in at least one level of `",                                                       id, "`" ) )
       }
     }
     
@@ -540,7 +576,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
       segment.color = "transparent",
       colour = "gray50",
       force = 0, # minimized force of repulsion between labels
-      size = ( 3.1 + size.scale.labels ),
+      size = ( 3.1 + size.scale.labels.cty ),
       # manual location of ward labels (x and y)
       nudge_y = dc_surr_counties$label_cty_nudge_y,
       nudge_x = dc_surr_counties$label_cty_nudge_x,
@@ -551,7 +587,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
       ggsflabel::geom_sf_text_repel( 
       mapping = aes( label = NAMELSAD ),
       force = 0, # minimized force of repulsion between labels
-      size = ( 3.1 + size.scale.labels ),
+      size = ( 3.1 + size.scale.labels.ward ),
       nudge_x = d_map$labelward_nudge_x,
       nudge_y = d_map$labelward_nudge_y,
       segment.color = "transparent",

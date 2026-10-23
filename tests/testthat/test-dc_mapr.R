@@ -4,7 +4,7 @@ test_that( "basic no errors call", {
   
   expect_no_error( dc_mapr(
     d = d_ward,
-    var = "bin_other",
+    var = "count",
     id = "ward",
     geo = "ward 2022",
     bypass = FALSE,
@@ -94,7 +94,21 @@ test_that( "bypass option", {
   
 })
 
+test_that( "count variable", {
+  
 
+  
+  expect_no_error( dc_mapr(
+    d = d_ward,
+    var = "count",
+    pop.var = "ward_pop",
+    id = "ward",
+    metric = "percent",
+    bypass = FALSE,
+    geo = "ward 2022"
+  ) )
+  
+})
 
 
 # figure out suppressed rates and counts situation

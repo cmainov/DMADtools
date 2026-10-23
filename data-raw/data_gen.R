@@ -705,6 +705,30 @@ d_ward$cat <- {
   
 }
 
+# add integer/count variable
+d_ward$count <- { 
+  
+  vapply( d_ward$ward, FUN = function(x){
+    
+    lambda_ward <- switch( x, # assign lambda parameters for poisson dist.
+                     "Ward 1" = 8,
+                     "Ward 2" = 11,
+                     "Ward 3" = 18,
+                     "Ward 4" = 7,
+                     "Ward 5" = 7,
+                     "Ward 6" = 10,
+                     "Ward 7" = 4,
+                     "Ward 8" = 6 )
+    
+    ag_cat <- rpois( n = 1, lambda_ward )
+    
+    return( ag_cat )
+    
+  }, FUN.VALUE = 1L, 
+  USE.NAMES = FALSE ) 
+  
+}
+
 # add binary character variable
 d_ward$bin <- { 
   
