@@ -448,7 +448,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
       if( rate.supp < 0 ) stop( "rate.supp must be >= 0" )
       
       d_map <- d_map %>% 
-        mutate( out_metric = ifelse( out_metric <= rate.supp, NA, out_metric ),
+        mutate( out_metric = ifelse( count <= rate.supp, NA, out_metric ),
                 missing_suppressed = ifelse( is.na( out_metric ) &
                                                is.na( missing_suppressed ),
                                              "Suppressed", missing_suppressed ) )

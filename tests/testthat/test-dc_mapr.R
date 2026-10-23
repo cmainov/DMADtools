@@ -103,6 +103,8 @@ test_that( "count variable", {
     var = "count",
     pop.var = "ward_pop",
     id = "ward",
+    rate.supp = 10,
+    colorbar.position = "none",
     metric = "rate",
     bypass = FALSE,
     geo = "ward 2022"
