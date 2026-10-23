@@ -235,11 +235,11 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
             piped.in <- .
             
             # first check there are 
-            message( '..."rate" metric selected, denominator selected is the unique `', var.pop, '` value by `', id, '`..' )
+            message( '..."rate" metric selected, denominator selected is the unique `', pop.var, '` value by `', id, '`..' )
             
             pop.distinct <- d %>% 
-              distinct( !!sym( id ), !!sym( var.pop ) ) %>% 
-              rename( denom = !!sym( var.pop ) )
+              distinct( !!sym( id ), !!sym( pop.var ) ) %>% 
+              rename( denom = !!sym( pop.var ) )
             
             left_join( piped.in, pop.distinct,
                        by = id ) 
@@ -268,11 +268,11 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
             piped.in <- .
             
             # first check there are 
-            message( '..."rate" metric selected, denominator selected is the unique `', var.pop, '` value by `', id, '`..' )
+            message( '..."rate" metric selected, denominator selected is the unique `', pop.var, '` value by `', id, '`..' )
             
             pop.distinct <- d %>% 
-              distinct( !!sym( id ), !!sym( var.pop ) ) %>% 
-              rename( denom = !!sym( var.pop ) )
+              distinct( !!sym( id ), !!sym( pop.var ) ) %>% 
+              rename( denom = !!sym( pop.var ) )
             
             left_join( piped.in, pop.distinct,
                        by = id ) 
