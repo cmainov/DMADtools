@@ -3,6 +3,7 @@
 S3method(mar2_find,character)
 S3method(validate_address_dc,default)
 S3method(validate_address_dc,list)
+export(dc_address_parser)
 export(dc_mapr)
 export(mar2_find)
 export(mar2_safe)

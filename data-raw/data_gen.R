@@ -620,8 +620,20 @@ if( !file.exists( "./R/sysdata.rda" ) ){
   # ---------------------------------------------------------------------------------------------------------------------------------------------------------
   
   
-  ## (2.8.0) Save Shapefiles Data for Internal Use ##
+  ## (2.8.0) Save Shapefiles Data and Objects for Internal Use ##
   # ---------------------------------------------------------------------------------------------------------------------------------------------------------
+  
+  
+  # street types objects used in function `dc_address_parser`
+  
+  street_types <- c( "AVE","AVENUE","ST","STREET","RD","ROAD","LN","LANE",
+                     "DR","DRIVE","CT","COURT","PKWY","PKY","PARKWAY","TERR",
+                     "TERRACE","PL","PLACE","CIR","CIRCLE","BLVD","BOULEVARD",
+                     "SQ","SQUARE","WY","WAY","ALY","ALLY","ALLEY" )
+  
+  quad_types <- c( "NW","NE","SE","SW",
+                   "NORTHWEST","NORTH WEST","NORTHEAST","NORTH EAST",
+                   "SOUTHWEST","SOUTH WEST","SOUTHEAST","SOUTH EAST" )
   
   usethis::use_data( linear_water_dc_md_va, # liner water shapefiles
                      area_water_dc_md_va, # area water shapefile
@@ -630,6 +642,8 @@ if( !file.exists( "./R/sysdata.rda" ) ){
                      dc_ward12, # 2012 ward boundaries shapefile
                      dc_ward22, # 2022 ward boundaries shapefile
                      dc_zcta,
+                     street_types,
+                     quad_types,
                      compress = "xz",
                      internal = TRUE,
                      overwrite = TRUE,
@@ -845,4 +859,3 @@ d_zcta %>%
 usethis::use_data( d_zcta, overwrite = TRUE, version = 2 )
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------
-
