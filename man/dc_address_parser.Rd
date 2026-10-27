@@ -28,7 +28,7 @@ Extracts component parts of a District of Columbia address. This is particularly
 prior to geocoding. This is a vectorized function that works on a single address or a vector/list of address.
 }
 \details{
-Address input should follow a standard District of Columbia address ( \verb{NUMBER(S) STREETNAME STREETTYPE [APT|UNIT NUMBER] QUADRANT [ZIPCODE]} ) For instance: 1600 Pennsylvania Ave NW 20500. The address apartment/unit number and ZIP code are not required.
+Address input should follow a standard District of Columbia address ( \verb{NUMBER(S) STREETNAME STREETTYPE [APT|UNIT NUMBER] QUADRANT [ZIPCODE]} ) For instance: "1600 Pennsylvania Ave NW 20500". The address apartment/unit number and ZIP code are not required.
 }
 \examples{
 

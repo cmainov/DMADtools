@@ -3,7 +3,7 @@ Type: Package
 Title: Functions and tools for health data analysis
 Version: 3.0.2
 Date: 2025-03-21
-Author: Christian Maino Vieytes (DMAD/CPPE DC Health)
+Author: Christian Maino Vieytes
 Maintainer: Christian Maino Vieytes <christian.maino-vieytes@dc.gov>
 Description: Tools for analyzing health and vital records data. Tools for tabulation.
 License: GPL-3 + file LICENSE
@@ -36,6 +36,7 @@ Imports:
     english,
     ggpubr,
     tidymar,
+    crayon,
     plyr
 Remotes: yutannihilation/ggsflabel,
     hersh-gupta/tidymar
