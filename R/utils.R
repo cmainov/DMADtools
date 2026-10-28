@@ -194,10 +194,10 @@ deparse_arg <- function(x) parse_expr(x) %>% as.character()
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # from `crayon` package
-error <- red$bold$underline
-warn <- yellow$underline
-note <- cyan$bold$underline
-success <- green$bold$underline
+error <- crayon::red$bold$underline
+warn <- crayon::yellow$underline
+note <- crayon::cyan$bold$underline
+success <- crayon::green$bold$underline
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------
 
