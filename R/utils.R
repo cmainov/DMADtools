@@ -193,10 +193,11 @@ deparse_arg <- function(x) parse_expr(x) %>% as.character()
 ## Color-Coded Console Messaging ##
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------
 
-error <- red $ bold
-warn <- magenta $ underline
-note <- cyan$bold
-success <- green$bold
+# from `crayon` package
+error <- red$bold$underline
+warn <- yellow$underline
+note <- cyan$bold$underline
+success <- green$bold$underline
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------
 

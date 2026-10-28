@@ -2,7 +2,7 @@
 % Please edit documentation in R/api_key_functions.R
 \name{write_mar2_api_key}
 \alias{write_mar2_api_key}
-\title{Write the MAR2 API Key to .Renviron}
+\title{Write the MAR2 API key to .Renviron file.}
 \usage{
 write_mar2_api_key( key, overwrite = FALSE )
 }
@@ -12,7 +12,7 @@ write_mar2_api_key( key, overwrite = FALSE )
 \item{overwrite}{A logical. Gives permission to the function to overwrite the .Renviron file with the supplied key value. Will need to be set to \code{TRUE} for the key to be written. Default is \code{FALSE}.}
 }
 \description{
-Modifies the local .Renviron by adding the user-supplied MAR2 API key as a new line in the file. All extant keys and variables previously in the file are left unmodified. Function structure is loosely based off of \code{tidycensus::census_api_key}.
+Modifies the local R environment variables (.Renviron) file by adding the user-supplied MAR2 API key as a new line/entry named "MAR2_KEY" in the file. All extant keys and variables previously in the file are left unmodified. Function structure is loosely based off of \code{tidycensus::census_api_key}.
 }
 \details{
 This function requires a MAR2 API key from the District of Columbia Office of the Chief Technology Officer (OCTO). See \url{https://developers.data.dc.gov/} for details on obtaining a key. To write the API key to the .Renviron file, the \code{overwrite} parameter will need to be set to \code{TRUE}. The default is \code{FALSE}.
@@ -23,6 +23,6 @@ Walker, K and Herman, M (n.d.). tidycensus: Load US Census Boundary and Attribut
 
 \examples{
 \dontrun{
-write_mar2_api_key( key = "MY_KEY", overwrite = TRUE)
+write_mar2_api_key( key = "MY_KEY", overwrite = TRUE )
 }
 }
