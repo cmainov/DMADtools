@@ -2,7 +2,7 @@
 % Please edit documentation in R/api_key_functions.R
 \name{write_mar2_api_key}
 \alias{write_mar2_api_key}
-\title{Write the MAR2 API key to .Renviron file.}
+\title{Write the Master Address Repository 2 (MAR2) API key to .Renviron file}
 \usage{
 write_mar2_api_key( key, overwrite = FALSE )
 }

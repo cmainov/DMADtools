@@ -37,6 +37,10 @@ Imports:
     ggpubr,
     tidymar,
     crayon,
+    httr,
+    jsonlite,
+    RCurl,
+    stringdist,
     plyr
 Remotes: yutannihilation/ggsflabel,
     hersh-gupta/tidymar

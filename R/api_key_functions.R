@@ -3,7 +3,7 @@
 ###---------------------------------------------------------------
 
 #' @md
-#' @title Write the MAR2 API key to .Renviron file.
+#' @title Write the Master Address Repository 2 (MAR2) API key to .Renviron file
 #'
 #' @description Modifies the local R environment variables (.Renviron) file by adding the user-supplied MAR2 API key as a new line/entry named "MAR2_KEY" in the file. All extant keys and variables previously in the file are left unmodified. Function structure is loosely based off of `tidycensus::census_api_key`.
 #'
@@ -68,7 +68,7 @@ write_mar2_api_key <- function( key, overwrite = FALSE ){
 ###---------------------------------------------------------------
 
 #' @md
-#' @title Read the MAR2 API key in the local .Renviron file.
+#' @title Read the Master Address Repository 2 (MAR2) API key in the local .Renviron file
 #'
 #' @description Reads the MAR2 API key stored in the local R environment variables (.Renviron) file.
 #' 

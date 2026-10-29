@@ -2,7 +2,7 @@
 % Please edit documentation in R/api_key_functions.R
 \name{read_mar2_api_key}
 \alias{read_mar2_api_key}
-\title{Read the MAR2 API key in the local .Renviron file.}
+\title{Read the Master Address Repository 2 (MAR2) API key in the local .Renviron file}
 \usage{
 read_mar2_api_key()
 }

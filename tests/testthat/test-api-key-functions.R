@@ -1,13 +1,16 @@
 
 
 # no errors for normal run
-key_fake <- "2789"
 key_real <- Sys.getenv( "MAR2_KEY" )
 
+key_fake <- "2789"
+
+write_mar2_api_key( key = key_fake, overwrite = TRUE )
+
+readRenviron( "~/.Renviron" )
+
 test_that( "normal run of `write` and `read`", {
-  
-  expect_no_error( write_mar2_api_key( key = key_fake, overwrite = TRUE ) )
-  
+
   # reboot the file in the session environment
   readRenviron( "~/.Renviron" )
   
@@ -32,10 +35,8 @@ test_that( "normal run of `write` and `read`", {
   # check read function correctly read it
   expect_true( read_mar2_api_key() == key_fake ) 
 
-  # write back original key if present
-  if( key_real != "" ) expect_no_error( write_mar2_api_key( key = key_real, overwrite = TRUE ) )
-  
 } )
+
 
 # expect warning when overwrite set to FALSE
 test_that( "warning overwrite in `write`", {
@@ -76,8 +77,13 @@ test_that( "no error and functionality in  `read`", {
   
   which_mar2 <- which( grepl( pattern = "MAR2_KEY", x = read_renviron ) )
   expect_true( read_renviron[ which_mar2 ] == paste0( "MAR2_KEY=", "\"", key_fake, "\"" ) )
-  read_mar2_api_key() == paste0( "MAR2_KEY=", "\"", key_fake, "\"" ) )
+  expect_true( read_mar2_api_key() == key_fake )
   # write back original key if present
   if( key_real != "" ) expect_no_error( write_mar2_api_key( key = key_real, overwrite = TRUE ) )
   
 } )
+
+
+# write back original key if present
+write_mar2_api_key( key = key_real, overwrite = TRUE ) 
+readRenviron( "~/.Renviron" ) # reboot .renviron
