@@ -175,7 +175,7 @@ colorDist <- function( hex.1, hex.2 ){
   
   return( data.frame( eq.d = unname( eq.d ),
                       p.d = unname( p.d ) ) )
-}
+} 
 
 # example:
 # if( colorDist( "black", "#7a1315")$p.d < 30 ) "grey" else "black"
@@ -194,10 +194,12 @@ deparse_arg <- function(x) parse_expr(x) %>% as.character()
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # from `crayon` package
-error <- crayon::red$bold$underline
-warn <- crayon::yellow$underline
-note <- crayon::cyan$bold$underline
-success <- crayon::green$bold$underline
+error <- crayon::red$bold$underline # to disnguish error headers to the user in console output
+warn <- crayon::yellow$underline # to disnguish warning headers  (but we use warning() first) to the user in console output
+note <- crayon::cyan$bold$underline # to disnguish note headers to the user in console output
+success <- crayon::green$bold$underline # to distinguish success messages in console output
+accent <- crayon::yellow # to distinguish arguments and objects in console output
+logical <- crayon::green # to distinguish logical, NULL, and NA special characters in console output
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------
 

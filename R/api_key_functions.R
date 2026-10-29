@@ -27,8 +27,8 @@
 
 write_mar2_api_key <- function( key, overwrite = FALSE ){
   
-  if( !is.null( key ) & length( key ) > 1  ) stop( "`key` must be a string or character vector of length 1." )
-  if( key == "" | is.null( key ) ) stop( "`key` is empty or NULL and is a required argument" )
+  if( !is.null( key ) & length( key ) > 1  ) stop( accent( "key" ), " must be a string or character vector of length 1." )
+  if( key == "" | is.null( key ) ) stop( accent( "key" ), " is empty or ", logical( "NULL" ), " and is a required argument" )
   
   # home directory
   r_path <- Sys.getenv( "HOME" )
@@ -46,10 +46,10 @@ write_mar2_api_key <- function( key, overwrite = FALSE ){
   
   if( overwrite ){
     
-    if( is.null( which_mar2 ) || !length( which_mar2 ) ) cat( note( "Note:\n" ), "MAR2_KEY not detected in .Renviron file. Will write supplied key and update the file.\n\n" )
+    if( is.null( which_mar2 ) || !length( which_mar2 ) ) cat( note( "Note:\n" ), accent( "MAR2_KEY" ), "not detected in .Renviron file. Will write supplied key and update the file.\n\n" )
     
     if( length( which_mar2 ) >= 1  ){ 
-      cat( note( "Note:\n" ), "One or more MAR2_KEY entries detected in .Renviron file. Will delete all instances and rewrite with the supplied key.\n\n" )
+      cat( note( "Note:\n" ), "One or more", accent( "MAR2_KEY" ), "entries detected in .Renviron file. Will delete all instances and rewrite with the supplied key.\n\n" )
       
       new_renv <- read_renviron[ c( -which_mar2, -which( read_renviron == "" ) ) ]
       new_renv_out <- c( new_renv, paste0( "MAR2_KEY=\"", key, "\"" ), "" )
@@ -59,8 +59,8 @@ write_mar2_api_key <- function( key, overwrite = FALSE ){
     
     Sys.getenv( "MAR2_KEY" ) 
     
-    cat( success( "MAR2_KEY was succesfully written to the local .Renviron file.\n" ), "The R session should be restarted to reflect the changes." )
-  } else warning( "`overwrite` is set to FALSE. Therefore, the `key` was not written to the local .Renviron. Set `overwrite` to TRUE to write the key value to the .Renviron file." )
+    cat( success( accent( "MAR2_KEY" ), "was succesfully written to the local .Renviron file.\n" ), "The R session should be restarted to reflect the changes." )
+  } else warning( accent( "overwrite" ), " is set to ", logical( "FALSE" ), ". Therefore, ", accent( "key" ), " was not written to the local .Renviron. Set ", accent("overwrite" ), " to ", logical( "TRUE"), " to write the key value to the .Renviron file." )
 }
 
 ###---------------------------------------------------------------
@@ -92,7 +92,7 @@ read_mar2_api_key <- function( ){
   renviron_path <- file.path( r_path, ".Renviron" )
   
   #.renviron exists logic, generate file if it doesn't exist
-  if( !file.exists( renviron_path ) )  stop( ".Renviron file not found. Please check .Renviron file is located in ", r_path, "\nPlease note that the `DMADtools::write_mar2_api_key` function creates this file for you and appends the MAR2 API key if the file is not present." )
+  if( !file.exists( renviron_path ) )  stop( ".Renviron file not found. Please check .Renviron file is located in ", r_path, "\nPlease note that the ", accent( "DMADtools::write_mar2_api_key" ), " function creates this file for you and appends the MAR2 API key if the file is not present." )
   
   # read .renviron
   read_renviron <- readLines( renviron_path )
@@ -100,7 +100,7 @@ read_mar2_api_key <- function( ){
   which_mar2 <- which( grepl( pattern = "MAR2_KEY", x = read_renviron ) )
   
   if( is.null( which_mar2 ) || !length( which_mar2 ) ){
-    stop( "MAR2 API key value not detected in .Renviron file. Please ensure that an entry named 'MAR2_KEY' with the API key value is present in the .Renviron file. Note that the `DMADtools::write_mar2_api_key` appends and formats the MAR2 API key in the file for you." )
+    stop( "MAR2 API key value not detected in .Renviron file. Please ensure that an entry named ", accent( "MAR2_KEY" ), " with the API key value is present in the .Renviron file. Note that the ", accent( "DMADtools::write_mar2_api_key" ), " appends and formats the MAR2 API key in the file for you." )
   } else Sys.getenv( "MAR2_KEY" ) 
 
 }

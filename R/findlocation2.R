@@ -1,11 +1,4 @@
 
-library( httr )
-library( dplyr )
-library( jsonlite )
-library( purrr )
-library( RCurl )
-library( stringdist )
-
 
 
 findlocation2 <- function( address, api_key = NULL, refine_result = FALSE, verbose = TRUE, ... ){
@@ -82,26 +75,25 @@ findlocation2 <- function( address, api_key = NULL, refine_result = FALSE, verbo
   
   # if refine_result is TRUE, we use additional string distance/fuzzy matching functions to get the closest match and recompute scores
   if( refine_result ){
-    start_rows <- nrow( result )
     
     if( verbose ){
       fuzz_method <- if( length( args_stringdist[["method"]] ) == 0 ) "osa" else args_stringdist[["method"]] # "osa" is mentioned as default method in stringdist::stringdist() Help documentation
       
       fuzz_method_full <- switch( fuzz_method,
-                                  osa      = "Optimal string alignment (restricted Damerau–Levenshtein distance).",
-                                  lv       = "Levenshtein distance (as in R's native adist).",
-                                  dl       = "Full Damerau–Levenshtein distance.",
-                                  hamming  = "Hamming distance (a and b must have the same number of characters).",
-                                  lcs      = "Longest common substring distance.",
-                                  qgram    = "q-gram distance.",
-                                  cosine   = "Cosine distance between q-gram profiles.",
-                                  jaccard  = "Jaccard distance between q-gram profiles.",
-                                  jw       = "Jaro or Jaro–Winkler distance.",
-                                  soundex  = "Distance based on soundex encoding.",
-                                  stop("Unknown method: ", fuzz_method, call. = FALSE )
+                                  osa      = "Optimal string alignment (restricted Damerau–Levenshtein distance)",
+                                  lv       = "Levenshtein distance",
+                                  dl       = "Full Damerau–Levenshtein distance",
+                                  hamming  = "Hamming distance",
+                                  lcs      = "Longest common substring distance",
+                                  qgram    = "q-gram distance",
+                                  cosine   = "Cosine distance between q-gram profiles",
+                                  jaccard  = "Jaccard distance between q-gram profiles",
+                                  jw       = "Jaro or Jaro–Winkler distance",
+                                  soundex  = "Distance based on soundex encoding",
+                                  stop( "Unknown method: ", fuzz_method, call. = FALSE )
       )
       
-      cat( note( "Note:\n" ), "`refine_result` set to TRUE. Will use ", fuzz_method_full, " method for fuzzy matching to filter results further.\n" )
+      cat( note( "Note:\n" ), accent( "refine_result" ), "set to", paste0( logical( "TRUE" ), "." ), "\nUsing the", accent( fuzz_method_full ), "algorithm for fuzzy matching and additional filtering.\n" )
     }
     
     Map( function( listframe, i ){
@@ -111,17 +103,25 @@ findlocation2 <- function( address, api_key = NULL, refine_result = FALSE, verbo
       dists <- do.call( stringdist::stringdist, c( list( a = parsed$ADDRESS_CLEAN,
                                                          b = listframe$FULLADDRESS ), args_stringdist ) )
       
-      these_match <- if( 0 %in% dists ){ which( dists == 0 ) # if there is a distance of 0, that is our match--keep it
+      these_match <- if( 0 %in% dists ){ which( dists == 0 ) # if there is a distance of 0, that is our match--keep it (them)
       } else if( length( unique( dists ) == 1 ) ){ seq_along( dists ) # if there are no 0's and all distances are the same, return original frame
       } else which( dists == min( dists ) ) # else, return the set of row(s) with the smallest string distance
       
-      listframe[ these_match, ] %>% 
+      new_result <- listframe[ these_match, ] %>% 
         # recompute `_SCORE` column using softmax function
         mutate( `_SCORE` = 100 * exp( -dists[ these_match ] ) / sum( exp( -dists[ these_match ] ) ) ) # softmax function for score
+      
+      if( verbose ){
+        
+        if( nrow( new_result ) < nrow( listframe ) ) cat( note( "Note:\n" ), "Matches were filtered further from", accent( nrow( listframe ) ), "to", accent( nrow( new_result ) ), "matches, with a maximum match score of", paste0( paste0( accent( max( new_result$`_SCORE` ), "%" ) ), "." ), "\n\n" )
+      
+      if( nrow( new_result ) == nrow( listframe ) ) cat( note( "Note:\n" ), "Fuzzy matching did not provide additional filtering advantage. There were", accent( new_result ), "matches, with a maximum match score of", paste0( paste0( accent( max( new_result$`_SCORE` ), "%" ) ), "." ), "\n\n" )
+      }
+      
+      new_result
       
     }, result, seq_along( result ) )
   } else result
   
 }
 
- findlocation2(address = "1600 Pennsylvania Ave NW", refine_result = TRUE  )
