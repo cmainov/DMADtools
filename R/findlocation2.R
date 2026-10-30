@@ -69,7 +69,7 @@
 
 findlocation2 <- function( address, api_key = NULL, refine_result = FALSE, verbose = TRUE, ... ){
   
-  if( length( address ) > 10000 ) stop( "Too many addresses. The MAR2 API accepts up to 10,000 results. Consider sending separate queries and no more than 400 addresses per query." )
+  if( length( address ) > 10000 ) stop( "Too many addresses. The MAR2 API Batch Geocoder accepts up to 10,000 results. Consider sending separate queries and no more than 400 addresses per query." )
   
   if( length( address ) > 400 ) warning( "Note that the MAR2 API accepts up to 10,000 addresses for geocoding in a single query. Consider sending separate queries and no more than 400 addresses per query." )
   
@@ -114,17 +114,18 @@ findlocation2 <- function( address, api_key = NULL, refine_result = FALSE, verbo
 
   # send the POST request (POST method is used instead of GET bc it omits the address inputs from the URL)
     # the query parameters are sent in the body instead
-  response_get <- httr::POST( url = url_send, 
+  response_post <- httr::POST( url = url_send, 
                               body = list( `Content-Type`= "application/json-patch+json",
                                            accept = "text/json",
-                                           address_base64 = base64_address ),
+                                           address_base64 = base64_address,
+                                           charset = "utf-8" ),
                               encode = "json" ) 
   
   # check status of response; stop if !=200
-  httr::stop_for_status( response_get )
+  httr::stop_for_status( response_post )
   
   # extract JSON text from response
-  jsontext <- httr::content( response_get, as = "text" )
+  jsontext <- httr::content( response_post, as = "text" )
   
   # parse it
   json_data <- jsonlite::toJSON( list( text = jsontext ), auto_unbox = TRUE )
