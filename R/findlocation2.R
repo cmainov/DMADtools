@@ -91,17 +91,17 @@ findlocation2 <- function( address, api_key = NULL, refine_result = FALSE, verbo
   # arguments for string_dist
   args_stringdist <- dots[ names( dots ) %in% c( "method", "useBytes", "weight", "q", "p", "bt", "mthread", "useNames" ) ]
   
-  # encode separations in addresses if vectorsupplied
+  # encode separations in addresses if vector supplied
   add_sep <- paste( paste( address, collapse = "$$" ) ) # "||" is the chunk sequence separator. "$$" is the address separator
   
   # base64 encode the address string(s)
   base64_address <- RCurl::base64( add_sep )[1] %>% URLencode( reserved = TRUE )
   
   # GET request to API endpoint
-  api_endpoint <- "https://datagate.dc.gov/mar/open/api/v2.2/locationbatch"
+  api_endpoint <- "https://datagate.dc.gov/mar/open/api/v2.2/locationbatch/"
   
   # parse URL for components
-  parsed_url <- httr::parse_url( paste0( api_endpoint, "/", base64_address ) ) 
+  parsed_url <- httr::parse_url( paste0( api_endpoint ) ) 
   
   # add query parameters
   parsed_url$query <- list( address_separator = "$$", # the string is automatically URL encoded in `build_url`, no need to encode it beforehand
@@ -111,9 +111,14 @@ findlocation2 <- function( address, api_key = NULL, refine_result = FALSE, verbo
   
   # build the URL for the GET request
   url_send <- httr::build_url( parsed_url )
-  
-  # send the GET request
-  response_get <- httr::GET( url = url_send, httr::add_headers( accept = "accept: text/json" ) )
+
+  # send the POST request (POST method is used instead of GET bc it omits the address inputs from the URL)
+    # the query parameters are sent in the body instead
+  response_get <- httr::POST( url = url_send, 
+                              body = list( `Content-Type`= "application/json-patch+json",
+                                           accept = "text/json",
+                                           address_base64 = base64_address ),
+                              encode = "json" ) 
   
   # check status of response; stop if !=200
   httr::stop_for_status( response_get )
