@@ -5,7 +5,7 @@
 #' @md
 #' @title Geocode a DC Address with the OCTO's Master Address Repository 2 (MAR2) API
 #'
-#' @description Builds and sends a GET request query to the District of Columbia Office of the Chief Technology Officer (OCTO)'s MAR2 Batch Geocoder API service. Requires a MAR2 API key. See OCTO's website for more information on obtaining an API key (\url{https://developers.data.dc.gov/}). Also see `DMADtools::write_mar2_api_key` and `DMADtools::read_mar2_api_key` for handling the MAR2 API key within the environment of this package. This function builds off of `tidymar::findlocation()`, which queried the legacy MAR API.
+#' @description Builds and sends a GET request query to the District of Columbia Office of the Chief Technology Officer (OCTO)'s MAR2 Batch Geocoder API service. Requires a MAR2 API key. See OCTO's website for more information on obtaining an API key (\url{https://developers.data.dc.gov/}). Also see `DMADtools::write_mar2_api_key` and `DMADtools::read_mar2_api_key` for handling the MAR2 API key within the environment of this package. This function builds off of `tidymar::findlocation`, which queried the legacy MAR API.
 #' 
 #' @import httr 
 #' @import dplyr 
@@ -20,12 +20,16 @@
 #' @details
 #' OCTO's MAR2 API is a modern .NET geocoding web service that leverages ElasticSearch to refine address search results for DC address queries. It is recommended to not exceed 400 records in a single query. More information on the geocoding service can be found at \url{https://mar2.data.dc.gov/}.
 #' 
-#'Addresses are base 64 encoded and a GET request URL is constructed and sent to the API endpoint. Address inputs should follow a standard District of Columbia address ( `NUMBER(S)` `STREETNAME` `STREETTYPE [APT|UNIT NUMBER] QUADRANT [ZIPCODE]` ) For instance: "1600 Pennsylvania Ave NW 20500". The address apartment/unit number and ZIP code are not required. You can use `DMADtools::dc_address_parser` to assist in building MAR2-ready address strings to send in your request.  The return from the endpoint is then formatted into a tidy `tibble` output.
+#'Addresses are base 64 encoded and a POST request URL and body are constructed and sent to the API endpoint. Address inputs should follow a standard District of Columbia address ( `NUMBER(S)` `STREETNAME` `STREETTYPE [APT|UNIT NUMBER] QUADRANT [ZIPCODE]` ). For instance: "1600 Pennsylvania Ave NW 20500". The address apartment/unit number and ZIP code are not required. You can use `DMADtools::dc_address_parser` to assist in building MAR2-ready address strings to send in your request.  The return from the endpoint is then formatted into a tidy `tibble` output.
 #' 
 #' # References:
+#' ## MAR2 Web Service
 #' District of Columbia Government. “MAR 2 Batch Geocoder Portal.” Accessed October 29, 2026. \url{https://mar2.data.dc.gov/}. 
 #' 
-#' @param address A string, character vector, or list of District of Columbia addresses to geocode.
+#' ## `tidymar`
+#' Gupta, H (n.d.). tidymar: Fuctions to Interact with the MAR Web Service. GitHub. Retrieved from \url{https://github.com/hersh-gupta/tidymar/}. Accessed on October 27, 2026. 
+#' 
+#' @param address A string, character vector, or list of District of Columbia addresses to geocode. If known, a `MARID` can be supplied that links to an exact match in the MAR.
 #' @param api_key A string or `NULL`. MAR2 API key value. If `NULL`, the function calls `DMADtools::read_mar2_api_key` to search for the key in the local .Renviron file. See `DMADtools::write_mar2_api_key` and `DMADtools::read_mar2_api_key` for more details.
 #' @param refine_result A logical. Triggers an additional layer of fuzzy matching (using `stringdist::stringdist`) to filter search results and increase the probability of an exact match, if possible. Usually not needed.
 #' @param verbose A logical. Display output and messaging in console.
@@ -57,12 +61,15 @@
 #' 
 #' findlocation2( address = these_geocode_list, refine_result = TRUE  )
 #' 
-#' # use Levenshtein distance for fuzzy mtaching
+#' # use additional search layer with Levenshtein distance for fuzzy matching
 #' findlocation2( address = these_geocode_list, refine_result = TRUE, method = "lv" )
 #' 
 #' # use Levenshtein distance and suppress messaging
 #' findlocation2( address = these_geocode_list, refine_result = TRUE, method = "lv",
 #'                verbose = FALSE )
+#'                
+#' # use MARID instead
+#' findlocation2( "303109" ) 
 #' 
 #' @export
 

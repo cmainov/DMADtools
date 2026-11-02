@@ -104,7 +104,6 @@ test_that( "capture errors", {
   
 } )
 
-
 # invalid address with no results
 
 test_that( "capture no result found error", {
@@ -113,5 +112,19 @@ test_that( "capture no result found error", {
   
 } )
 
-
+test_that( "use MARID instead", {
+  
+  use_marid <- "303109"
+  
+  quer4 <- expect_no_error( findlocation2( use_marid ) )
+  
+  expect_true( is_tibble( quer4 ) )
+  
+  expect_true( quer4$WARD == "Ward 8" )
+  
+  expect_true( quer4$FULLADDRESS == "1500 SOUTH CAPITOL STREET SE" )
+  
+  expect_true( quer4$MARID == "303109" ) 
+  
+} )
 

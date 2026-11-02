@@ -18,18 +18,26 @@ findlocation2( address, api_key = NULL, refine_result = FALSE, verbose = TRUE, .
 \item{...}{Additional arguments forwarded to \code{stringdist::stringdist}. Note that if no additional arguments are included, the function reverts to the defaults in \code{stringdist::stringdist}. Use \verb{method = } to modify the fuzzy matching algorithm. See the Help documentation for \code{stringdist::stringdist} for more information on the available fuzzy searching algorithms.}
 }
 \value{
-A \code{list} of \code{tibble} frames with the results of each address query, in tidy format. If the query consists of a single address, an object of class \code{tibble} is returned.
+A \code{list} of \code{tibble} frames with the results (matches) of each address query, in tidy format. If the query is a single address, an object of class \code{tibble} is returned with the matches for that address.
 }
 \description{
-Builds and sends a GET request query to the District of Columbia Office of the Chief Technology Officer (OCTO)'s MAR2 Batch Geocoder API service. Requires a MAR2 API key. See OCTO's website for more information on obtaining an API key (\url{https://developers.data.dc.gov/}). Also see \code{DMADtools::write_mar2_api_key} and \code{DMADtools::read_mar2_api_key} for handling the MAR2 API key within the environment of this package.
+Builds and sends a GET request query to the District of Columbia Office of the Chief Technology Officer (OCTO)'s MAR2 Batch Geocoder API service. Requires a MAR2 API key. See OCTO's website for more information on obtaining an API key (\url{https://developers.data.dc.gov/}). Also see \code{DMADtools::write_mar2_api_key} and \code{DMADtools::read_mar2_api_key} for handling the MAR2 API key within the environment of this package. This function builds off of \code{tidymar::findlocation}, which queried the legacy MAR API.
 }
 \details{
 OCTO's MAR2 API is a modern .NET geocoding web service that leverages ElasticSearch to refine address search results for DC address queries. It is recommended to not exceed 400 records in a single query. More information on the geocoding service can be found at \url{https://mar2.data.dc.gov/}.
 
-Addresses are base 64 encoded and a GET request URL is constructed and sent to the API endpoint. Address inputs should follow a standard District of Columbia address ( \code{NUMBER(S)} \code{STREETNAME} \verb{STREETTYPE [APT|UNIT NUMBER] QUADRANT [ZIPCODE]} ) For instance: "1600 Pennsylvania Ave NW 20500". The address apartment/unit number and ZIP code are not required. You can use \code{DMADtools::dc_address_parser} to assist in building MAR2-ready address strings to send in your request.  The return from the endpoint is then formatted into a tidy \code{tibble} output.
+Addresses are base 64 encoded and a POST request URL and body are constructed and sent to the API endpoint. Address inputs should follow a standard District of Columbia address ( \code{NUMBER(S)} \code{STREETNAME} \verb{STREETTYPE [APT|UNIT NUMBER] QUADRANT [ZIPCODE]} ). For instance: "1600 Pennsylvania Ave NW 20500". The address apartment/unit number and ZIP code are not required. You can use \code{DMADtools::dc_address_parser} to assist in building MAR2-ready address strings to send in your request.  The return from the endpoint is then formatted into a tidy \code{tibble} output.
 }
-\section{Citation for the MAR2 API:}{
+\section{References:}{
+\subsection{MAR2 Web Service}{
+
 District of Columbia Government. “MAR 2 Batch Geocoder Portal.” Accessed October 29, 2026. \url{https://mar2.data.dc.gov/}.
+}
+
+\subsection{\code{tidymar}}{
+
+Gupta, H (n.d.). tidymar: Fuctions to Interact with the MAR Web Service. GitHub. Retrieved from \url{https://github.com/hersh-gupta/tidymar/}. Accessed on October 27, 2026.
+}
 }
 
 \examples{
@@ -55,7 +63,7 @@ these_geocode_list <- list( "1600 Pennsylvania Ave NW",
 
 findlocation2( address = these_geocode_list, refine_result = TRUE  )
 
-# use Levenshtein distance for fuzzy mtaching
+# use additional search layer with Levenshtein distance for fuzzy matching
 findlocation2( address = these_geocode_list, refine_result = TRUE, method = "lv" )
 
 # use Levenshtein distance and suppress messaging
