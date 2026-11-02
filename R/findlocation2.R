@@ -5,7 +5,7 @@
 #' @md
 #' @title Geocode a DC Address with the OCTO's Master Address Repository 2 (MAR2) API
 #'
-#' @description Builds and sends a GET request query to the District of Columbia Office of the Chief Technology Officer (OCTO)'s MAR2 Batch Geocoder API service. Requires a MAR2 API key. See OCTO's website for more information on obtaining an API key (\url{https://developers.data.dc.gov/}). Also see `DMADtools::write_mar2_api_key` and `DMADtools::read_mar2_api_key` for handling the MAR2 API key within the environment of this package.
+#' @description Builds and sends a GET request query to the District of Columbia Office of the Chief Technology Officer (OCTO)'s MAR2 Batch Geocoder API service. Requires a MAR2 API key. See OCTO's website for more information on obtaining an API key (\url{https://developers.data.dc.gov/}). Also see `DMADtools::write_mar2_api_key` and `DMADtools::read_mar2_api_key` for handling the MAR2 API key within the environment of this package. This function builds off of `tidymar::findlocation()`, which queried the legacy MAR API.
 #' 
 #' @import httr 
 #' @import dplyr 
@@ -22,7 +22,7 @@
 #' 
 #'Addresses are base 64 encoded and a GET request URL is constructed and sent to the API endpoint. Address inputs should follow a standard District of Columbia address ( `NUMBER(S)` `STREETNAME` `STREETTYPE [APT|UNIT NUMBER] QUADRANT [ZIPCODE]` ) For instance: "1600 Pennsylvania Ave NW 20500". The address apartment/unit number and ZIP code are not required. You can use `DMADtools::dc_address_parser` to assist in building MAR2-ready address strings to send in your request.  The return from the endpoint is then formatted into a tidy `tibble` output.
 #' 
-#' # Citation for the MAR2 API:
+#' # References:
 #' District of Columbia Government. “MAR 2 Batch Geocoder Portal.” Accessed October 29, 2026. \url{https://mar2.data.dc.gov/}. 
 #' 
 #' @param address A string, character vector, or list of District of Columbia addresses to geocode.
@@ -31,7 +31,7 @@
 #' @param verbose A logical. Display output and messaging in console.
 #' @param ... Additional arguments forwarded to `stringdist::stringdist`. Note that if no additional arguments are included, the function reverts to the defaults in `stringdist::stringdist`. Use `method = ` to modify the fuzzy matching algorithm. See the Help documentation for `stringdist::stringdist` for more information on the available fuzzy searching algorithms.
 #' 
-#' @return A `list` of `tibble` frames with the results of each address query, in tidy format. If the query consists of a single address, an object of class `tibble` is returned.
+#' @return A `list` of `tibble` frames with the results (matches) of each address query, in tidy format. If the query is a single address, an object of class `tibble` is returned with the matches for that address.
 #' 
 #' @examples
 #' 
@@ -97,7 +97,7 @@ findlocation2 <- function( address, api_key = NULL, refine_result = FALSE, verbo
   # base64 encode the address string(s)
   base64_address <- RCurl::base64( add_sep )[1] %>% URLencode( reserved = TRUE )
   
-  # GET request to API endpoint
+  #  API endpoint URL
   api_endpoint <- "https://datagate.dc.gov/mar/open/api/v2.2/locationbatch/"
   
   # parse URL for components
@@ -109,7 +109,7 @@ findlocation2 <- function( address, api_key = NULL, refine_result = FALSE, verbo
                             parallel = "false", # we set parallel argument to false bc the mar2 documentation suggests that although `parallel=true` will run faster, items are not guaranteed to be in the same order submitted and preserving order is essential to rest of fct
                             apikey = key_send )
   
-  # build the URL for the GET request
+  # build the URL for the POST request
   url_send <- httr::build_url( parsed_url )
 
   # send the POST request (POST method is used instead of GET bc it omits the address inputs from the URL)
@@ -155,6 +155,8 @@ findlocation2 <- function( address, api_key = NULL, refine_result = FALSE, verbo
                                                         pattern = "\\.", 
                                                         replacement = "_"
                                   ) ) ) )
+  
+  if( purrr::is_empty( result ) | is.null( result ) ) stop( "No results found." ) # error thrown if no results found.
   
   # if refine_result is TRUE, we use additional string distance/fuzzy matching functions to get the closest match and recompute scores
   if( refine_result ){

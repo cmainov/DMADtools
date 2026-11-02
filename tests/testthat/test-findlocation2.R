@@ -105,3 +105,13 @@ test_that( "capture errors", {
 } )
 
 
+# invalid address with no results
+
+test_that( "capture no result found error", {
+  
+  expect_error( findlocation2( "13048 Peter Norbeck Scenic Byway" ), regexp = "No\\sresults\\sfound\\." )
+  
+} )
+
+
+
