@@ -5,7 +5,7 @@ test_that( "general query; matching results, expected output", {
   # default behavior, expecting WARD2022 column return
   quer <- expect_no_error( findDCward( "1500 S Capitol St SE" ) )
   
-  expect_true( is_tibble( quer ) )
+  expect_true( tibble::is_tibble( quer ) )
   
   expect_true(  ncol( quer ) == 3 &  all( names( quer ) == c( "ADDRESS_MATCH", "MARID_MATCH", "WARD2022" ) ) )
   
@@ -14,14 +14,14 @@ test_that( "general query; matching results, expected output", {
   
   expect_true(  ncol( quer2 ) == 4 &  all( names( quer2 ) == c( "ADDRESS_MATCH", "MARID_MATCH", "WARD2022" , "WARD2012" ) ) )
   
-  expect_true( is_tibble( quer2 ) )
+  expect_true( tibble::is_tibble( quer2 ) )
   
   # expecting WARD2022, WARD2012, WARD2002 column returns
   quer3 <- expect_no_error( findDCward( "1500 S Capitol St SE", cycle = c( "2022", "2012", "2002" ) ) )
   
   expect_true(  ncol( quer3 ) == 5 &  all( names( quer3 ) == c( "ADDRESS_MATCH", "MARID_MATCH", "WARD2022" , "WARD2012", "WARD2002" ) ) )
   
-  expect_true( is_tibble( quer3 ) )
+  expect_true( tibble::is_tibble( quer3 ) )
   
   # EXPECT CORRECT RESULTS
   expect_true( quer3$WARD2022 == "Ward 8" & quer3$WARD2012 == "Ward 6" & quer3$WARD2002 == "Ward 6" )
@@ -41,7 +41,7 @@ test_that( "use MARID instead", {
   
   quer4 <- expect_no_error( findDCward( use_marid ) )
   
-  expect_true( is_tibble( quer4 ) )
+  expect_true( tibble::is_tibble( quer4 ) )
   
   expect_true( quer4$WARD2022 == "Ward 8" )
   
@@ -51,7 +51,7 @@ test_that( "use MARID instead", {
   
   quer5 <- expect_no_error( findDCward( use_marid, cycle = c( "2012", "2022" ) ) )
   
-  expect_true( is_tibble( quer5 ) )
+  expect_true( tibble::is_tibble( quer5 ) )
   
   expect_true( quer4$MARID_MATCH == quer5$MARID_MATCH )
   
@@ -67,7 +67,7 @@ test_that( "greater than one match", {
   
   quer6 <- findDCward( "1600 Pennsylvania Ave" ) # not using quadrant
 
-  expect_true( is_tibble( quer6 ) )
+  expect_true( tibble::is_tibble( quer6 ) )
   
   expect_true( all( quer6$ADDRESS_MATCH == c( "1600 PENNSYLVANIA AVENUE NW", "1600 PENNSYLVANIA AVENUE SE" ) ) )
   

@@ -7,7 +7,7 @@
 findDCward( address, api_key = NULL, cycle = "2022", verbose = TRUE )
 }
 \arguments{
-\item{address}{A string, character vector, or list of District of Columbia addresses to geocode.}
+\item{address}{A string, character vector, or list of District of Columbia addresses to geocode. If known, a \code{MARID} can be supplied that links to an exact match in the MAR.}
 
 \item{api_key}{A string or \code{NULL}. MAR2 API key value. If \code{NULL}, the function calls \code{DMADtools::read_mar2_api_key} to search for the key in the local .Renviron file. See \code{DMADtools::write_mar2_api_key} and \code{DMADtools::read_mar2_api_key} for more details.}
 
@@ -16,7 +16,7 @@ findDCward( address, api_key = NULL, cycle = "2022", verbose = TRUE )
 \item{verbose}{A logical. Display output and messaging in console.}
 }
 \value{
-A \code{tibble} with the results of the query. The first column (\code{ADDRESS_INPUT}) is the string queried into the \code{address} argument of the call. One or more of the following column will be present in the output depending on the arguments used in \code{cycle}, \code{WARD2002}, \code{WARD2012}, \code{WARD2022}.  These fields contain the ward assignment for each redistricting cycle selected as a string (e.g., )
+A \code{tibble} with the results of the query. The first column (\code{ADDRESS_MATCH}) is the string of the address matched from the API response. \code{MARID_MATCH} is the MARID matched from the query. One or more of the following column will be present in the output depending on the arguments used in \code{cycle}, \code{WARD2002}, \code{WARD2012}, \code{WARD2022}.  These fields contain the ward assignment for each redistricting cycle selected as a string (e.g., )
 }
 \description{
 Builds and sends a POST request query to the District of Columbia Office of the Chief Technology Officer (OCTO)'s MAR2 web service. Requires a MAR2 API key. See OCTO's website for more information on obtaining an API key (\url{https://developers.data.dc.gov/}). Also see \code{DMADtools::write_mar2_api_key} and \code{DMADtools::read_mar2_api_key} for handling the MAR2 API key within the environment of this package. This function builds off of \code{tidymar::findlocation}, which queried the legacy MAR API.
@@ -29,17 +29,20 @@ Address inputs should follow a standard District of Columbia address ( \code{NUM
 \section{References:}{
 \subsection{MAR2 Web Service}{
 
-District of Columbia Government. “MAR 2 Batch Geocoder Portal.” Accessed October 29, 2026. \url{https://mar2.data.dc.gov/}.
+District of Columbia Government. "MAR 2 Batch Geocoder Portal." Accessed October 29, 2026. \url{https://mar2.data.dc.gov/}.
 }
 }
 
 \examples{
 
-libary( DMADtools )
+library( DMADtools )
 
 findDCward( "1500 S Capitol St SE" ) # default behavior will return 2022 ward assignment
 
 # ask for all historical ward assignments in addition to contemporaneous
 findDCward( "1500 S Capitol St SE", cycle = c( "2022", "2012", "2002" ) ) 
+
+# use MARID instead
+findDCward( "303109", cycle = c( "2022", "2012", "2002" ) ) 
 
 }

@@ -118,7 +118,7 @@ test_that( "use MARID instead", {
   
   quer4 <- expect_no_error( findlocation2( use_marid ) )
   
-  expect_true( is_tibble( quer4 ) )
+  expect_true( tibble::is_tibble( quer4 ) )
   
   expect_true( quer4$WARD == "Ward 8" )
   

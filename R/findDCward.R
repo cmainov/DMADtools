@@ -7,15 +7,6 @@
 #'
 #' @description Builds and sends a POST request query to the District of Columbia Office of the Chief Technology Officer (OCTO)'s MAR2 web service. Requires a MAR2 API key. See OCTO's website for more information on obtaining an API key (\url{https://developers.data.dc.gov/}). Also see `DMADtools::write_mar2_api_key` and `DMADtools::read_mar2_api_key` for handling the MAR2 API key within the environment of this package. This function builds off of `tidymar::findlocation`, which queried the legacy MAR API.
 #' 
-#' @import httr 
-#' @import dplyr 
-#' @import stringr
-#' @import jsonlite 
-#' @import purrr 
-#' @import RCurl 
-#' @import stringdist 
-#' @import crayon
-#' 
 #' @usage findDCward( address, api_key = NULL, cycle = "2022", verbose = TRUE )
 #' 
 #' @details
@@ -25,7 +16,7 @@
 #' 
 #' # References:
 #' ## MAR2 Web Service
-#' District of Columbia Government. “MAR 2 Batch Geocoder Portal.” Accessed October 29, 2026. \url{https://mar2.data.dc.gov/}. 
+#' District of Columbia Government. "MAR 2 Batch Geocoder Portal." Accessed October 29, 2026. \url{https://mar2.data.dc.gov/}. 
 #' 
 #' @param address A string, character vector, or list of District of Columbia addresses to geocode. If known, a `MARID` can be supplied that links to an exact match in the MAR.
 #' @param api_key A string or `NULL`. MAR2 API key value. If `NULL`, the function calls `DMADtools::read_mar2_api_key` to search for the key in the local .Renviron file. See `DMADtools::write_mar2_api_key` and `DMADtools::read_mar2_api_key` for more details.
@@ -36,7 +27,7 @@
 #' 
 #' @examples
 #' 
-#' libary( DMADtools )
+#' library( DMADtools )
 #' 
 #' findDCward( "1500 S Capitol St SE" ) # default behavior will return 2022 ward assignment
 #' 
@@ -66,7 +57,7 @@ findDCward <- function( address, api_key = NULL, cycle = "2022", verbose = TRUE 
   
   # parse URL for components
   parsed_url <- httr::parse_url( paste0( api_endpoint, 
-                                         paste0( "ward_", cycle, collapse = URLencode(",", reserved = TRUE ) ),
+                                         paste0( "ward_", cycle, collapse = utils::URLencode(",", reserved = TRUE ) ),
                                          "/" ) )
   
   # add query parameters

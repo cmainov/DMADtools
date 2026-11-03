@@ -7,14 +7,6 @@
 #'
 #' @description Builds and sends a GET request query to the District of Columbia Office of the Chief Technology Officer (OCTO)'s MAR2 Batch Geocoder API service. Requires a MAR2 API key. See OCTO's website for more information on obtaining an API key (\url{https://developers.data.dc.gov/}). Also see `DMADtools::write_mar2_api_key` and `DMADtools::read_mar2_api_key` for handling the MAR2 API key within the environment of this package. This function builds off of `tidymar::findlocation`, which queried the legacy MAR API.
 #' 
-#' @import httr 
-#' @import dplyr 
-#' @import jsonlite 
-#' @import purrr 
-#' @import RCurl 
-#' @import stringdist 
-#' @import crayon
-#' 
 #' @usage findlocation2( address, api_key = NULL, refine_result = FALSE, verbose = TRUE, ...)
 #' 
 #' @details
@@ -24,7 +16,7 @@
 #' 
 #' # References:
 #' ## MAR2 Web Service
-#' District of Columbia Government. “MAR 2 Batch Geocoder Portal.” Accessed October 29, 2026. \url{https://mar2.data.dc.gov/}. 
+#' District of Columbia Government. "MAR 2 Batch Geocoder Portal." Accessed October 29, 2026. \url{https://mar2.data.dc.gov/}. 
 #' 
 #' ## `tidymar`
 #' Gupta, H (n.d.). tidymar: Fuctions to Interact with the MAR Web Service. GitHub. Retrieved from \url{https://github.com/hersh-gupta/tidymar/}. Accessed on October 27, 2026. 
@@ -39,7 +31,7 @@
 #' 
 #' @examples
 #' 
-#' libary( DMADtools )
+#' library( DMADtools )
 #' 
 #' findlocation2( "1600 Pennsylvania Ave NW" )
 #' 
@@ -102,7 +94,7 @@ findlocation2 <- function( address, api_key = NULL, refine_result = FALSE, verbo
   add_sep <- paste( paste( address, collapse = "$$" ) ) # "||" is the chunk sequence separator. "$$" is the address separator
   
   # base64 encode the address string(s)
-  base64_address <- RCurl::base64( add_sep )[1] %>% URLencode( reserved = TRUE )
+  base64_address <- RCurl::base64( add_sep )[1] %>% utils::URLencode( reserved = TRUE )
   
   #  API endpoint URL
   api_endpoint <- "https://datagate.dc.gov/mar/open/api/v2.2/locationbatch/"
@@ -172,15 +164,15 @@ findlocation2 <- function( address, api_key = NULL, refine_result = FALSE, verbo
       fuzz_method <- if( length( args_stringdist[["method"]] ) == 0 ) "osa" else args_stringdist[["method"]] # "osa" is mentioned as default method in stringdist::stringdist() Help documentation
       
       fuzz_method_full <- switch( fuzz_method,
-                                  osa      = "Optimal string alignment (restricted Damerau–Levenshtein distance)",
+                                  osa      = "Optimal string alignment (restricted Damerau-Levenshtein distance)",
                                   lv       = "Levenshtein distance",
-                                  dl       = "Full Damerau–Levenshtein distance",
+                                  dl       = "Full Damerau-Levenshtein distance",
                                   hamming  = "Hamming distance",
                                   lcs      = "Longest common substring distance",
                                   qgram    = "q-gram distance",
                                   cosine   = "Cosine distance between q-gram profiles",
                                   jaccard  = "Jaccard distance between q-gram profiles",
-                                  jw       = "Jaro or Jaro–Winkler distance",
+                                  jw       = "Jaro or Jaro-Winkler distance",
                                   soundex  = "Distance based on soundex encoding",
                                   stop( "Unknown ", accent( "method" ), ": '", fuzz_method, "'", call. = FALSE )
       )

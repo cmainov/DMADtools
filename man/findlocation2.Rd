@@ -7,7 +7,7 @@
 findlocation2( address, api_key = NULL, refine_result = FALSE, verbose = TRUE, ...)
 }
 \arguments{
-\item{address}{A string, character vector, or list of District of Columbia addresses to geocode.}
+\item{address}{A string, character vector, or list of District of Columbia addresses to geocode. If known, a \code{MARID} can be supplied that links to an exact match in the MAR.}
 
 \item{api_key}{A string or \code{NULL}. MAR2 API key value. If \code{NULL}, the function calls \code{DMADtools::read_mar2_api_key} to search for the key in the local .Renviron file. See \code{DMADtools::write_mar2_api_key} and \code{DMADtools::read_mar2_api_key} for more details.}
 
@@ -31,7 +31,7 @@ Addresses are base 64 encoded and a POST request URL and body are constructed an
 \section{References:}{
 \subsection{MAR2 Web Service}{
 
-District of Columbia Government. “MAR 2 Batch Geocoder Portal.” Accessed October 29, 2026. \url{https://mar2.data.dc.gov/}.
+District of Columbia Government. "MAR 2 Batch Geocoder Portal." Accessed October 29, 2026. \url{https://mar2.data.dc.gov/}.
 }
 
 \subsection{\code{tidymar}}{
@@ -42,7 +42,7 @@ Gupta, H (n.d.). tidymar: Fuctions to Interact with the MAR Web Service. GitHub.
 
 \examples{
 
-libary( DMADtools )
+library( DMADtools )
 
 findlocation2( "1600 Pennsylvania Ave NW" )
 
@@ -69,5 +69,8 @@ findlocation2( address = these_geocode_list, refine_result = TRUE, method = "lv"
 # use Levenshtein distance and suppress messaging
 findlocation2( address = these_geocode_list, refine_result = TRUE, method = "lv",
                verbose = FALSE )
+               
+# use MARID instead
+findlocation2( "303109" ) 
 
 }

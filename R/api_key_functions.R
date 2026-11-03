@@ -10,8 +10,7 @@
 #' # Citation for `tidycensus::census_api_key`:
 #' Walker, K and Herman, M (n.d.). tidycensus: Load US Census Boundary and Attribute Data as 'tidyverse' and 'sf'-Ready Data Frames (R package). GitHub. Retrieved from \url{https://walker-data.com/tidycensus/}. Accessed on October 27, 2026.
 #' 
-#' @usage write_mar2_api_key( key, overwrite = FALSE )
-#' @import crayon 
+#' @usage write_mar2_api_key( key, overwrite = FALSE ) 
 #' 
 #' @details
 #' This function requires a MAR2 API key from the District of Columbia Office of the Chief Technology Officer (OCTO). See \url{https://developers.data.dc.gov/} for details on obtaining a key. To write the API key to the .Renviron file, the `overwrite` parameter will need to be set to `TRUE`. The default is `FALSE`.
@@ -73,7 +72,6 @@ write_mar2_api_key <- function( key, overwrite = FALSE ){
 #' @description Reads the MAR2 API key stored in the local R environment variables (.Renviron) file.
 #' 
 #' @usage read_mar2_api_key()
-#' @import crayon 
 #' 
 #' @details
 #' This function gets the MAR2 API key from the .Renviron file. An entry named "MAR2_KEY" must be present in the .Renviron file, or this function fails. The MAR2 API key can be written to the .Renviron file using the `DMADtools::write_mar2_api_key` function. See the District of Columbia Office of the Chief Technology Officer (OCTO) website for more information on obtaining an API key (\url{https://developers.data.dc.gov/}).

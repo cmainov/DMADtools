@@ -8,9 +8,6 @@
 #' @description Extracts component parts of a District of Columbia address. This is particularly useful for preparing addresses
 #' prior to geocoding. This is a vectorized function that works on a single address or a vector/list of address.
 #' 
-#' @import stringr
-#' @import dplyr
-#' 
 #' @usage dc_address_parser( address )
 #' 
 #' @details
