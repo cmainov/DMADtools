@@ -11,8 +11,7 @@
 #'
 #' @import dplyr
 #' @import tidyr
-#' @import stringr
-#' @import flextable 
+#' @import stringr 
 #' @import rlang 
 #'
 #' @usage summary_table( d, var1, var2 = NULL, table.grouping = NULL, pop.var = NULL,
@@ -279,6 +278,15 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
                            row.variable.labels = "default", col.variable.labels = "default", row.variable.col = "#eed8a4" ){
   
   ## checks for all conditions ##
+  
+  
+  if (!requireNamespace("flextable", quietly = TRUE)) {
+    stop(
+      "Package 'flextable' is required for summary_table().",
+      call. = FALSE
+    )
+  }
+  
   
   if( is.null( var1 ) ) stop( "`var1` cannot be NULL; if only one variable is desired for stratification purposes, it should be included in the `var1` argument" ) 
   
@@ -848,7 +856,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     # footnote for table
     if( !is.null( foot.lines ) ){
       
-      fn <- as_paragraph( foot.lines )
+      fn <- flextable::as_paragraph( foot.lines )
       
     }
     
@@ -857,71 +865,71 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     
     if( !tb.grp.var2.wide.logic ){
       
-      t.out <- { if( tb.grp.logic ){ as_grouped_data( d.out3, groups = "group" ) %>%
+      t.out <- { if( tb.grp.logic ){ flextable::as_grouped_data( d.out3, groups = "group" ) %>%
           flextable::as_flextable( hide_grouplabel = TRUE )  %>% # first two lines of this command are used to create the grouping headers within the table
-          surround( i = ~ !is.na( group ), # this `surround` command is to add the top horizontal and bottom horizonal lines to the grouping header title
-                    border.top = fp_border_default( width = 0.1 ), 
-                    border.bottom = fp_border_default( width = 0.1 ),
+          flextable::surround( i = ~ !is.na( group ), # this `surround` command is to add the top horizontal and bottom horizonal lines to the grouping header title
+                    border.top = flextable::fp_border_default( width = 0.1 ), 
+                    border.bottom = flextable::fp_border_default( width = 0.1 ),
                     part = "body") 
       } else{ flextable::flextable( d.out3 ) } } %>%
         { if( length( metric ) > 1 & var.logic.2 ){ # spanning headers for `var2` only if more than one metric is requested and if there is cross-tabulation
-          add_header_row( ., colwidths = col.w.all,
+          flextable::add_header_row( ., colwidths = col.w.all,
                           values = sp.h.all ) 
         } else{ . } } %>% 
         { if( all( col.variable.labels !=  "none" ) ){
-          add_header_row( ., colwidths = as.numeric( col.w.2.all ),
+          flextable::add_header_row( ., colwidths = as.numeric( col.w.2.all ),
                           values = sp.h.2.all ) 
         } else . } %>% 
-        theme_zebra() %>%
-        theme_vanilla() %>%
-        set_header_labels( values = new.nms.all ) %>% # change names based on new.nms vector created outside this flextable command
+        flextable::theme_zebra() %>%
+        flextable::theme_vanilla() %>%
+        flextable::set_header_labels( values = new.nms.all ) %>% # change names based on new.nms vector created outside this flextable command
         { if( !is.null( nm.var1 ) ){
-          set_header_labels( x = ., values = list( var1 = nm.var1 ) ) } else .} %>% # if nm.var is specified
-        align( part = "header", 
+          flextable::set_header_labels( x = ., values = list( var1 = nm.var1 ) ) } else .} %>% # if nm.var is specified
+        flextable::align( part = "header", 
                align = "center" ) %>% 
-        { if( !is.null( table.title ) ) add_header_lines( ., values = table.title ) %>% # title line
-            align( part = "header", i = 1, align = "left" ) else . } %>% #left-align title
+        { if( !is.null( table.title ) ) flextable::add_header_lines( ., values = table.title ) %>% # title line
+            flextable::align( part = "header", i = 1, align = "left" ) else . } %>% #left-align title
         { if( all( col.variable.labels !=  "none" ) ){
-          vline( ., j = pos.vec.2.all, 
+          flextable::vline( ., j = pos.vec.2.all, 
                  part = "header",
-                 border = fp_border_default( width = 0.1 ) ) # add vertical line borders after each spanning header group for second layer (variable names spanning header)
+                 border = flextable::fp_border_default( width = 0.1 ) ) # add vertical line borders after each spanning header group for second layer (variable names spanning header)
         } else . } %>% 
-        vline( j = pos.vec.all, 
+        flextable::vline( j = pos.vec.all, 
                part = "body",
-               border = fp_border_default( width = 0.1 ) ) %>% # add vertical line borders after each spanning header group
-        border_inner_h( border = fp_border_default( width = 0.1 ), part = "header" ) %>% # make header border lines thinner
-        hline_top( border = fp_border_default( width = 0.1 ), part = "body" ) %>% # make body top border line thinner
+               border = flextable::fp_border_default( width = 0.1 ) ) %>% # add vertical line borders after each spanning header group
+        flextable::border_inner_h( border = flextable::fp_border_default( width = 0.1 ), part = "header" ) %>% # make header border lines thinner
+        flextable::hline_top( border = flextable::fp_border_default( width = 0.1 ), part = "body" ) %>% # make body top border line thinner
         flextable::font( fontname = font.family, part = "all" ) %>% # change font for entire table based on `font.family`
-        fontsize( size = 8, part = "all" ) %>%
-        fontsize( size = 7, part = "footer" ) %>%
-        width( width = 0.45 ) %>% # change column widths to fit on one page
-        line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
-        line_spacing( space = 0.7, part = "body" ) %>% # make spacing in footnote single and not double
-        padding( padding.top = 2.5, 
+        flextable::fontsize( size = 8, part = "all" ) %>%
+        flextable::fontsize( size = 7, part = "footer" ) %>%
+        flextable::width( width = 0.45 ) %>% # change column widths to fit on one page
+        flextable::line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
+        flextable::line_spacing( space = 0.7, part = "body" ) %>% # make spacing in footnote single and not double
+        flextable::padding( padding.top = 2.5, 
                  padding.bottom = 2.5, 
                  padding.left = 4, 
                  padding.right = 4, 
                  part = "body" ) %>%
-        padding( padding.top = 8, 
+        flextable::padding( padding.top = 8, 
                  padding.bottom = 8, 
                  padding.left = 4, 
                  padding.right = 4, 
                  part = "header" ) %>%
-        padding( padding.top = 2.5, 
+        flextable::padding( padding.top = 2.5, 
                  padding.bottom = 0,
                  part = "footer" ) %>%
-        padding( padding.top = 2.5, padding.bottom = 2.5,part = "footer", i = 1 ) %>%
+        flextable::padding( padding.top = 2.5, padding.bottom = 2.5,part = "footer", i = 1 ) %>%
         flextable::height( height = 0.002, part = "body", unit = "cm" ) %>%
-        bg( bg = "white", part = "footer" ) %>% # color footer white (undoes `theme_zebra` styling)
-        border_inner_h( border = officer::fp_border( color = "white", style = "solid", width = 0 ),
+        flextable::bg( bg = "white", part = "footer" ) %>% # color footer white (undoes `theme_zebra` styling)
+        flextable::border_inner_h( border = officer::fp_border( color = "white", style = "solid", width = 0 ),
                         part = "footer") %>% # remove footer horizontal line (undoes `theme_zebra` styling)
         flextable::bold( bold = FALSE, part = "footer" ) %>% # unbold footer text (undoes `theme_zebra` bolding)
         # below is the formatting for the variable label rows
         { if( all( row.variable.labels =="default" ) | inherits( row.variable.labels, "list" ) ){
           flextable::bold( x = ., i = row.var.labs.which ) %>%
-            merge_h_range( i = row.var.labs.which,
-                           j1 = 1, j2 = ncol_keys(.), part = "body" ) %>% # merge all cells in the header variable label rows
-            { if ( row.variable.col != "none" ) bg( x = ., i = row.var.labs.which, bg = row.variable.col ) else . } 
+            flextable::merge_h_range( i = row.var.labs.which,
+                           j1 = 1, j2 = flextable::ncol_keys(.), part = "body" ) %>% # merge all cells in the header variable label rows
+            { if ( row.variable.col != "none" ) flextable::bg( x = ., i = row.var.labs.which, bg = row.variable.col ) else . } 
         } else . }
     }
     
@@ -930,54 +938,54 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
       
       t.out <- flextable::flextable( d.out3) %>%
         { if( length( metric ) > 1 & var.logic.2 ){ # spanning headers for `var2` only if more than one metric is requested and if there is cross-tabulation
-          add_header_row( ., colwidths = col.w.all,
+          flextable::add_header_row( ., colwidths = col.w.all,
                           values = sp.h.all ) 
         } else{ . } } %>% 
-        theme_zebra() %>%
-        theme_vanilla() %>%
-        set_header_labels( values = new.nms.all ) %>% # change names based on new.nms vector created outside this flextable command
+        flextable::theme_zebra() %>%
+        flextable::theme_vanilla() %>%
+        flextable::set_header_labels( values = new.nms.all ) %>% # change names based on new.nms vector created outside this flextable command
         { if( !is.null( nm.var1 ) ){
-          set_header_labels( x = ., values = list( var1 = nm.var1 ) ) } else .} %>% # if nm.var is specified
-        align( part = "header", i = 1, align = "center" ) %>% # center align spanning headers
-        { if( !is.null( table.title ) ) add_header_lines( ., values = table.title ) %>% # title line
-            align( part = "header", i = 1, align = "left" ) else . } %>% #left-align title
-        vline( j = pos.vec.all, 
+          flextable::set_header_labels( x = ., values = list( var1 = nm.var1 ) ) } else .} %>% # if nm.var is specified
+        flextable::align( part = "header", i = 1, align = "center" ) %>% # center align spanning headers
+        { if( !is.null( table.title ) ) flextable::add_header_lines( ., values = table.title ) %>% # title line
+            flextable::align( part = "header", i = 1, align = "left" ) else . } %>% #left-align title
+        flextable::vline( j = pos.vec.all, 
                part = "body",
-               border = fp_border_default( width = 0.1 ) ) %>% # add vertical line borders after each spanning header group
-        border_inner_h( border = fp_border_default( width = 0.1 ), part = "header" ) %>% # make header border lines thinner
-        hline_top( border = fp_border_default( width = 0.1 ), part = "body" ) %>% # make body top border line thinner
+               border = flextable::fp_border_default( width = 0.1 ) ) %>% # add vertical line borders after each spanning header group
+        flextable::border_inner_h( border = flextable::fp_border_default( width = 0.1 ), part = "header" ) %>% # make header border lines thinner
+        flextable::hline_top( border = flextable::fp_border_default( width = 0.1 ), part = "body" ) %>% # make body top border line thinner
         flextable::font( fontname = font.family, part = "all" ) %>% # change font for entire table based on `font.family`
-        fontsize( size = 8, part = "all" ) %>%
-        fontsize( size = 7, part = "footer" ) %>%
-        width( width = 0.45 ) %>% # change column widths to fit on one page
-        line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
-        line_spacing( space = 0.7, part = "body" ) %>% # make spacing in footnote single and not double
-        padding( padding.top = 2.5, 
+        flextable::fontsize( size = 8, part = "all" ) %>%
+        flextable::fontsize( size = 7, part = "footer" ) %>%
+        flextable::width( width = 0.45 ) %>% # change column widths to fit on one page
+        flextable::line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
+        flextable::line_spacing( space = 0.7, part = "body" ) %>% # make spacing in footnote single and not double
+        flextable::padding( padding.top = 2.5, 
                  padding.bottom = 2.5, 
                  padding.left = 4, 
                  padding.right = 4, 
                  part = "body" ) %>%
-        padding( padding.top = 8, 
+        flextable::padding( padding.top = 8, 
                  padding.bottom = 8, 
                  padding.left = 4, 
                  padding.right = 4, 
                  part = "header" ) %>%
-        padding( padding.top = 2.5, 
+        flextable::padding( padding.top = 2.5, 
                  padding.bottom = 0,
                  part = "footer" ) %>%
-        padding( padding.top = 2.5, padding.bottom = 2.5,part = "footer", i = 1 ) %>%
-        width( width = 0.95, j = var1 ) %>% # change column widths to fit on one page
+        flextable::padding( padding.top = 2.5, padding.bottom = 2.5,part = "footer", i = 1 ) %>%
+        flextable::width( width = 0.95, j = var1 ) %>% # change column widths to fit on one page
         flextable::height( height = 0.002, part = "body", unit = "cm" ) %>%
-        bg( bg = "white", part = "footer" ) %>% # color footer white (undoes `theme_zebra` styling)
-        border_inner_h( border = officer::fp_border(color = "white", style = "solid", width = 0),
+        flextable::bg( bg = "white", part = "footer" ) %>% # color footer white (undoes `theme_zebra` styling)
+        flextable::border_inner_h( border = officer::fp_border(color = "white", style = "solid", width = 0),
                         part = "footer") %>% # remove footer horizontal line (undoes `theme_zebra` styling)
         flextable::bold( bold = FALSE, part = "footer" ) %>% # unbold footer text (undoes `theme_zebra` bolding)
         # below is the formatting for the variable label rows
         { if( row.variable.labels =="default" | inherits( row.variable.labels, "list" ) ){
           flextable::bold( x = ., i = row.var.labs.which ) %>%
-            merge_h_range( i = row.var.labs.which,
-                           j1 = 1, j2 = ncol_keys(.), part = "body" ) %>% # merge all cells in the header variable label rows
-            { if ( row.variable.col != "none" ) bg( x = ., i = row.var.labs.which, bg = row.variable.col ) else . } 
+            flextable::merge_h_range( i = row.var.labs.which,
+                           j1 = 1, j2 = flextable::ncol_keys(.), part = "body" ) %>% # merge all cells in the header variable label rows
+            { if ( row.variable.col != "none" ) flextable::bg( x = ., i = row.var.labs.which, bg = row.variable.col ) else . } 
         } else . }
     }
     
@@ -996,10 +1004,10 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
     if( !is.null( foot.lines ) ){
       
       t.out <- t.out %>%
-        add_footer_lines( values = fn ) %>% # add footer
-        fontsize( size = 7, part = "footer" ) %>%
-        line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
-        padding( padding.top = 2.5, padding.bottom = 0, part = "footer", i = 1 )
+        flextable::add_footer_lines( values = fn ) %>% # add footer
+        flextable::fontsize( size = 7, part = "footer" ) %>%
+        flextable::line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
+        flextable::padding( padding.top = 2.5, padding.bottom = 0, part = "footer", i = 1 )
       
     }
     
@@ -1011,10 +1019,10 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
       if( count.supp > 0 ){
         
         t.out <- t.out %>%
-          add_footer_lines( values = paste0( count.supp.symbol, " Cell counts \U2264 ", count.supp," were suppressed to protect confidentiality." ) ) %>% # note the use of the UNICODE in this string
-          fontsize( size = 7, part = "footer" ) %>%
-          line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
-          padding( padding.top = 2.5, padding.bottom = 0, part = "footer", i = 1 )
+          flextable::add_footer_lines( values = paste0( count.supp.symbol, " Cell counts \U2264 ", count.supp," were suppressed to protect confidentiality." ) ) %>% # note the use of the UNICODE in this string
+          flextable::fontsize( size = 7, part = "footer" ) %>%
+          flextable::line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
+          flextable::padding( padding.top = 2.5, padding.bottom = 0, part = "footer", i = 1 )
         
       } 
       
@@ -1027,10 +1035,10 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
       if( rate.supp > 0 ){
         
         t.out <- t.out %>%
-          add_footer_lines( values = paste0( rate.supp.symbol, " Rates based on \U2264 ", rate.supp, " events are not presented since such rates are subject to instability." ) ) %>% # note the use of the UNICODE in this string
-          fontsize( size = 7, part = "footer" ) %>%
-          line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
-          padding( padding.top = 2.5, padding.bottom = 0, part = "footer", i = 1 )
+          flextable::add_footer_lines( values = paste0( rate.supp.symbol, " Rates based on \U2264 ", rate.supp, " events are not presented since such rates are subject to instability." ) ) %>% # note the use of the UNICODE in this string
+          flextable::fontsize( size = 7, part = "footer" ) %>%
+          flextable::line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
+          flextable::padding( padding.top = 2.5, padding.bottom = 0, part = "footer", i = 1 )
       }
     }
     

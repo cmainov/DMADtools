@@ -96,16 +96,16 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
   
   ## check on missing data ##
   ( d.miss <- d %>%
-      { if( var.logic.2 ) filter( ., is.na( get( var1 ) ) | is.na( get( var2 ) ) ) else . } %>% # if two variables are provided
-      { if( var.logic.1 ) filter( ., is.na( get( var1 ) ) ) else . } %>% # if only one variable is provided
+      { if( var.logic.2 ) dplyr::filter( ., is.na( get( var1 ) ) | is.na( get( var2 ) ) ) else . } %>% # if two variables are provided
+      { if( var.logic.1 ) dplyr::filter( ., is.na( get( var1 ) ) ) else . } %>% # if only one variable is provided
       { if( tb.grp.logic ) group_by( ., !!sym( table.grouping ) ) else . } %>%  # conditional piping line; we use this structure often throughout the function 
       { if( tb.grp.var2.logic ) group_by( ., !!sym( var1 ) ) else . } %>%  # conditional piping line; we use this structure often throughout the function    
       reframe( NAs = n() ) %>%  # NOTE: `dplyr::reframe` is a more generalized version of `dplyr::summarise`
       data.frame() ) # we save the data frame to use for adding footnotes later on
   
   d.nomiss <- d %>%
-    { if( var.logic.2 ) filter( ., !is.na( !!sym( var1 ) ) & !is.na( !!sym( var2 ) ) ) else . } %>% # if two variables are provided
-    { if( var.logic.1 ) filter( ., !is.na( !!sym( var1 ) ) ) else . } %>% # if only one variable is provided
+    { if( var.logic.2 ) dplyr::filter( ., !is.na( !!sym( var1 ) ) & !is.na( !!sym( var2 ) ) ) else . } %>% # if two variables are provided
+    { if( var.logic.1 ) dplyr::filter( ., !is.na( !!sym( var1 ) ) ) else . } %>% # if only one variable is provided
     mutate( across( .cols = any_of( c( table.grouping, var1, var2 ) ),
                     .fns = ~ as.character( . ) ) ) # coerce all categorical variables to character to avoid issues downstream with row binds
   
@@ -256,13 +256,13 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
   if( any( c( add.summary.col, add.summary.row ) ) & any( stringr::str_detect( metric, "rate" ) ) ){
     
     d.1 <- d.1 %>%
-      filter( if_any( .cols = any_of( c( var1, var2, table.grouping ) ),
+      dplyr::filter( if_any( .cols = any_of( c( var1, var2, table.grouping ) ),
                       .fns = ~ . %in% c( sum.col.nm, sum.row.nm ) ) ) %>%
       mutate( across( .cols = c( pop, pop_rate ) ,
                       .fns = ~ "" ) ) %>% 
       distinct() %>%
       bind_rows( d.1 %>%
-                   filter( !if_any( .cols = any_of( c( var1, var2, table.grouping ) ),
+                   dplyr::filter( !if_any( .cols = any_of( c( var1, var2, table.grouping ) ),
                                     .fns = ~ . %in% c( sum.col.nm, sum.row.nm ) ) ) %>%
                    mutate( across( .cols = contains( "rate" ),
                                    .fns = ~ ifelse( . < 1.0,
@@ -374,13 +374,13 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
   
   d.2 <- d.2 %>%
     dplyr::select( -all_of( rem.this ) ) %>%
-    rename_with( .cols = everything(),
+    dplyr::rename_with( .cols = everything(),
                  .fn = ~str_remove_all( ., "\\.x$|\\.y$") )
   
   
   ### Patch work bug fix (3/18/2025 CMV) -- this corrects issues with NAs when `add.summary.col` is called
   totals.patch <- bths.yr %>%
-    filter( !!sym( var.ref ) == sum.col.nm ) %>%
+    dplyr::filter( !!sym( var.ref ) == sum.col.nm ) %>%
     pull( tot_count_yr )
   
   d.2 <- d.2 %>%
@@ -397,10 +397,10 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
       d.1 %>% 
         dplyr::select( -any_of( c( "pop", "pop_rate"  ) ) ) %>%
         distinct() %>%
-        pivot_wider( names_from = !!sym( var2 ), values_from = no_count ) %>%
-        { if( tb.grp.logic ){ rename_with( ., .fn = ~ paste0( .x, ",count", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
+        tidyr::pivot_wider( names_from = !!sym( var2 ), values_from = no_count ) %>%
+        { if( tb.grp.logic ){ dplyr::rename_with( ., .fn = ~ paste0( .x, ",count", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
                                            .cols = -c( group, !!sym( var1 ) ) ) 
-        } else { rename_with( ., .fn = ~ paste0( .x, ",count", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
+        } else { dplyr::rename_with( ., .fn = ~ paste0( .x, ",count", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
                               .cols = -c( !!sym( var1 ) ) ) } }
       
     } else if( var.logic.1 ){ # single-variable case
@@ -409,9 +409,9 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
         dplyr::select( -any_of( c( "pop", "pop_rate"  ) ) ) %>%
         distinct() %>%
         rename( tabulation = no_count ) %>% # important for rate-suppression step below to work
-        { if( tb.grp.logic ){ rename_with( ., .fn = ~ paste0( .x, ",count", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
+        { if( tb.grp.logic ){ dplyr::rename_with( ., .fn = ~ paste0( .x, ",count", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
                                            .cols = -c( group, !!sym( var1 ) ) ) 
-        } else { rename_with( ., .fn = ~ paste0( .x, ",count", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
+        } else { dplyr::rename_with( ., .fn = ~ paste0( .x, ",count", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
                               .cols = -c( !!sym( var1 ) ) ) } }
       
     }
@@ -424,10 +424,10 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
       d.1 %>% 
         dplyr::select( -any_of( c( "no_count", "pop" ) ) ) %>%
         distinct() %>%
-        pivot_wider( names_from = !!sym( var2 ), values_from = pop_rate ) %>%
-        { if( tb.grp.logic ){ rename_with( ., .fn = ~ paste0( .x, ",rate", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
+        tidyr::pivot_wider( names_from = !!sym( var2 ), values_from = pop_rate ) %>%
+        { if( tb.grp.logic ){ dplyr::rename_with( ., .fn = ~ paste0( .x, ",rate", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
                                            .cols = -c( group, !!sym( var1 ) ) ) 
-        } else { rename_with( ., .fn = ~ paste0( .x, ",rate", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
+        } else { dplyr::rename_with( ., .fn = ~ paste0( .x, ",rate", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
                               .cols = -c( !!sym( var1 ) ) ) } }
       
     } else if( var.logic.1 ){ # single-variable case
@@ -436,9 +436,9 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
         dplyr::select( -any_of( c( "no_count", "pop" ) ) ) %>%
         distinct() %>%
         { if( "rate" %in% metric ){ rename( tabulation = pop_rate ) } else . } %>% # important for rate-suppression step below to work
-        { if( tb.grp.logic ){ rename_with( ., .fn = ~ paste0( .x, ",rate", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
+        { if( tb.grp.logic ){ dplyr::rename_with( ., .fn = ~ paste0( .x, ",rate", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
                                            .cols = -c( group, !!sym( var1 ) ) ) 
-        } else { rename_with( ., .fn = ~ paste0( .x, ",rate", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
+        } else { dplyr::rename_with( ., .fn = ~ paste0( .x, ",rate", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
                               .cols = -c( !!sym( var1 ) ) ) } }
     }
   }
@@ -451,10 +451,10 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
       d.2 %>% 
         dplyr::select( -any_of( c( "no_count", "pop", "tot_count_yr", "pop_rate"  ) ) ) %>%
         distinct() %>%
-        pivot_wider( names_from = !!sym( var2 ), values_from = count_perc ) %>%
-        { if( tb.grp.logic ){ rename_with( ., .fn = ~ paste0( .x, ",percent", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
+        tidyr::pivot_wider( names_from = !!sym( var2 ), values_from = count_perc ) %>%
+        { if( tb.grp.logic ){ dplyr::rename_with( ., .fn = ~ paste0( .x, ",percent", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
                                            .cols = -c( group, !!sym( var1 ) ) ) 
-        } else { rename_with( ., .fn = ~ paste0( .x, ",percent", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
+        } else { dplyr::rename_with( ., .fn = ~ paste0( .x, ",percent", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
                               .cols = -c( !!sym( var1 ) ) ) } }  
       
     } else if( var.logic.1 ){ # single-variable case
@@ -463,9 +463,9 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
         dplyr::select( -any_of( c( "no_count", "pop", "tot_count_yr", "pop_rate"  ) ) ) %>%
         distinct() %>%
         rename( tabulation = count_perc ) %>% # important for rate-suppression step below to work
-        { if( tb.grp.logic ){ rename_with( ., .fn = ~ paste0( .x, ",percent", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
+        { if( tb.grp.logic ){ dplyr::rename_with( ., .fn = ~ paste0( .x, ",percent", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
                                            .cols = -c( group, !!sym( var1 ) ) ) 
-        } else { rename_with( ., .fn = ~ paste0( .x, ",percent", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
+        } else { dplyr::rename_with( ., .fn = ~ paste0( .x, ",percent", recycle0 = TRUE ), # recycle0 = TRUE at recommendation of `dplyr` authors
                               .cols = -c( !!sym( var1 ) ) ) } }  
       
     }
@@ -509,8 +509,8 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
     
   } } %>%
     .[, sort( names(.) ) ] %>% # arrange columns so count, perc, or rate of each level of the stratifying variable are together
-    { if( tb.grp.logic ){ relocate( ., group, .before = 1 ) } else . } %>%
-    relocate( !!sym( var1 ), .after = 1 ) %>%
+    { if( tb.grp.logic ){ dplyr::relocate( ., group, .before = 1 ) } else . } %>%
+    dplyr::relocate( !!sym( var1 ), .after = 1 ) %>%
     # decimal places for rates base on significant figures for values < 1.0 and decimal places for >= 1.0
     { if( redo.rate ){
       mutate( ., across( .cols = contains( "rate" ),
@@ -560,7 +560,7 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
     d.6 <- d.6 %>%
       dplyr::select( -matches( "rate$", # regex for column name ending in "rate"
                                perl = TRUE ) ) %>% # `perl` argument is for indicating a regex expression
-      rename_with( .fn = ~ str_replace( ., "rate2", "rate" ), # recycle0 = TRUE at recommendation of `dplyr` authors
+      dplyr::rename_with( .fn = ~ str_replace( ., "rate2", "rate" ), # recycle0 = TRUE at recommendation of `dplyr` authors
                    .cols = contains( "rate2" ) )
     
   }
@@ -573,11 +573,11 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
     .[, sort( names(.) ) ] %>% # arrange columns so count and rate of same age group are side by side
     { if( tb.grp.logic ){
       mutate( ., group = as.character( group ) ) %>%
-        relocate( group, .before = 1 ) %>%
-        relocate( !!sym( var1 ), .after = 1 ) %>%
+        dplyr::relocate( group, .before = 1 ) %>%
+        dplyr::relocate( !!sym( var1 ), .after = 1 ) %>%
         group_by( group ) 
-    } else{ relocate( ., !!sym( var1 ), .before = 1 ) } } %>%
-    filter( !!sym( var1 ) %in% arrange.rows ) %>% # this filters out any levels of var1 indicated in `order.rows` that are not desired in the table
+    } else{ dplyr::relocate( ., !!sym( var1 ), .before = 1 ) } } %>%
+    dplyr::filter( !!sym( var1 ) %in% arrange.rows ) %>% # this filters out any levels of var1 indicated in `order.rows` that are not desired in the table
     arrange( match( !!sym( var1 ), arrange.rows ), # arrange rows in custom order;
              .by_group = TRUE ) %>%
     ungroup() %>%
@@ -629,14 +629,14 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
         mutate( !!sym( cols.left ) := paste0( !!sym( paste0( cols.left, ",count" ) ), ";",
                                               !!sym( paste0( cols.left, ",percent" ) ) ) ) %>%
         dplyr::select( -contains( "percent" ), -contains( "count" ) ) %>%
-        pivot_wider( values_from = !!sym( cols.left ),
+        tidyr::pivot_wider( values_from = !!sym( cols.left ),
                      names_from = group ) %>% 
         separate_wider_delim( cols = c( -!!sym( var1 ) ) ,
                               delim = ";", 
                               names_sep = "," ) %>%
-        rename_with( .cols = c( -!!sym( var1 ) ),
+        dplyr::rename_with( .cols = c( -!!sym( var1 ) ),
                      .fn = ~  str_replace_all(., "(\\,)1", "\\1count" ) ) %>%
-        rename_with( .cols = c( -!!sym( var1 ) ),
+        dplyr::rename_with( .cols = c( -!!sym( var1 ) ),
                      .fn = ~  str_replace_all( ., "(\\,)2", "\\1percent" ) )
       
       
@@ -649,14 +649,14 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
         mutate( !!sym( cols.left ) := paste0( !!sym( paste0( cols.left, ",count" ) ), ";",
                                               !!sym( paste0( cols.left, ",rate" ) ) ) ) %>%
         dplyr::select( -contains( "rate" ), -contains( "count" ) ) %>%
-        pivot_wider( values_from = !!sym( cols.left ),
+        tidyr::pivot_wider( values_from = !!sym( cols.left ),
                      names_from = group ) %>% 
         separate_wider_delim( cols = c( -!!sym( var1 ) ) ,
                               delim = ";", 
                               names_sep = "," ) %>%
-        rename_with( .cols = c( -!!sym( var1 ) ),
+        dplyr::rename_with( .cols = c( -!!sym( var1 ) ),
                      .fn = ~  str_replace_all(., "(\\,)1", "\\1count" ) ) %>%
-        rename_with( .cols = c( -!!sym( var1 ) ),
+        dplyr::rename_with( .cols = c( -!!sym( var1 ) ),
                      .fn = ~  str_replace_all( ., "(\\,)2", "\\1rate" ) )
       
       
@@ -669,14 +669,14 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
         mutate( !!sym( cols.left ) := paste0( !!sym( paste0( cols.left, ",percent" ) ), ";",
                                               !!sym( paste0( cols.left, ",rate" ) ) ) ) %>%
         dplyr::select( -contains( "rate" ), -contains( "percent" ) ) %>%
-        pivot_wider( values_from = !!sym( cols.left ),
+        tidyr::pivot_wider( values_from = !!sym( cols.left ),
                      names_from = group ) %>% 
         separate_wider_delim( cols = c( -!!sym( var1 ) ) ,
                               delim = ";", 
                               names_sep = "," ) %>%
-        rename_with( .cols = c( -!!sym( var1 ) ),
+        dplyr::rename_with( .cols = c( -!!sym( var1 ) ),
                      .fn = ~  str_replace_all(., "(\\,)1", "\\1percent" ) ) %>%
-        rename_with( .cols = c( -!!sym( var1 ) ),
+        dplyr::rename_with( .cols = c( -!!sym( var1 ) ),
                      .fn = ~  str_replace_all( ., "(\\,)2", "\\1rate" ) )
       
       
@@ -688,12 +688,12 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
       d.7 <- d.7 %>%
         mutate( !!sym( cols.left ) := paste0( !!sym( paste0( cols.left, ",", metric ) ) ) ) %>%
         dplyr::select( -contains( metric ) ) %>%
-        pivot_wider( values_from = !!sym( cols.left ),
+        tidyr::pivot_wider( values_from = !!sym( cols.left ),
                      names_from = group ) %>% 
         separate_wider_delim( cols = c( -!!sym( var1 ) ) ,
                               delim = ";", 
                               names_sep = "," ) %>%
-        rename_with( .cols = c( -!!sym( var1 ) ),
+        dplyr::rename_with( .cols = c( -!!sym( var1 ) ),
                      .fn = ~  str_replace_all( ., "(\\,)1", paste0( "\\1", metric ) ) )
       
       
@@ -705,7 +705,7 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
   if( add.summary.col & var.logic.2 ){
     
     d.7 <- d.7 %>%
-      relocate( contains( "all" ), .after = !!sym( var1 ) )
+      dplyr::relocate( contains( "all" ), .after = !!sym( var1 ) )
     
   }
   
@@ -751,7 +751,7 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
           arrange( match( !!sym( var1 ), arrange.rows ), # arrange rows in custom order;
                    .by_group = TRUE ) %>%
           ungroup() } else . } %>%
-      filter( group %in% order.groups ) %>%
+      dplyr::filter( group %in% order.groups ) %>%
       arrange( match( group, order.groups ) ) # arrange rows in custom order
     
   }
@@ -762,7 +762,7 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
   # footnote for table
   if( !is.null( foot.lines ) ){
     
-    fn <- as_paragraph( foot.lines )
+    fn <- flextable::as_paragraph( foot.lines )
     
   }
   
@@ -850,52 +850,52 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
   # generate the final table with `flextable`
   if( !tb.grp.var2.wide.logic ){
     
-    t.out <- { if( tb.grp.logic ){ as_grouped_data( d.7, groups = "group" ) %>%
+    t.out <- { if( tb.grp.logic ){ flextable::as_grouped_data( d.7, groups = "group" ) %>%
         flextable::as_flextable( hide_grouplabel = TRUE )  %>% # first two lines of this command are used to create the grouping headers within the table
-        surround( i = ~ !is.na( group ), # this `surround` command is to add the top horizontal and bottom horizonal lines to the grouping header title
-                  border.top = fp_border_default( width = 0.1 ), 
-                  border.bottom = fp_border_default( width = 0.1 ),
+        flextable::surround( i = ~ !is.na( group ), # this `surround` command is to add the top horizontal and bottom horizonal lines to the grouping header title
+                  border.top = flextable::fp_border_default( width = 0.1 ), 
+                  border.bottom = flextable::fp_border_default( width = 0.1 ),
                   part = "body") 
     } else{ flextable::flextable( d.7 ) } } %>%
       { if( length( metric ) > 1 & var.logic.2 ){ # spanning headers for `var2` only if more than one metric is requested and if there is cross-tabulation
-        add_header_row( ., colwidths = col.w,
+        flextable::add_header_row( ., colwidths = col.w,
                         values = sp.h ) 
       } else{ . } } %>% 
-      theme_zebra() %>%
-      theme_vanilla() %>%
-      set_header_labels( values = new.nms ) %>% # change names based on new.nms vector created outside this flextable command
-      align( part = "header", i = 1, align = "center" ) %>% # center align spanning headers
-      { if( !is.null( table.title ) ) add_header_lines( ., values = table.title ) %>% # title line
-          align( part = "header", i = 1, align = "left" ) else . } %>% #left-align title
-      vline( j = pos.vec, 
+      flextable::theme_zebra() %>%
+      flextable::theme_vanilla() %>%
+      flextable::set_header_labels( values = new.nms ) %>% # change names based on new.nms vector created outside this flextable command
+      flextable::align( part = "header", i = 1, align = "center" ) %>% # center align spanning headers
+      { if( !is.null( table.title ) ) flextable::add_header_lines( ., values = table.title ) %>% # title line
+          flextable::align( part = "header", i = 1, align = "left" ) else . } %>% #left-align title
+      flextable::vline( j = pos.vec, 
              part = "body",
-             border = fp_border_default( width = 0.1 ) ) %>% # add vertical line borders after each spanning header group
-      border_inner_h( border = fp_border_default( width = 0.1 ), part = "header" ) %>% # make header border lines thinner
-      hline_top( border = fp_border_default( width = 0.1 ), part = "body" ) %>% # make body top border line thinner
+             border = flextable::fp_border_default( width = 0.1 ) ) %>% # add vertical line borders after each spanning header group
+      flextable::border_inner_h( border = flextable::fp_border_default( width = 0.1 ), part = "header" ) %>% # make header border lines thinner
+      flextable::hline_top( border = flextable::fp_border_default( width = 0.1 ), part = "body" ) %>% # make body top border line thinner
       flextable::font( fontname = "Arial", part = "all" ) %>% # change font for entire table and ensure arial
-      fontsize( size = 8, part = "all" ) %>%
-      fontsize( size = 7, part = "footer" ) %>%
-      width( width = 0.45 ) %>% # change column widths to fit on one page
-      line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
-      line_spacing( space = 0.7, part = "body" ) %>% # make spacing in footnote single and not double
-      padding( padding.top = 2.5, 
+      flextable::fontsize( size = 8, part = "all" ) %>%
+      flextable::fontsize( size = 7, part = "footer" ) %>%
+      flextable::width( width = 0.45 ) %>% # change column widths to fit on one page
+      flextable::line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
+      flextable::line_spacing( space = 0.7, part = "body" ) %>% # make spacing in footnote single and not double
+      flextable::padding( padding.top = 2.5, 
                padding.bottom = 2.5, 
                padding.left = 4, 
                padding.right = 4, 
                part = "body" ) %>%
-      padding( padding.top = 8, 
+      flextable::padding( padding.top = 8, 
                padding.bottom = 8, 
                padding.left = 4, 
                padding.right = 4, 
                part = "header" ) %>%
-      padding( padding.top = 2.5, 
+      flextable::padding( padding.top = 2.5, 
                padding.bottom = 0,
                part = "footer" ) %>%
-      padding( padding.top = 2.5, padding.bottom = 2.5,part = "footer", i = 1 ) %>%
-      width( width = 0.95, j = var1 ) %>% # change column widths to fit on one page
+      flextable::padding( padding.top = 2.5, padding.bottom = 2.5,part = "footer", i = 1 ) %>%
+      flextable::width( width = 0.95, j = var1 ) %>% # change column widths to fit on one page
       flextable::height( height = 0.002, part = "body", unit = "cm" ) %>%
-      bg( bg = "white", part = "footer" ) %>% # color footer white (undoes `theme_zebra` styling)
-      border_inner_h( border = officer::fp_border(color = "white", style = "solid", width = 0),
+      flextable::bg( bg = "white", part = "footer" ) %>% # color footer white (undoes `theme_zebra` styling)
+      flextable::border_inner_h( border = officer::fp_border(color = "white", style = "solid", width = 0),
                       part = "footer")%>% # remove footer horizontal line (undoes `theme_zebra` styling)
       flextable::bold( bold = FALSE, part = "footer" ) # unbold footer text (undoes `theme_zebra` bolding)
   }
@@ -905,44 +905,44 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
     
     t.out <- flextable::flextable( d.7) %>%
       { if( length( metric ) > 1 & var.logic.2 ){ # spanning headers for `var2` only if more than one metric is requested and if there is cross-tabulation
-        add_header_row( ., colwidths = col.w,
+        flextable::add_header_row( ., colwidths = col.w,
                         values = sp.h ) 
       } else{ . } } %>% 
-      theme_zebra() %>%
-      theme_vanilla() %>%
-      set_header_labels( values = new.nms ) %>% # change names based on new.nms vector created outside this flextable command
-      align( part = "header", i = 1, align = "center" ) %>% # center align spanning headers
-      { if( !is.null( table.title ) ) add_header_lines( ., values = table.title ) %>% # title line
-          align( part = "header", i = 1, align = "left" ) else . } %>% #left-align title
-      vline( j = pos.vec, 
+      flextable::theme_zebra() %>%
+      flextable::theme_vanilla() %>%
+      flextable::set_header_labels( values = new.nms ) %>% # change names based on new.nms vector created outside this flextable command
+      flextable::align( part = "header", i = 1, align = "center" ) %>% # center align spanning headers
+      { if( !is.null( table.title ) ) flextable::add_header_lines( ., values = table.title ) %>% # title line
+          flextable::align( part = "header", i = 1, align = "left" ) else . } %>% #left-align title
+      flextable::vline( j = pos.vec, 
              part = "body",
-             border = fp_border_default( width = 0.1 ) ) %>% # add vertical line borders after each spanning header group
-      border_inner_h( border = fp_border_default( width = 0.1 ), part = "header" ) %>% # make header border lines thinner
-      hline_top( border = fp_border_default( width = 0.1 ), part = "body" ) %>% # make body top border line thinner
+             border = flextable::fp_border_default( width = 0.1 ) ) %>% # add vertical line borders after each spanning header group
+      flextable::border_inner_h( border = flextable::fp_border_default( width = 0.1 ), part = "header" ) %>% # make header border lines thinner
+      flextable::hline_top( border = flextable::fp_border_default( width = 0.1 ), part = "body" ) %>% # make body top border line thinner
       flextable::font( fontname = "Arial", part = "all" ) %>% # change font for entire table and ensure arial
-      fontsize( size = 8, part = "all" ) %>%
-      fontsize( size = 7, part = "footer" ) %>%
-      width( width = 0.45 ) %>% # change column widths to fit on one page
-      line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
-      line_spacing( space = 0.7, part = "body" ) %>% # make spacing in footnote single and not double
-      padding( padding.top = 2.5, 
+      flextable::fontsize( size = 8, part = "all" ) %>%
+      flextable::fontsize( size = 7, part = "footer" ) %>%
+      flextable::width( width = 0.45 ) %>% # change column widths to fit on one page
+      flextable::line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
+      flextable::line_spacing( space = 0.7, part = "body" ) %>% # make spacing in footnote single and not double
+      flextable::padding( padding.top = 2.5, 
                padding.bottom = 2.5, 
                padding.left = 4, 
                padding.right = 4, 
                part = "body" ) %>%
-      padding( padding.top = 8, 
+      flextable::padding( padding.top = 8, 
                padding.bottom = 8, 
                padding.left = 4, 
                padding.right = 4, 
                part = "header" ) %>%
-      padding( padding.top = 2.5, 
+      flextable::padding( padding.top = 2.5, 
                padding.bottom = 0,
                part = "footer" ) %>%
-      padding( padding.top = 2.5, padding.bottom = 2.5,part = "footer", i = 1 ) %>%
-      width( width = 0.95, j = var1 ) %>% # change column widths to fit on one page
+      flextable::padding( padding.top = 2.5, padding.bottom = 2.5,part = "footer", i = 1 ) %>%
+      flextable::width( width = 0.95, j = var1 ) %>% # change column widths to fit on one page
       flextable::height( height = 0.002, part = "body", unit = "cm" ) %>%
-      bg( bg = "white", part = "footer" ) %>% # color footer white (undoes `theme_zebra` styling)
-      border_inner_h( border = officer::fp_border(color = "white", style = "solid", width = 0),
+      flextable::bg( bg = "white", part = "footer" ) %>% # color footer white (undoes `theme_zebra` styling)
+      flextable::border_inner_h( border = officer::fp_border(color = "white", style = "solid", width = 0),
                       part = "footer")%>% # remove footer horizontal line (undoes `theme_zebra` styling)
       flextable::bold( bold = FALSE, part = "footer" ) # unbold footer text (undoes `theme_zebra` bolding)
     
@@ -968,13 +968,13 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
           row.id <- which( d.7[[ var1 ]] == d.miss[ p, var1 ] )
           
           t.out <- t.out %>%
-            footnote( value = as_paragraph( paste0( "n = ", d.miss[ p, "NAs"], " records excluded due to missing data." ) ),
+            flextable::footnote( value = flextable::as_paragraph( paste0( "n = ", d.miss[ p, "NAs"], " records excluded due to missing data." ) ),
                       i = row.id, 
                       j = var1,
                       ref_symbols = as.integer( p ) ) %>%
-            fontsize( size = 7, part = "footer" ) %>%
-            line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
-            padding( padding.top = 2.5, padding.bottom = 0, part = "footer", i = 1 )
+            flextable::fontsize( size = 7, part = "footer" ) %>%
+            flextable::line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
+            flextable::padding( padding.top = 2.5, padding.bottom = 0, part = "footer", i = 1 )
           
           
         }
@@ -986,13 +986,13 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
           row.id <- which( d.8[[ "group" ]] == d.miss[ p, table.grouping ] )
           
           t.out <- t.out %>%
-            footnote( value = as_paragraph( paste0( "n = ", d.miss[ p, "NAs"], " records excluded due to missing data." ) ),
+            flextable::footnote( value = flextable::as_paragraph( paste0( "n = ", d.miss[ p, "NAs"], " records excluded due to missing data." ) ),
                       i = row.id, 
                       j = var1,
                       ref_symbols = as.integer( p ) ) %>%
-            fontsize( size = 7, part = "footer" ) %>%
-            line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
-            padding( padding.top = 2.5, padding.bottom = 0, part = "footer", i = 1 )
+            flextable::fontsize( size = 7, part = "footer" ) %>%
+            flextable::line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
+            flextable::padding( padding.top = 2.5, padding.bottom = 0, part = "footer", i = 1 )
           
           
         }
@@ -1001,14 +1001,14 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
         else if( !tb.grp.logic ){ 
           
           t.out <- t.out %>%
-            footnote( value = as_paragraph( paste0( "n = ", d.miss[ p, "NAs"], " records excluded due to missing data." ) ),
-                      i = nrow_part( ., part = "header" ) , # add to last row which is the header row
+            flextable::footnote( value = flextable::as_paragraph( paste0( "n = ", d.miss[ p, "NAs"], " records excluded due to missing data." ) ),
+                      i = flextable::nrow_part( ., part = "header" ) , # add to last row which is the header row
                       j = var1,
                       ref_symbols = as.integer( p ),
                       part = "header" ) %>%
-            fontsize( size = 7, part = "footer" ) %>%
-            line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
-            padding( padding.top = 2.5, padding.bottom = 0, part = "footer", i = 1 )
+            flextable::fontsize( size = 7, part = "footer" ) %>%
+            flextable::line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
+            flextable::padding( padding.top = 2.5, padding.bottom = 0, part = "footer", i = 1 )
           
         }
         
@@ -1022,10 +1022,10 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
   if( !is.null( foot.lines ) ){
     
     t.out <- t.out %>%
-      add_footer_lines( values = fn ) %>% # add footer
-      fontsize( size = 7, part = "footer" ) %>%
-      line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
-      padding( padding.top = 2.5, padding.bottom = 0, part = "footer", i = 1 )
+      flextable::add_footer_lines( values = fn ) %>% # add footer
+      flextable::fontsize( size = 7, part = "footer" ) %>%
+      flextable::line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
+      flextable::padding( padding.top = 2.5, padding.bottom = 0, part = "footer", i = 1 )
     
   }
   
@@ -1037,10 +1037,10 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
     if( count.supp > 0 ){
       
       t.out <- t.out %>%
-        add_footer_lines( values = paste0( count.supp.symbol, " Cell counts \U2264 ", count.supp," were suppressed to protect confidentiality." ) ) %>% # note the use of the UNICODE in this string
-        fontsize( size = 7, part = "footer" ) %>%
-        line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
-        padding( padding.top = 2.5, padding.bottom = 0, part = "footer", i = 1 )
+        flextable::add_footer_lines( values = paste0( count.supp.symbol, " Cell counts \U2264 ", count.supp," were suppressed to protect confidentiality." ) ) %>% # note the use of the UNICODE in this string
+        flextable::fontsize( size = 7, part = "footer" ) %>%
+        flextable::line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
+        flextable::padding( padding.top = 2.5, padding.bottom = 0, part = "footer", i = 1 )
       
     } 
     
@@ -1053,10 +1053,10 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
     if( rate.supp > 0 ){
       
       t.out <- t.out %>%
-        add_footer_lines( values = paste0( rate.supp.symbol, " Rates based on \U2264 ", rate.supp, " events are not presented since such rates are subject to instability." ) ) %>% # note the use of the UNICODE in this string
-        fontsize( size = 7, part = "footer" ) %>%
-        line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
-        padding( padding.top = 2.5, padding.bottom = 0, part = "footer", i = 1 )
+        flextable::add_footer_lines( values = paste0( rate.supp.symbol, " Rates based on \U2264 ", rate.supp, " events are not presented since such rates are subject to instability." ) ) %>% # note the use of the UNICODE in this string
+        flextable::fontsize( size = 7, part = "footer" ) %>%
+        flextable::line_spacing( space = 0.7, part = "footer" ) %>% # make spacing in footnote single and not double
+        flextable::padding( padding.top = 2.5, padding.bottom = 0, part = "footer", i = 1 )
     }
   }
   
