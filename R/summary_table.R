@@ -12,13 +12,8 @@
 #' @import dplyr
 #' @import tidyr
 #' @import stringr
-#' @import flextable
-#' @import eRTG3D
-#' @import tibble
-#' @import officer
-#' @import rlang
-#' @importFrom purrr "reduce"
-#' @importFrom magrittr "%>%"
+#' @import flextable 
+#' @import rlang 
 #'
 #' @usage summary_table( d, var1, var2 = NULL, table.grouping = NULL, pop.var = NULL,
 #' add.summary.row = TRUE, summary.row.name = NULL, add.summary.col = TRUE, font.family = "Calibri Light",
@@ -287,7 +282,7 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
   
   if( is.null( var1 ) ) stop( "`var1` cannot be NULL; if only one variable is desired for stratification purposes, it should be included in the `var1` argument" ) 
   
-  if( eRTG3D::is.sf.3d( d ) ) d <- data.frame( d ) # if `sf` object, keep only attributes table
+  if( inherits( d, "sf" ) ) d <- data.frame( d ) # if `sf` object, keep only attributes table
   
   if( length( var1 ) == 1 ){
     if( !is.null( order.rows ) & sum( order.rows %in% levels( as.factor( d[[ var1 ]] ) ) ) != length( levels( as.factor( d[[ var1 ]] ) ) ) ){
@@ -918,12 +913,12 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
         padding( padding.top = 2.5, padding.bottom = 2.5,part = "footer", i = 1 ) %>%
         flextable::height( height = 0.002, part = "body", unit = "cm" ) %>%
         bg( bg = "white", part = "footer" ) %>% # color footer white (undoes `theme_zebra` styling)
-        border_inner_h( border = fp_border( color = "white", style = "solid", width = 0 ),
+        border_inner_h( border = officer::fp_border( color = "white", style = "solid", width = 0 ),
                         part = "footer") %>% # remove footer horizontal line (undoes `theme_zebra` styling)
-        bold( bold = FALSE, part = "footer" ) %>% # unbold footer text (undoes `theme_zebra` bolding)
+        flextable::bold( bold = FALSE, part = "footer" ) %>% # unbold footer text (undoes `theme_zebra` bolding)
         # below is the formatting for the variable label rows
         { if( all( row.variable.labels =="default" ) | inherits( row.variable.labels, "list" ) ){
-          bold( x = ., i = row.var.labs.which ) %>%
+          flextable::bold( x = ., i = row.var.labs.which ) %>%
             merge_h_range( i = row.var.labs.which,
                            j1 = 1, j2 = ncol_keys(.), part = "body" ) %>% # merge all cells in the header variable label rows
             { if ( row.variable.col != "none" ) bg( x = ., i = row.var.labs.which, bg = row.variable.col ) else . } 
@@ -976,10 +971,10 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
         bg( bg = "white", part = "footer" ) %>% # color footer white (undoes `theme_zebra` styling)
         border_inner_h( border = officer::fp_border(color = "white", style = "solid", width = 0),
                         part = "footer") %>% # remove footer horizontal line (undoes `theme_zebra` styling)
-        bold( bold = FALSE, part = "footer" ) %>% # unbold footer text (undoes `theme_zebra` bolding)
+        flextable::bold( bold = FALSE, part = "footer" ) %>% # unbold footer text (undoes `theme_zebra` bolding)
         # below is the formatting for the variable label rows
         { if( row.variable.labels =="default" | inherits( row.variable.labels, "list" ) ){
-          bold( x = ., i = row.var.labs.which ) %>%
+          flextable::bold( x = ., i = row.var.labs.which ) %>%
             merge_h_range( i = row.var.labs.which,
                            j1 = 1, j2 = ncol_keys(.), part = "body" ) %>% # merge all cells in the header variable label rows
             { if ( row.variable.col != "none" ) bg( x = ., i = row.var.labs.which, bg = row.variable.col ) else . } 

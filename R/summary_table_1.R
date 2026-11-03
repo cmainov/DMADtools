@@ -146,7 +146,7 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
                               .by = !!sym( var1 ) ) } } %>%  # conditional piping line     
                    { if( tb.grp.logic ) dplyr::select( ., -!!sym( table.grouping ) ) else . } %>%  # conditional piping line     
                    distinct() %>%
-                   add_column( !!sym( var2 ) := sum.col.nm ) } } ) 
+                   tibble::add_column( !!sym( var2 ) := sum.col.nm ) } } ) 
   } else if( var.logic.1 ){ # single variable case
     
     d.nomiss %>%
@@ -304,7 +304,7 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
                    } else { reframe( ., tot_count_yr = n() ) } } %>%           # grouped summarise results, grouping variable NOT included
                    { if( tb.grp.logic ) dplyr::select( ., -!!sym( table.grouping ) ) else . } %>%
                    distinct() %>%
-                   add_column( !!sym( var.ref ) := sum.col.nm) } } )
+                   tibble::add_column( !!sym( var.ref ) := sum.col.nm) } } )
     
   } else if( var.logic.1 ){ # single variable case
     
@@ -895,9 +895,9 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
       width( width = 0.95, j = var1 ) %>% # change column widths to fit on one page
       flextable::height( height = 0.002, part = "body", unit = "cm" ) %>%
       bg( bg = "white", part = "footer" ) %>% # color footer white (undoes `theme_zebra` styling)
-      border_inner_h( border = fp_border(color = "white", style = "solid", width = 0),
+      border_inner_h( border = officer::fp_border(color = "white", style = "solid", width = 0),
                       part = "footer")%>% # remove footer horizontal line (undoes `theme_zebra` styling)
-      bold( bold = FALSE, part = "footer" ) # unbold footer text (undoes `theme_zebra` bolding)
+      flextable::bold( bold = FALSE, part = "footer" ) # unbold footer text (undoes `theme_zebra` bolding)
   }
   
   # for wider table when there is only 1 level of var2 but var2 and table.grouping are specified
@@ -944,7 +944,7 @@ summary_table_1 <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.va
       bg( bg = "white", part = "footer" ) %>% # color footer white (undoes `theme_zebra` styling)
       border_inner_h( border = officer::fp_border(color = "white", style = "solid", width = 0),
                       part = "footer")%>% # remove footer horizontal line (undoes `theme_zebra` styling)
-      bold( bold = FALSE, part = "footer" ) # unbold footer text (undoes `theme_zebra` bolding)
+      flextable::bold( bold = FALSE, part = "footer" ) # unbold footer text (undoes `theme_zebra` bolding)
     
   }
   

@@ -3,41 +3,41 @@ Type: Package
 Title: Functions and tools for health data analysis
 Version: 3.0.2
 Date: 2025-03-21
-Author: Christian Maino Vieytes (DMAD/CPPE DC Health)
+Author: Christian Maino Vieytes, PhD, MS
 Maintainer: Christian Maino Vieytes <christian.maino-vieytes@dc.gov>
 Description: Tools for analyzing health and vital records data. Tools for tabulation.
 License: GPL-3 + file LICENSE
 RoxygenNote: 7.3.2
 Encoding: UTF-8
 Suggests: 
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    tibble (>= 3.3.0)
 Config/testthat/edition: 3
 Depends: 
     R (>= 3.5)
 Imports: 
-    dplyr,
-    eRTG3D,
+    dplyr, 
     magrittr,
     purrr,
     stringr,
+    eRTG3D,
     flextable,
     officer,
     tidyr,
-    tibble,
     rlang,
-    furrr,
-    future,
-    parallelly,
     sf,
+    RCurl,
+    jsonlite,
+    stringdist,
+    httr,
+    crayon,
     ggplot2,
     ggpattern,
     ggspatial,
     ggsflabel,
     english,
     ggpubr,
-    tidymar,
-    plyr
-Remotes: yutannihilation/ggsflabel,
-    hersh-gupta/tidymar
+    plyr 
+Remotes: yutannihilation/ggsflabel
 LazyData: true
 Roxygen: list(markdown = TRUE)
