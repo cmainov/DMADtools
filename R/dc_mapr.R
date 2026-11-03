@@ -17,12 +17,11 @@
 #' @import dplyr
 #' @import ggplot2
 #' @import ggpattern
-#' @import eRTG3D
 #' @import tidyr
 #' @import ggspatial
 #' @importFrom ggsflabel geom_sf_text_repel
 #' @import english
-#' @importFrom plyr round_any 
+#' 
 #' 
 #' @usage dc_mapr( d, geo, var, id, bypass = FALSE,
 #'                      metric = "percent", pop.var = NULL, percentages.rel = "geo",
@@ -34,7 +33,7 @@
 #'                      include.compass = TRUE, include.scale = TRUE, size.scale.title = 2,
 #'                      size.scale.labels.ward = 0.7, size.scale.labels.cty = 0.7, missing.pattern = "stripe", 
 #'                      suppressed.pattern = "crosshatch", pattern.spacing = 0.02,
-#'                     force = FALSE, na.rm = TRUE... )
+#'                     force = FALSE, na.rm = TRUE,... )
 #' @details
 #' Attribute data in `d` (see below) should be organized by ward, ZIP-code tabulation area (ZCTA), census tract, or block. 
 #' The following DC geographies can be plotted using this function.
@@ -112,7 +111,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
 
   
   ## checks ##
-  if( eRTG3D::is.sf.3d( d ) ) d <- data.frame( d ) # if `sf` object, keep only attributes table
+  if( inherits( d, "sf" ) ) d <- data.frame( d ) # if `sf` object, keep only attributes table
   
   if( is.null( d[[ var ]] ) ){
     stop( "`var` variable not detected in dataset." )
@@ -481,9 +480,9 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
   
   
   # first pass the fill aesthetic so we can get exact colors mapped
-  p_1 <- ggplot( data = d_map ) +
-    geom_sf( aes( fill = out_metric ) ) +
-    scale_fill_steps(
+  p_1 <- ggplot2::ggplot( data = d_map ) +
+    ggplot2::geom_sf( ggplot2::aes( fill = out_metric ) ) +
+    ggplot2::scale_fill_steps(
       name = colorbar.name,
       low = colorbar.low,
       high = colorbar.high,
@@ -494,7 +493,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
   
   # extract colors assigned to each level and compute distance metrics on text vs fill colors
   d_fill <- bind_cols( p_1$data,
-                       ggplot_build( p_1 )$data[1][[1]][ "fill" ] ) %>%
+                       ggplot2::ggplot_build( p_1 )$data[1][[1]][ "fill" ] ) %>%
     sf::st_drop_geometry() %>% 
     rowwise() %>%
     mutate( color_dist = colorDist( fill, text.color )$p.d ) %>% # compute distance between primary text color and assigned fill
@@ -508,37 +507,37 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
     # missing values
     ggpattern::geom_sf_pattern( data = d_map %>%
                        filter( !is.na( missing_suppressed ) ),
-                     aes( pattern = missing_suppressed ),
+                       ggplot2::aes( pattern = missing_suppressed ),
                      pattern_spacing = pattern.spacing ) +
     # bounding box coordinates
     ggpattern::scale_pattern_manual( values = c( missing.pattern, 
                                                  suppressed.pattern ),
                                      breaks = c( "Missing data",
                                                  "Suppressed" ),
-                                     guide = guide_legend( title = NULL ) ) +
-    geom_sf( data = dc_surr_counties,
+                                     guide = ggplot2::guide_legend( title = NULL ) ) +
+    ggplot2::geom_sf( data = dc_surr_counties,
                           fill = color.surr,
                           color = "gray67") +
-    geom_sf( data = area_water_dc_md_va %>% 
+    ggplot2::geom_sf( data = area_water_dc_md_va %>% 
                filter( STATE != "11" ), fill = "aliceblue", 
              color = "gray67" ) + # non-DC states water file (non-transparent border)
-    geom_sf( data = area_water_dc_md_va %>% 
+    ggplot2::geom_sf( data = area_water_dc_md_va %>% 
                filter( STATE == "11" ), fill = "aliceblue", 
              color = "transparent" ) + # DC water file (transparent border around water shapes)
-    geom_sf( data = dc_st, fill = "transparent") + # layer the DC boundary with transparent fill
-    geom_sf( data = d_map, fill = "transparent") + # relayer the `geo` boundaries with transparent fill
-    coord_sf( xlim = c( bbox1[["xmin"]], bbox1[["xmax"]] ), # sets bounding box
+    ggplot2::geom_sf( data = dc_st, fill = "transparent") + # layer the DC boundary with transparent fill
+    ggplot2::geom_sf( data = d_map, fill = "transparent") + # relayer the `geo` boundaries with transparent fill
+    ggplot2::coord_sf( xlim = c( bbox1[["xmin"]], bbox1[["xmax"]] ), # sets bounding box
               ylim = c( bbox1[["ymin"]], bbox1[["ymax"]] ) ) +
-    xlab("") +
-    ylab("") +
-    theme( text = element_text( family = font.family ),
-           axis.text = element_blank(),
+    ggplot2::xlab("") +
+    ggplot2::ylab("") +
+    ggplot2::theme( text = ggplot2::element_text( family = font.family ),
+           axis.text = ggplot2::element_blank(),
            legend.position = colorbar.position,
-           axis.ticks = element_blank(),
-           plot.subtitle = element_text( face = "italic", size = (9 + size.scale.title) ),
+           axis.ticks = ggplot2::element_blank(),
+           plot.subtitle = ggplot2::element_text( face = "italic", size = (9 + size.scale.title) ),
            ...) +
-    { if( colorbar.position == "bottom" ) theme( legend.margin = margin( t = -15 ) ) } +
-    guides( fill = guide_colorbar( ticks.colour = NA,
+    { if( colorbar.position == "bottom" ) ggplot2::theme( legend.margin = ggplot2::margin( t = -15 ) ) } +
+    ggplot2::guides( fill = ggplot2::guide_colorbar( ticks.colour = NA,
                                    frame.colour =  "black",
                                    barwidth = colorbar.w,
                                    barheight = colorbar.h,
@@ -549,17 +548,17 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
                                    label.position = colorbar.position ) ) +
     
     { if( include.compass ){ ggspatial::annotation_north_arrow( location = "tr", which_north = "true", 
-                                                                pad_x = unit( 0.2, "cm" ), pad_y = unit( 0.2, "cm" ),
-                                                                style = north_arrow_fancy_orienteering, width = unit( 0.73, "cm" ), 
-                                                                height = unit(1.0, "cm") ) } } +
-    { if( include.scale ){ ggspatial::annotation_scale( height = unit( 0.14, "cm" ), 
+                                                                pad_x = ggplot2::unit( 0.2, "cm" ), pad_y = ggplot2::unit( 0.2, "cm" ),
+                                                                style = ggspatial::north_arrow_fancy_orienteering, width = ggplot2::unit( 0.73, "cm" ), 
+                                                                height = ggplot2::unit(1.0, "cm") ) } } +
+    { if( include.scale ){ ggspatial::annotation_scale( height = ggplot2::unit( 0.14, "cm" ), 
                                                         style = "bar",
                                                         unit_category = "imperial",
                                                         location = "br" ) } } +
     # Potomac and Anacostia River labels #
      ggsflabel::geom_sf_text_repel( 
       data = area_water_dc_md_va,
-      mapping = aes( label = LABEL_WATER ),
+      mapping = ggplot2::aes( label = LABEL_WATER ),
       segment.color = "transparent",
       colour = area_water_dc_md_va$label_water_txtcol,
       force = 0, # minimized force of repulsion between labels
@@ -572,7 +571,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
     # Surrounding County Labels #
     ggsflabel::geom_sf_text_repel( 
       data = dc_surr_counties,
-      mapping = aes( label = LABEL_CTY ),
+      mapping = ggplot2::aes( label = LABEL_CTY ),
       segment.color = "transparent",
       colour = "gray50",
       force = 0, # minimized force of repulsion between labels
@@ -585,7 +584,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
     # DC Ward labels #
     { if( str_detect( geo, "ward" ) ){
       ggsflabel::geom_sf_text_repel( 
-      mapping = aes( label = NAMELSAD ),
+      mapping = ggplot2::aes( label = NAMELSAD ),
       force = 0, # minimized force of repulsion between labels
       size = ( 3.1 + size.scale.labels.ward ),
       nudge_x = d_map$labelward_nudge_x,
@@ -597,7 +596,7 @@ dc_mapr <- function( d, geo, var, id, bypass = FALSE,
     # ZCTA labels #
     { if( str_detect( geo, "zcta" ) ){
       ggsflabel::geom_sf_text_repel( 
-        mapping = aes( label = labelzip ),
+        mapping = ggplot2::aes( label = labelzip ),
         segment.color = d_map$labelzip_segcolor,
         colour = d_map$labelzip_txtcol,
         force = 0, # minimized force of repulsion between labels

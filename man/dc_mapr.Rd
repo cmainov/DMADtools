@@ -14,7 +14,7 @@ dc_mapr( d, geo, var, id, bypass = FALSE,
                      include.compass = TRUE, include.scale = TRUE, size.scale.title = 2,
                      size.scale.labels.ward = 0.7, size.scale.labels.cty = 0.7, missing.pattern = "stripe", 
                      suppressed.pattern = "crosshatch", pattern.spacing = 0.02,
-                    force = FALSE, na.rm = TRUE... )
+                    force = FALSE, na.rm = TRUE,... )
 }
 \arguments{
 \item{d}{A data frame or tibble with the attribute data used to fill the shapes.}

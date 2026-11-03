@@ -17,10 +17,8 @@ Depends:
     R (>= 3.5)
 Imports: 
     dplyr, 
-    magrittr,
     purrr,
-    stringr,
-    eRTG3D,
+    stringr, 
     flextable,
     officer,
     tidyr,
@@ -36,8 +34,7 @@ Imports:
     ggspatial,
     ggsflabel,
     english,
-    ggpubr,
-    plyr 
+    ggpubr 
 Remotes: yutannihilation/ggsflabel
 LazyData: true
 Roxygen: list(markdown = TRUE)
