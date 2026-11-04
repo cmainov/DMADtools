@@ -42,6 +42,8 @@ Gupta, H (n.d.). tidymar: Fuctions to Interact with the MAR Web Service. GitHub.
 
 \examples{
 
+\dontrun{
+
 library( DMADtools )
 
 findlocation2( "1600 Pennsylvania Ave NW" )
@@ -72,5 +74,7 @@ findlocation2( address = these_geocode_list, refine_result = TRUE, method = "lv"
                
 # use MARID instead
 findlocation2( "303109" ) 
+
+}
 
 }
