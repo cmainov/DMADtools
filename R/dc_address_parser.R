@@ -41,7 +41,7 @@
 dc_address_parser <- function( address ){
   
   # check 
-  if( any( !str_detect( address, "^\\d+(?=\\s+\\w)" ) ) ) warning( "Non-standard address(es) detected in input." )
+  if( any( !stringr::str_detect( address, "^\\d+(?=\\s+\\w)" ) ) ) warning( "Non-standard address(es) detected in input." )
   if( !( inherits( address, "list" ) | inherits( address, "character" ) ) ) stop( "`address` must be a single string, character vector, or list of addresses." )
   
   ## Step 1: Address Parsing
@@ -50,38 +50,38 @@ dc_address_parser <- function( address ){
   if( inherits( address, "list" ) ) address <- unlist( address )
   
   address1 = toupper( address )  # upper case all for standardization
-  address2 = ifelse( !str_detect( address1, "^\\d+" ) & 
-                       str_detect( address1, "^[:alpha:]+\\s+\\d+" ) &
-                       address != "", str_remove( address1, "^[:alpha:]+\\s+(?=\\d+)" ),
+  address2 = ifelse( !stringr::str_detect( address1, "^\\d+" ) & 
+                       stringr::str_detect( address1, "^[:alpha:]+\\s+\\d+" ) &
+                       address != "", stringr::str_remove( address1, "^[:alpha:]+\\s+(?=\\d+)" ),
                      address1 )  # if there is non-numeric text at the start of the address string that is followed by numbers, remove the letters (usually for the name of a place that precedes the address number)
   
-  address3 = str_replace_all( address2, "\\s+", " " )  # ensure no multiple empty spaces, replace with one space
-  address4 = str_replace( address3, "(\\d+)+\\s+(TH|RD)", "\\1\\2" )  # any spaces between numbered streets and their suffix are removed
-  address5 = ifelse( str_detect( address4, "^\\d+[:alpha:]"),
-                     str_replace( address4, "(^\\d+)([:alpha:])", "\\1 \\2" ),
+  address3 = stringr::str_replace_all( address2, "\\s+", " " )  # ensure no multiple empty spaces, replace with one space
+  address4 = stringr::str_replace( address3, "(\\d+)+\\s+(TH|RD)", "\\1\\2" )  # any spaces between numbered streets and their suffix are removed
+  address5 = ifelse( stringr::str_detect( address4, "^\\d+[:alpha:]"),
+                     stringr::str_replace( address4, "(^\\d+)([:alpha:])", "\\1 \\2" ),
                      address4 ) # add a space between street no. and st name if one is not detected
   
-  aptnum <- str_extract( address5, "(?<=\\b[NS][EW]\\b\\s).*" )
+  aptnum <- stringr::str_extract( address5, "(?<=\\b[NS][EW]\\b\\s).*" )
   
-  zipcode <- str_trim( str_extract( aptnum, "(?<!\\sAPT|\\sUNIT|\\s\\#|\\sNO\\.|\\sNUMBER|\\sSUITE)\\d{5}$" ) ) # assumption is that any any 5 digit value at the end of the string not preceded by an apartment or unit keyword is a ZIP code
+  zipcode <- stringr::str_trim( stringr::str_extract( aptnum, "(?<!\\sAPT|\\sUNIT|\\s\\#|\\sNO\\.|\\sNUMBER|\\sSUITE)\\d{5}$" ) ) # assumption is that any any 5 digit value at the end of the string not preceded by an apartment or unit keyword is a ZIP code
   
-  aptnum1 <- str_trim( str_remove( aptnum, zipcode ) )
+  aptnum1 <-  ifelse( is.na( zipcode ), aptnum, stringr::str_trim( stringr::str_remove( aptnum, stringr::fixed( zipcode ) ) ) )
   
   if( any( !is.na( zipcode ) ) ){
-    if( any( !str_detect( zipcode, "^2" ) ) ) warning( "Non-DC ZIP code(s) detected. Double check address input(s)." ) # warning for non-DC ZIP code detection
+    if( any( !stringr::str_detect( zipcode, "^2" ) ) ) warning( "Non-DC ZIP code(s) detected. Double check address input(s)." ) # warning for non-DC ZIP code detection
   }
   
-  address6 = str_remove( address5, "(?<=\\b[NS][EW]\\b\\s).*" ) # remove apt/unit, first pass
+  address6 = stringr::str_remove( address5, "(?<=\\b[NS][EW]\\b\\s).*" ) # remove apt/unit, first pass
   
-  aptnum2 = str_trim( ifelse( is.na(aptnum1), str_extract( address6, "\\b(?:\\sAPT|\\sUNIT|\\s\\#|\\sNO\\.|\\sNUMBER|\\sSUITE)\\b\\s?.*"),
+  aptnum2 = stringr::str_trim( ifelse( is.na( aptnum1 ), stringr::str_extract( address6, "\\b(?:\\sAPT|\\sUNIT|\\s\\#|\\sNO\\.|\\sNUMBER|\\sSUITE)\\b\\s?.*"),
                               aptnum1 ) ) # second pass for detecting apt/uni
   
-  address7 = str_remove( address6, "\\b(?:\\sAPT|\\sUNIT|\\s\\#|\\sNO\\.|\\sNUMBER|\\sSUITE)\\b\\s?.*" ) # remove apt/unit, second pass
-  address8 = str_remove( address7, "(?<=\\b[NS][EW]\\b\\s).*" )
-  address9 = str_remove( address8, "^\\s+|\\s+$" ) # remove leading or trailing whitespaces
-  address10 = str_remove_all( address9, "[[:punct:]&&[^/'']]" ) # remove unnecessary punctuation from address string but keep forward slashes
-  address11 = str_replace_all( address10, "\\s+", " " ) # remove unnecessary white space
-  address12 = str_replace( address11, "(N)\\s+(W)$|(N)\\s+(E)$|(S)\\s+(W)$|(S)\\s+(E)$", 
+  address7 = stringr::str_remove( address6, "\\b(?:\\sAPT|\\sUNIT|\\s\\#|\\sNO\\.|\\sNUMBER|\\sSUITE)\\b\\s?.*" ) # remove apt/unit, second pass
+  address8 = stringr::str_remove( address7, "(?<=\\b[NS][EW]\\b\\s).*" )
+  address9 = stringr::str_remove( address8, "^\\s+|\\s+$" ) # remove leading or trailing whitespaces
+  address10 = stringr::str_remove_all( address9, "[[:punct:]&&[^/'']]" ) # remove unnecessary punctuation from address string but keep forward slashes
+  address11 = stringr::str_replace_all( address10, "\\s+", " " ) # remove unnecessary white space
+  address12 = stringr::str_replace( address11, "(N)\\s+(W)$|(N)\\s+(E)$|(S)\\s+(W)$|(S)\\s+(E)$", 
                            "\\1\\2\\3\\4\\5\\6\\7\\8" ) # rare situation where quadrant letters are spaced apart (e.g., N W)
   
   # Step 1a: Word Extraction
@@ -159,7 +159,7 @@ dc_address_parser <- function( address ){
   quadrant = ifelse( edge1 == 1, "", quadrant )
   
   cleanNA <- setNames( lapply( list( addrnum, stname, street_type, street_type2, quadrant, aptnum2, zipcode ),
-                               function(x) str_trim( str_remove( ifelse( is.na(x), "", x ), "\\sNA$" ) ) ), # if NA, set to "" and remove any trailing NAs
+                               function(x) stringr::str_trim( stringr::str_remove( ifelse( is.na(x), "", x ), "\\sNA$" ) ) ), # if NA, set to "" and remove any trailing NAs
                        c( "addrnum", "stname", "street_type", "street_type2", "quadrant", "aptnum", "zipcode" ) )
   
   # commonly misspelled DC street names that won't be picked up by geocoder
@@ -170,10 +170,10 @@ dc_address_parser <- function( address ){
   address3 = paste( cleanNA[["addrnum"]] , cleanNA[["stname"]] , cleanNA[["street_type2"]], cleanNA[["quadrant"]] )
   # address remains the unmodified address string
   
-  address4 = str_replace_all( address3, "^\\s+|\\s+$", "" )
+  address4 = stringr::str_replace_all( address3, "^\\s+|\\s+$", "" )
   
   # final build/clean
-  address_build = str_replace_all( address4, paste0( "(\\d+)\\s*", # street number followed by 0 or more ws
+  address_build = stringr::str_replace_all( address4, paste0( "(\\d+)\\s*", # street number followed by 0 or more ws
                                                      "(.+?)\\s*",  # street name: 1 or more characters followed by 0 or more ws
                                                      "((", paste0( street_types, collapse = "|"), "))\\b", # street type (one of any in `street_type`)
                                                      "((", paste0( quad_types, collapse = "|"), "))",        # quadrant type (one of any in `quad_type`)
@@ -184,7 +184,7 @@ dc_address_parser <- function( address ){
                                    "\\1 \\2 \\3 \\5 \\7 \\9" ) # the numbering is dependent on nested parentheses in the regex as well, e.g., "(())" counts as two sets of parentheses/groups
   
   
-  address_clean = str_replace_all( address_build, "\\s\\s+", " " ) # remove leading and trailing white space
+  address_clean = stringr::str_replace_all( address_build, "\\s\\s+", " " ) # remove leading and trailing white space
   
   # return object below
   return( as.data.frame( list( INPUT = address, address_clean = address_clean, cleanNA ) ) %>% 

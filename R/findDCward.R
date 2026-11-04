@@ -27,6 +27,8 @@
 #' 
 #' @examples
 #' 
+#' \dontrun{
+#' 
 #' library( DMADtools )
 #' 
 #' findDCward( "1500 S Capitol St SE" ) # default behavior will return 2022 ward assignment
@@ -36,6 +38,8 @@
 #' 
 #'# use MARID instead
 #' findDCward( "303109", cycle = c( "2022", "2012", "2002" ) ) 
+#' 
+#' }
 #' 
 #' @export
 

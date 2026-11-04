@@ -31,6 +31,8 @@
 #' 
 #' @examples
 #' 
+#' \dontrun{
+#' 
 #' library( DMADtools )
 #' 
 #' findlocation2( "1600 Pennsylvania Ave NW" )
@@ -62,6 +64,8 @@
 #'                
 #' # use MARID instead
 #' findlocation2( "303109" ) 
+#' 
+#' }
 #' 
 #' @export
 
