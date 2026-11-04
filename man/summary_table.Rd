@@ -96,6 +96,8 @@ Employs \code{flextable} to generate a "nice" publication-level table that can b
 }
 \examples{
 
+\dontrun{
+
 library( DMADtools )
 
 summary_table( d = d_example,
@@ -295,5 +297,7 @@ summary_table( d = d_example,
                row.variable.labels = list( v1 = "var1",
                                            v3 = "var3"),
                pop.var = "v_pop" )
+
+}
 
 }
