@@ -129,6 +129,9 @@ test_that( "capture no result found error", {
 
 test_that( "use MARID instead", {
   
+  # skip test if MAR2_KEY not detected in .renviron
+  testthat::skip_if_not( nzchar( Sys.getenv( "MAR2_KEY" ) ) )
+  
   use_marid <- "303109"
   
   quer4 <- expect_no_error( findlocation2( use_marid ) )
