@@ -67,6 +67,8 @@
 #'
 #' @examples
 #' 
+#' \dontrun{
+#' 
 #' library( DMADtools )
 #' 
 #' summary_table( d = d_example,
@@ -266,6 +268,8 @@
 #'                row.variable.labels = list( v1 = "var1",
 #'                                            v3 = "var3"),
 #'                pop.var = "v_pop" )
+#' 
+#' }
 #' 
 #' @export
 
