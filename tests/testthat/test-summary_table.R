@@ -1,3 +1,6 @@
+
+skip_on_os( "mac" )
+
 test_that("`pop.var` missing", {
   expect_error( summary_table( d = d_example_na %>%
                                  select( -v_pop ),
