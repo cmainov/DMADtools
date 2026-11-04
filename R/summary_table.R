@@ -279,15 +279,6 @@ summary_table <- function( d, var1, var2 = NULL, table.grouping = NULL, pop.var 
   
   ## checks for all conditions ##
   
-  
-  if (!requireNamespace("flextable", quietly = TRUE)) {
-    stop(
-      "Package 'flextable' is required for summary_table().",
-      call. = FALSE
-    )
-  }
-  
-  
   if( is.null( var1 ) ) stop( "`var1` cannot be NULL; if only one variable is desired for stratification purposes, it should be included in the `var1` argument" ) 
   
   if( inherits( d, "sf" ) ) d <- data.frame( d ) # if `sf` object, keep only attributes table

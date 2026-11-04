@@ -11,8 +11,7 @@ RoxygenNote: 7.3.2
 Encoding: UTF-8
 Suggests: 
     testthat (>= 3.0.0),
-    tibble (>= 3.3.0),
-    flextable (>= 0.9.9)
+    tibble (>= 3.3.0)
 Config/testthat/edition: 3
 Depends: 
     R (>= 3.5)
@@ -33,6 +32,7 @@ Imports:
     ggpattern,
     ggspatial,
     ggsflabel,
+    flextable,
     english,
     ggpubr 
 Remotes: yutannihilation/ggsflabel
