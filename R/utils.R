@@ -204,3 +204,40 @@ logical <- crayon::green # to distinguish logical, NULL, and NA special characte
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
+
+street_lookup <- c(
+  AVE = "AVE",
+  AVENUE = "AVE",
+  ST = "ST",
+  STREET = "ST",
+  RD = "RD",
+  ROAD = "RD",
+  LN = "LN",
+  LANE = "LN",
+  DR = "DR",
+  DRIVE = "DR",
+  CT = "CT",
+  COURT = "CT",
+  PKWY = "PKWY",
+  PKY = "PKWY",
+  PARKWAY = "PKWY",
+  TERR = "TERR",
+  TERRACE = "TERR",
+  PL = "PL",
+  PLACE = "PL",
+  CIR = "CIR",
+  CIRCLE = "CIR",
+  BLVD = "BLVD",
+  BOULEVARD = "BLVD",
+  SQ = "SQ",
+  SQUARE = "SQ",
+  WY = "WY",
+  WAY = "WY",
+  ALY = "ALY",
+  ALLY = "ALY",
+  ALLEY = "ALY"
+)
+
+short_street_type <- function(x) {
+  unname(street_lookup[toupper(x)])
+}

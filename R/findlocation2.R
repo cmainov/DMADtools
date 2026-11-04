@@ -98,7 +98,7 @@ findlocation2 <- function( address, api_key = NULL, refine_result = FALSE, verbo
   add_sep <- paste( paste( address, collapse = "$$" ) ) # "||" is the chunk sequence separator. "$$" is the address separator
   
   # base64 encode the address string(s)
-  base64_address <- RCurl::base64( add_sep )[1] %>% utils::URLencode( reserved = TRUE )
+  base64_address <- RCurl::base64( add_sep )[1]
   
   #  API endpoint URL
   api_endpoint <- "https://datagate.dc.gov/mar/open/api/v2.2/locationbatch/"

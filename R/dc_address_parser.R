@@ -45,7 +45,7 @@ dc_address_parser <- function( address ){
   if( !( inherits( address, "list" ) | inherits( address, "character" ) ) ) stop( "`address` must be a single string, character vector, or list of addresses." )
   
   ## Step 1: Address Parsing
-
+  
   # if list, coerce to character
   if( inherits( address, "list" ) ) address <- unlist( address )
   
@@ -74,7 +74,7 @@ dc_address_parser <- function( address ){
   address6 = stringr::str_remove( address5, "(?<=\\b[NS][EW]\\b\\s).*" ) # remove apt/unit, first pass
   
   aptnum2 = stringr::str_trim( ifelse( is.na( aptnum1 ), stringr::str_extract( address6, "\\b(?:\\sAPT|\\sUNIT|\\s\\#|\\sNO\\.|\\sNUMBER|\\sSUITE)\\b\\s?.*"),
-                              aptnum1 ) ) # second pass for detecting apt/uni
+                                       aptnum1 ) ) # second pass for detecting apt/uni
   
   address7 = stringr::str_remove( address6, "\\b(?:\\sAPT|\\sUNIT|\\s\\#|\\sNO\\.|\\sNUMBER|\\sSUITE)\\b\\s?.*" ) # remove apt/unit, second pass
   address8 = stringr::str_remove( address7, "(?<=\\b[NS][EW]\\b\\s).*" )
@@ -82,7 +82,7 @@ dc_address_parser <- function( address ){
   address10 = stringr::str_remove_all( address9, "[[:punct:]&&[^/'']]" ) # remove unnecessary punctuation from address string but keep forward slashes
   address11 = stringr::str_replace_all( address10, "\\s+", " " ) # remove unnecessary white space
   address12 = stringr::str_replace( address11, "(N)\\s+(W)$|(N)\\s+(E)$|(S)\\s+(W)$|(S)\\s+(E)$", 
-                           "\\1\\2\\3\\4\\5\\6\\7\\8" ) # rare situation where quadrant letters are spaced apart (e.g., N W)
+                                    "\\1\\2\\3\\4\\5\\6\\7\\8" ) # rare situation where quadrant letters are spaced apart (e.g., N W)
   
   # Step 1a: Word Extraction
   new1 = word( address12, 1, sep = fixed( " " ) ) # extract address components
@@ -174,14 +174,14 @@ dc_address_parser <- function( address ){
   
   # final build/clean
   address_build = stringr::str_replace_all( address4, paste0( "(\\d+)\\s*", # street number followed by 0 or more ws
-                                                     "(.+?)\\s*",  # street name: 1 or more characters followed by 0 or more ws
-                                                     "((", paste0( street_types, collapse = "|"), "))\\b", # street type (one of any in `street_type`)
-                                                     "((", paste0( quad_types, collapse = "|"), "))",        # quadrant type (one of any in `quad_type`)
-                                                     "((APT|UNIT|\\#|NO\\.|NUMBER|SUITE)*)", # 0 or more of APT or UNIT labels
-                                                     "(\\d*)",      # 0 or more of APT or UNIT number
-                                                     "(200\\d+)*",    # ZIP code, if present
-                                                     "(US|USA|U\\.S\\.|U\\.S\\A\\.)*" ), # USA, if present
-                                   "\\1 \\2 \\3 \\5 \\7 \\9" ) # the numbering is dependent on nested parentheses in the regex as well, e.g., "(())" counts as two sets of parentheses/groups
+                                                              "(.+?)\\s*",  # street name: 1 or more characters followed by 0 or more ws
+                                                              "((", paste0( street_types, collapse = "|"), "))\\b", # street type (one of any in `street_type`)
+                                                              "((", paste0( quad_types, collapse = "|"), "))",        # quadrant type (one of any in `quad_type`)
+                                                              "((APT|UNIT|\\#|NO\\.|NUMBER|SUITE)*)", # 0 or more of APT or UNIT labels
+                                                              "(\\d*)",      # 0 or more of APT or UNIT number
+                                                              "(200\\d+)*",    # ZIP code, if present
+                                                              "(US|USA|U\\.S\\.|U\\.S\\A\\.)*" ), # USA, if present
+                                            "\\1 \\2 \\3 \\5 \\7 \\9" ) # the numbering is dependent on nested parentheses in the regex as well, e.g., "(())" counts as two sets of parentheses/groups
   
   
   address_clean = stringr::str_replace_all( address_build, "\\s\\s+", " " ) # remove leading and trailing white space

@@ -635,6 +635,10 @@ if( !file.exists( "./R/sysdata.rda" ) ){
                    "NORTHWEST","NORTH WEST","NORTHEAST","NORTH EAST",
                    "SOUTHWEST","SOUTH WEST","SOUTHEAST","SOUTH EAST" )
   
+  devtools::load_all()
+  
+  names_mar2response <- names( findlocation2( "1600 Pennsylvania Ave NW" ) )
+  
   usethis::use_data( linear_water_dc_md_va, # liner water shapefiles
                      area_water_dc_md_va, # area water shapefile
                      dc_st, # dc boundary shapefile
@@ -644,6 +648,7 @@ if( !file.exists( "./R/sysdata.rda" ) ){
                      dc_zcta,
                      street_types,
                      quad_types,
+                     names_mar2response,
                      compress = "xz",
                      internal = TRUE,
                      overwrite = TRUE,
