@@ -9,6 +9,9 @@ these_geocode <- c( "1600 Pennsylvania Ave NW",
 
 test_that( "single run of findlocation2`", {
   
+  # skip test if MAR2_KEY not detected in .renviron
+  testthat::skip_if_not( nzchar( Sys.getenv( "MAR2_KEY" ) ) )
+                         
   res <- expect_no_error( findlocation2( "1 1st Street NE"  ) )
   
   # expect tibble for single address query
@@ -29,6 +32,9 @@ test_that( "single run of findlocation2`", {
 } )
   
 test_that( "vector run of findlocation2`", {
+  
+  # skip test if MAR2_KEY not detected in .renviron
+  testthat::skip_if_not( nzchar( Sys.getenv( "MAR2_KEY" ) ) )
   
   res <- expect_no_error( findlocation2( address = these_geocode ) )
   
@@ -55,6 +61,9 @@ test_that( "vector run of findlocation2`", {
 } )
 
 test_that( "list run of findlocation2`", {
+  
+  # skip test if MAR2_KEY not detected in .renviron
+  testthat::skip_if_not( nzchar( Sys.getenv( "MAR2_KEY" ) ) )
   
   list_geocode <- as.list( these_geocode )
   
@@ -85,6 +94,9 @@ test_that( "list run of findlocation2`", {
 
 test_that( "capture errors", {
   
+  # skip test if MAR2_KEY not detected in .renviron
+  testthat::skip_if_not( nzchar( Sys.getenv( "MAR2_KEY" ) ) )
+  
   expect_error( findlocation2( address = these_geocode, refine_result = TRUE,
                method = "lk" ) )
   
@@ -107,6 +119,9 @@ test_that( "capture errors", {
 # invalid address with no results
 
 test_that( "capture no result found error", {
+  
+  # skip test if MAR2_KEY not detected in .renviron
+  testthat::skip_if_not( nzchar( Sys.getenv( "MAR2_KEY" ) ) )
   
   expect_error( findlocation2( "13048 Peter Norbeck Scenic Byway" ), regexp = "No\\sresults\\sfound\\." )
   

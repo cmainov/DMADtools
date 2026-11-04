@@ -1,6 +1,6 @@
 
+if( nzchar( Sys.getenv( "MAR2_KEY" ) ) ){
 
-# no errors for normal run
 key_real <- Sys.getenv( "MAR2_KEY" )
 
 key_fake <- "2789"
@@ -9,8 +9,15 @@ write_mar2_api_key( key = key_fake, overwrite = TRUE )
 
 readRenviron( "~/.Renviron" )
 
+}
+
+
+# no errors for normal run
 test_that( "normal run of `write` and `read`", {
 
+  # skip test if MAR2_KEY not detected in .renviron
+  testthat::skip_if_not( nzchar( Sys.getenv( "MAR2_KEY" ) ) )
+  
   # reboot the file in the session environment
   readRenviron( "~/.Renviron" )
   
@@ -41,6 +48,9 @@ test_that( "normal run of `write` and `read`", {
 # expect warning when overwrite set to FALSE
 test_that( "warning overwrite in `write`", {
   
+  # skip test if MAR2_KEY not detected in .renviron
+  testthat::skip_if_not( nzchar( Sys.getenv( "MAR2_KEY" ) ) )
+  
   expect_warning( write_mar2_api_key( key = key_fake ) )
   
 } )
@@ -48,6 +58,9 @@ test_that( "warning overwrite in `write`", {
 # expect errors when key is NULL
 test_that( "error for key in `write`", { 
 
+  # skip test if MAR2_KEY not detected in .renviron
+  testthat::skip_if_not( nzchar( Sys.getenv( "MAR2_KEY" ) ) )
+  
   expect_error( write_mar2_api_key( key = c( "KEY1", "KEY2" ), overwrite = FALSE )  )
   
   expect_error( write_mar2_api_key( key = NULL, overwrite = FALSE )  )
@@ -59,6 +72,9 @@ test_that( "error for key in `write`", {
 
 
 test_that( "no error and functionality in  `read`", { 
+  
+  # skip test if MAR2_KEY not detected in .renviron
+  testthat::skip_if_not( nzchar( Sys.getenv( "MAR2_KEY" ) ) )
   
   expect_no_error( write_mar2_api_key( key = key_fake, overwrite = TRUE ) )
   
@@ -84,6 +100,11 @@ test_that( "no error and functionality in  `read`", {
 } )
 
 
+if( nzchar( Sys.getenv( "MAR2_KEY" ) ) ){
+  
 # write back original key if present
 write_mar2_api_key( key = key_real, overwrite = TRUE ) 
+  
 readRenviron( "~/.Renviron" ) # reboot .renviron
+
+}

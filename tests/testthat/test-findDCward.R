@@ -2,6 +2,9 @@
 
 test_that( "general query; matching results, expected output", {
   
+  # skip test if MAR2_KEY not detected in .renviron
+  testthat::skip_if_not( nzchar( Sys.getenv( "MAR2_KEY" ) ) )
+  
   # default behavior, expecting WARD2022 column return
   quer <- expect_no_error( findDCward( "1500 S Capitol St SE" ) )
   
@@ -37,6 +40,9 @@ test_that( "general query; matching results, expected output", {
 
 test_that( "use MARID instead", {
   
+  # skip test if MAR2_KEY not detected in .renviron
+  testthat::skip_if_not( nzchar( Sys.getenv( "MAR2_KEY" ) ) )
+  
   use_marid <- "303109"
   
   quer4 <- expect_no_error( findDCward( use_marid ) )
@@ -65,6 +71,9 @@ test_that( "use MARID instead", {
 # more than one match
 test_that( "greater than one match", {
   
+  # skip test if MAR2_KEY not detected in .renviron
+  testthat::skip_if_not( nzchar( Sys.getenv( "MAR2_KEY" ) ) )
+  
   quer6 <- findDCward( "1600 Pennsylvania Ave" ) # not using quadrant
 
   expect_true( tibble::is_tibble( quer6 ) )
@@ -79,6 +88,9 @@ test_that( "greater than one match", {
 
 # more than one match
 test_that( "expect all years other than 2002, 2012, 2022 to prompt error", {
+  
+  # skip test if MAR2_KEY not detected in .renviron
+  testthat::skip_if_not( nzchar( Sys.getenv( "MAR2_KEY" ) ) )
   
   # also will confirm integer intput for cycle works
   yrs_run <- 2000:2026
@@ -96,6 +108,9 @@ test_that( "expect all years other than 2002, 2012, 2022 to prompt error", {
 # invalid address with no results
 
 test_that( "capture no result found error", {
+  
+  # skip test if MAR2_KEY not detected in .renviron
+  testthat::skip_if_not( nzchar( Sys.getenv( "MAR2_KEY" ) ) )
   
   expect_error( findDCward( "13048 Peter Norbeck Scenic Byway" ), regexp = "No\\sresults\\sfound\\." )
   
