@@ -118,12 +118,21 @@ test_that( "capture errors", {
 
 # invalid address with no results
 
-test_that( "capture no result found error", {
+test_that( "capture no result found error and returnNA", {
   
   # skip test if MAR2_KEY not detected in .renviron
   testthat::skip_if_not( nzchar( Sys.getenv( "MAR2_KEY" ) ) )
   
   expect_error( findlocation2( "13048 Peter Norbeck Scenic Byway" ), regexp = "No\\sresults\\sfound\\." )
+  
+  expect_warning( findlocation2( "13048 Peter Norbeck Scenic Byway",
+                                              returnNA = TRUE  ),
+                  regexp = "No\\sresults\\sfound\\sfor\\s13048\\sPeter\\sNorbeck\\sScenic\\sByway" )
+  
+  nareturn <- suppressWarnings( findlocation2( "13048 Peter Norbeck Scenic Byway",
+                 returnNA = TRUE  ) )
+  
+  expect_true( nrow( nareturn ) == 1 & nareturn$FULLADDRESS == "13048 Peter Norbeck Scenic Byway" )
   
 } )
 
@@ -145,4 +154,3 @@ test_that( "use MARID instead", {
   expect_true( quer4$MARID == "303109" ) 
   
 } )
-

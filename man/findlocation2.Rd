@@ -4,7 +4,7 @@
 \alias{findlocation2}
 \title{Geocode a DC Address with the OCTO's Master Address Repository 2 (MAR2) API}
 \usage{
-findlocation2( address, api_key = NULL, refine_result = FALSE, verbose = TRUE, ...)
+findlocation2( address, api_key = NULL, refine_result = FALSE, verbose = TRUE, returnNA = FALSE, ...)
 }
 \arguments{
 \item{address}{A string, character vector, or list of District of Columbia addresses to geocode. If known, a \code{MARID} can be supplied that links to an exact match in the MAR.}
@@ -13,7 +13,9 @@ findlocation2( address, api_key = NULL, refine_result = FALSE, verbose = TRUE, .
 
 \item{refine_result}{A logical. Triggers an additional layer of fuzzy matching (using \code{stringdist::stringdist}) to filter search results and increase the probability of an exact match, if possible. Usually not needed.}
 
-\item{verbose}{A logical. Display output and messaging in console.}
+\item{verbose}{A logical. Display output and messaging in console. Default is \code{TRUE}.}
+
+\item{returnNA}{A logical. If \code{TRUE}, returns an empty \code{tibble} with NA results and a warning thrown. If \code{FALSE}, the function throws an error for not finding a result. Default is \code{FALSE.}}
 
 \item{...}{Additional arguments forwarded to \code{stringdist::stringdist}. Note that if no additional arguments are included, the function reverts to the defaults in \code{stringdist::stringdist}. Use \verb{method = } to modify the fuzzy matching algorithm. See the Help documentation for \code{stringdist::stringdist} for more information on the available fuzzy searching algorithms.}
 }

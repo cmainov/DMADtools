@@ -7,7 +7,7 @@
 #'
 #' @description Builds and sends a GET request query to the District of Columbia Office of the Chief Technology Officer (OCTO)'s MAR2 Batch Geocoder API service. Requires a MAR2 API key. See OCTO's website for more information on obtaining an API key (\url{https://developers.data.dc.gov/}). Also see `DMADtools::write_mar2_api_key` and `DMADtools::read_mar2_api_key` for handling the MAR2 API key within the environment of this package. This function builds off of `tidymar::findlocation`, which queried the legacy MAR API.
 #' 
-#' @usage findlocation2( address, api_key = NULL, refine_result = FALSE, verbose = TRUE, ...)
+#' @usage findlocation2( address, api_key = NULL, refine_result = FALSE, verbose = TRUE, returnNA = FALSE, ...)
 #' 
 #' @details
 #' OCTO's MAR2 API is a modern .NET geocoding web service that leverages ElasticSearch to refine address search results for DC address queries. It is recommended to not exceed 400 records in a single query. More information on the geocoding service can be found at \url{https://mar2.data.dc.gov/}.
@@ -24,7 +24,8 @@
 #' @param address A string, character vector, or list of District of Columbia addresses to geocode. If known, a `MARID` can be supplied that links to an exact match in the MAR.
 #' @param api_key A string or `NULL`. MAR2 API key value. If `NULL`, the function calls `DMADtools::read_mar2_api_key` to search for the key in the local .Renviron file. See `DMADtools::write_mar2_api_key` and `DMADtools::read_mar2_api_key` for more details.
 #' @param refine_result A logical. Triggers an additional layer of fuzzy matching (using `stringdist::stringdist`) to filter search results and increase the probability of an exact match, if possible. Usually not needed.
-#' @param verbose A logical. Display output and messaging in console.
+#' @param verbose A logical. Display output and messaging in console. Default is `TRUE`.
+#' @param returnNA  A logical. If `TRUE`, returns an empty `tibble` with NA results and a warning thrown. If `FALSE`, the function throws an error for not finding a result. Default is `FALSE.`
 #' @param ... Additional arguments forwarded to `stringdist::stringdist`. Note that if no additional arguments are included, the function reverts to the defaults in `stringdist::stringdist`. Use `method = ` to modify the fuzzy matching algorithm. See the Help documentation for `stringdist::stringdist` for more information on the available fuzzy searching algorithms.
 #' 
 #' @return A `list` of `tibble` frames with the results (matches) of each address query, in tidy format. If the query is a single address, an object of class `tibble` is returned with the matches for that address.
@@ -70,7 +71,7 @@
 #' @export
 
 
-findlocation2 <- function( address, api_key = NULL, refine_result = FALSE, verbose = TRUE, ... ){
+findlocation2 <- function( address, api_key = NULL, refine_result = FALSE, verbose = TRUE, returnNA = FALSE,... ){
   
   if( length( address ) > 10000 ) stop( "Too many addresses. The MAR2 API Batch Geocoder accepts up to 10,000 results. Consider sending separate queries and no more than 400 addresses per query." )
   
@@ -81,7 +82,7 @@ findlocation2 <- function( address, api_key = NULL, refine_result = FALSE, verbo
   if( !is.logical( verbose ) ) stop( accent( "verbose" ), " must be one of ", logical( "TRUE" ), " or ", logical( "FALSE" ) )
   
   if( inherits( address, "list" ) ) address <- unlist( address )
-    
+  
   # capture dots
   dots <- list(...)
   
@@ -114,15 +115,15 @@ findlocation2 <- function( address, api_key = NULL, refine_result = FALSE, verbo
   
   # build the URL for the POST request
   url_send <- httr::build_url( parsed_url )
-
+  
   # send the POST request (POST method is used instead of GET bc it omits the address inputs from the URL)
-    # the query parameters are sent in the body instead
+  # the query parameters are sent in the body instead
   response_post <- httr::POST( url = url_send, 
-                              body = list( `Content-Type`= "application/json-patch+json",
-                                           accept = "text/json",
-                                           address_base64 = base64_address,
-                                           charset = "utf-8" ),
-                              encode = "json" ) 
+                               body = list( `Content-Type`= "application/json-patch+json",
+                                            accept = "text/json",
+                                            address_base64 = base64_address,
+                                            charset = "utf-8" ),
+                               encode = "json" ) 
   
   # check status of response; stop if !=200
   httr::stop_for_status( response_post )
@@ -145,23 +146,38 @@ findlocation2 <- function( address, api_key = NULL, refine_result = FALSE, verbo
   # each list contains sublists for each column, so must flatten again; returns list of tibbles
   # where each element in the list corresponds to each address query in address input vector
   result <- purrr::map( .x = flat$addresses, .f = ~ 
-                   as_tibble( jsonlite::flatten( .x$address ) ) %>% 
-                     # clean up column names
-                     rename_with( .cols = everything(),
-                                  .fn = ~ toupper( sub( x = .x, 
-                                                        pattern = "^properties\\.(?=\\w+)", 
-                                                        replacement = "", 
-                                                        perl = TRUE # POSIX regex does not support lookaheads, need PERL engine for this function
-                                  ) ) ) %>% 
-                     rename_with( .cols = everything(), 
-                                  .fn = ~ toupper( sub( x = .x, 
-                                                        pattern = "\\.", 
-                                                        replacement = "_"
-                                  ) ) ) )
+                          as_tibble( jsonlite::flatten( .x$address ) ) %>% 
+                          # clean up column names
+                          rename_with( .cols = everything(),
+                                       .fn = ~ toupper( sub( x = .x, 
+                                                             pattern = "^properties\\.(?=\\w+)", 
+                                                             replacement = "", 
+                                                             perl = TRUE # POSIX regex does not support lookaheads, need PERL engine for this function
+                                       ) ) ) %>% 
+                          rename_with( .cols = everything(), 
+                                       .fn = ~ toupper( sub( x = .x, 
+                                                             pattern = "\\.", 
+                                                             replacement = "_"
+                                       ) ) ) )
   
-  if( purrr::is_empty( result ) | is.null( result ) ) stop( "No results found." ) # error thrown if no results found.
+  if( purrr::is_empty( result ) | is.null( result ) ){
+    if( returnNA ){ # if set to TRUE, return an empty data frame with warning
+      
+      warning( "No results found for ", address ) # error thrown if no results found.
+      
+      return(  dplyr::as_tibble(
+        setNames(
+          rep( list(NA), length( names_mar2response ) ),
+          names_mar2response ) ) %>%
+          mutate(
+            FULLADDRESS = address,
+            `_SCORE` = 0
+          ) )
+    } else stop( "No results found." ) # error thrown if no results found and returnNA FALSE
+  }
   
   # if refine_result is TRUE, we use additional string distance/fuzzy matching functions to get the closest match and recompute scores
+  
   if( refine_result ){
     
     if( verbose ){
@@ -202,8 +218,8 @@ findlocation2 <- function( address, api_key = NULL, refine_result = FALSE, verbo
       if( verbose ){
         
         if( nrow( new_result ) < nrow( listframe ) ) cat( note( "Note: query = ", accent( address[i] ), "\n" ), "Matches were filtered further from", accent( nrow( listframe ) ), "to", accent( nrow( new_result ) ), "matches, with a maximum match score of", paste0( paste0( accent( sprintf( "%.1f", max( new_result$`_SCORE` ) ), "%" ) ), "." ), "\n" )
-      
-      if( nrow( new_result ) == nrow( listframe ) ) cat( note( "Note: query = ", accent( address[i] ), "\n" ), "Fuzzy matching did not provide additional filtering advantage. There were", accent( nrow( new_result ) ), "matches, with a maximum match score of", paste0( paste0( accent( sprintf( "%.1f", max( new_result$`_SCORE` ) ), "%" ) ), "." ), "\n" )
+        
+        if( nrow( new_result ) == nrow( listframe ) ) cat( note( "Note: query = ", accent( address[i] ), "\n" ), "Fuzzy matching did not provide additional filtering advantage. There were", accent( nrow( new_result ) ), "matches, with a maximum match score of", paste0( paste0( accent( sprintf( "%.1f", max( new_result$`_SCORE` ) ), "%" ) ), "." ), "\n" )
       }
       
       new_result
