@@ -4,7 +4,7 @@ Title: Functions and tools for health data analysis
 Version: 3.0.2
 Date: 2025-03-21
 Author: Christian Maino Vieytes, PhD, MS
-Maintainer: Christian Maino Vieytes
+Maintainer: Christian Maino Vieytes <cam17@illinois.edu>
 Description: Tools for analyzing health and vital records data. Tools for tabulation.
 License: GPL-3 + file LICENSE
 RoxygenNote: 7.3.2
