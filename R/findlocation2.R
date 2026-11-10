@@ -19,7 +19,7 @@
 #' District of Columbia Government. "MAR 2 Batch Geocoder Portal." Accessed October 29, 2026. \url{https://mar2.data.dc.gov/}. 
 #' 
 #' ## `tidymar`
-#' Gupta, H (n.d.). tidymar: Fuctions to Interact with the MAR Web Service. GitHub. Retrieved from \url{https://github.com/hersh-gupta/tidymar/}. Accessed on October 27, 2026. 
+#' Gupta, H (n.d.). tidymar: Functions to Interact with the MAR Web Service. GitHub. Retrieved from \url{https://github.com/hersh-gupta/tidymar/}. Accessed on October 27, 2026. 
 #' 
 #' @param address A string, character vector, or list of District of Columbia addresses to geocode. If known, a `MARID` can be supplied that links to an exact match in the MAR.
 #' @param api_key A string or `NULL`. MAR2 API key value. If `NULL`, the function calls `DMADtools::read_mar2_api_key` to search for the key in the local .Renviron file. See `DMADtools::write_mar2_api_key` and `DMADtools::read_mar2_api_key` for more details.
@@ -158,12 +158,12 @@ findlocation2 <- function( address, api_key = NULL, refine_result = FALSE, verbo
       dplyr::as_tibble( setNames( rep( list(NA), length( names_mar2response ) ), 
                                   names_mar2response ) ) %>% mutate( FULLADDRESS = address[i], 
                                                                      `_SCORE` = 0 )
-    } else as_tibble( jsonlite::flatten( x_in$address ) ) %>% 
-      rename_with( .cols = everything(), .fn = ~toupper( sub( x = .x, 
-                                                              pattern = "^properties\\.(?=\\w+)", replacement = "", 
-                                                              perl = TRUE ) ) ) %>%
-      rename_with( .cols = everything(), 
-                   .fn = ~toupper(sub(x = .x, pattern = "\\.", replacement = "_" ) ) )
+    } else dplyr::as_tibble( jsonlite::flatten( x_in$address ) ) %>% 
+      dplyr::rename_with( .cols = everything(), .fn = ~toupper( sub( x = .x, 
+                                                                     pattern = "^properties\\.(?=\\w+)", replacement = "", 
+                                                                     perl = TRUE ) ) ) %>%
+      dplyr::rename_with( .cols = everything(), 
+                          .fn = ~toupper(sub(x = .x, pattern = "\\.", replacement = "_" ) ) )
   } )
   
   
