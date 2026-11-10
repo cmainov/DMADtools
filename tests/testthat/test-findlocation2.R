@@ -134,6 +134,26 @@ test_that( "capture no result found error and returnNA", {
   
   expect_true( nrow( nareturn ) == 1 & nareturn$FULLADDRESS == "13048 Peter Norbeck Scenic Byway" )
   
+  # using a vector of 2 or 3 now
+  expect_warning( findlocation2( c( "13048 Peter Norbeck Scenic Byway",
+                                    "1600 PENNSYLVANIA AVENUE NW",
+                                    "101 INDEPENDENCE AVENUE SE" ),
+                                 returnNA = TRUE  ),
+                  regexp = "No\\sresults\\sfound\\sfor\\s13048\\sPeter\\sNorbeck\\sScenic\\sByway" )
+  
+  nareturnvec <- suppressWarnings( findlocation2( c( "13048 Peter Norbeck Scenic Byway",
+                                                     "1600 PENNSYLVANIA AVENUE NW",
+                                                     "101 INDEPENDENCE AVENUE SE" ),
+                                               returnNA = TRUE  ) ) %>% 
+    do.call( "rbind", . )
+  
+  expect_true( nrow( nareturnvec ) == 3 )
+  expect_true( all( nareturnvec$`_SCORE` == c( 0, 100, 100 ) ) )
+  expect_true( all( nareturnvec$FULLADDRESS == c( "13048 Peter Norbeck Scenic Byway",
+                                             "1600 PENNSYLVANIA AVENUE NW",
+                                             "101 INDEPENDENCE AVENUE SE" ) ) )
+  
+  
 } )
 
 test_that( "use MARID instead", {

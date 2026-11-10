@@ -143,38 +143,29 @@ findlocation2 <- function( address, api_key = NULL, refine_result = FALSE, verbo
   # flatten results
   flat <- inner$Results %>% purrr::flatten()
   
+  if( any( grepl( "No\\sresults\\sfound", inner$Results$Message  ) ) ){
+    if( returnNA ) warning( "No results found for ", address[ which( grepl( "No\\sresults\\sfound", inner$Results$Message ) ) ] ) else stop( "No results found." )
+  }
+  
   # each list contains sublists for each column, so must flatten again; returns list of tibbles
   # where each element in the list corresponds to each address query in address input vector
-  result <- purrr::map( .x = flat$addresses, .f = ~ 
-                          as_tibble( jsonlite::flatten( .x$address ) ) %>% 
-                          # clean up column names
-                          rename_with( .cols = everything(),
-                                       .fn = ~ toupper( sub( x = .x, 
-                                                             pattern = "^properties\\.(?=\\w+)", 
-                                                             replacement = "", 
-                                                             perl = TRUE # POSIX regex does not support lookaheads, need PERL engine for this function
-                                       ) ) ) %>% 
-                          rename_with( .cols = everything(), 
-                                       .fn = ~ toupper( sub( x = .x, 
-                                                             pattern = "\\.", 
-                                                             replacement = "_"
-                                       ) ) ) )
+  result <- lapply( seq_along( address ), function(i){
+    
+    x_in <- flat$addresses[[i]]
+    
+    if( is.null(x_in) | purrr::is_empty(x_in) ){ 
+      
+      dplyr::as_tibble( setNames( rep( list(NA), length( names_mar2response ) ), 
+                                  names_mar2response ) ) %>% mutate( FULLADDRESS = address[i], 
+                                                                     `_SCORE` = 0 )
+    } else as_tibble( jsonlite::flatten( x_in$address ) ) %>% 
+      rename_with( .cols = everything(), .fn = ~toupper( sub( x = .x, 
+                                                              pattern = "^properties\\.(?=\\w+)", replacement = "", 
+                                                              perl = TRUE ) ) ) %>%
+      rename_with( .cols = everything(), 
+                   .fn = ~toupper(sub(x = .x, pattern = "\\.", replacement = "_" ) ) )
+  } )
   
-  if( purrr::is_empty( result ) | is.null( result ) ){
-    if( returnNA ){ # if set to TRUE, return an empty data frame with warning
-      
-      warning( "No results found for ", address ) # error thrown if no results found.
-      
-      return(  dplyr::as_tibble(
-        setNames(
-          rep( list(NA), length( names_mar2response ) ),
-          names_mar2response ) ) %>%
-          mutate(
-            FULLADDRESS = address,
-            `_SCORE` = 0
-          ) )
-    } else stop( "No results found." ) # error thrown if no results found and returnNA FALSE
-  }
   
   # if refine_result is TRUE, we use additional string distance/fuzzy matching functions to get the closest match and recompute scores
   
