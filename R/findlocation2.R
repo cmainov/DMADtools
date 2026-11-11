@@ -156,7 +156,7 @@ findlocation2 <- function( address, api_key = NULL, refine_result = FALSE, verbo
     if( is.null(x_in) | purrr::is_empty(x_in) ){ 
       
       dplyr::as_tibble( setNames( rep( list(NA), length( names_mar2response ) ), 
-                                  names_mar2response ) ) %>% mutate( FULLADDRESS = address[i], 
+                                  names_mar2response ) ) %>% dplyr::mutate( FULLADDRESS = address[i], 
                                                                      `_SCORE` = 0 )
     } else dplyr::as_tibble( jsonlite::flatten( x_in$address ) ) %>% 
       dplyr::rename_with( .cols = everything(), .fn = ~toupper( sub( x = .x, 
@@ -204,7 +204,7 @@ findlocation2 <- function( address, api_key = NULL, refine_result = FALSE, verbo
       
       new_result <- listframe[ these_match, ] %>% 
         # recompute `_SCORE` column using softmax function
-        mutate( `_SCORE` = 100 * exp( -dists[ these_match ] ) / sum( exp( -dists[ these_match ] ) ) ) # softmax function for score
+        dplyr::mutate( `_SCORE` = 100 * exp( -dists[ these_match ] ) / sum( exp( -dists[ these_match ] ) ) ) # softmax function for score
       
       if( verbose ){
         
