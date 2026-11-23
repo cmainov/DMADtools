@@ -45,9 +45,11 @@ write_mar2_api_key <- function( key, overwrite = FALSE ){
   
   if( overwrite ){
     
-    if( is.null( which_mar2 ) || !length( which_mar2 ) ) cat( note( "Note:\n" ), accent( "MAR2_KEY" ), "not detected in .Renviron file. Will write supplied key and update the file.\n\n" )
-    
-    if( length( which_mar2 ) >= 1  ){ 
+    if( is.null( which_mar2 ) || !length( which_mar2 ) ){
+      cat( note( "Note:\n" ), accent( "MAR2_KEY" ), "not detected in .Renviron file. Will write supplied key and update the file.\n\n" )
+      new_renv <- read_renviron[ c( -which( read_renviron == "" ) ) ]
+      new_renv_out <- c( new_renv, paste0( "MAR2_KEY=\"", key, "\"" ), "" )
+    } else if( length( which_mar2 ) >= 1  ){ 
       cat( note( "Note:\n" ), "One or more", accent( "MAR2_KEY" ), "entries detected in .Renviron file. Will delete all instances and rewrite with the supplied key.\n\n" )
       
       new_renv <- read_renviron[ c( -which_mar2, -which( read_renviron == "" ) ) ]
